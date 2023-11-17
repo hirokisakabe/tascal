@@ -14,6 +14,10 @@ import { getUserId, useAuth } from "./auth";
 import { useCategories } from "./category";
 import { firestore } from "@/config";
 import { Task, isTask } from "@/model";
+import { PrismaClient } from "@prisma/client";
+import { getServerSession } from "next-auth";
+import { Result } from "result-type-ts";
+import { nextAuth } from "@/lib/nextAuth";
 
 export async function createTask({
   title,
@@ -80,15 +84,23 @@ export async function updateTask({
 }
 
 export async function completeTask({ id }: { id: string }) {
-  const userId = getUserId();
+  "use server";
 
-  if (!userId) {
-    console.error("Failed to get userId");
-    return;
+  const session = await getServerSession(nextAuth.authOptions);
+
+  if (!session) {
+    return Result.failure("Failed to get session.");
   }
 
-  await updateDoc(doc(firestore, "users", userId, "tasks", id), {
-    isCompleted: true,
+
+  // @ts-ignore
+  const userId = session?.user?.id; 
+
+  const prisma = new PrismaClient();
+
+  await prisma.task.update({
+    where: { id, userId },
+    data: { isCompleted: true },
   });
 }
 
@@ -101,6 +113,27 @@ export async function deleteTask({ id }: { id: string }) {
   }
 
   await deleteDoc(doc(firestore, "users", userId, "tasks", id));
+}
+
+export async function fetchTaskList() {
+  const prisma = new PrismaClient();
+
+  const session = await getServerSession(nextAuth.authOptions);
+
+  if (!session) {
+    return Result.failure("Failed to get session.");
+  }
+
+  // @ts-ignore
+  const userId = session?.user?.id;
+
+  if (typeof userId !== "string") {
+    return Result.failure("Failed to get userId.");
+  }
+
+  const tasks = await prisma.task.findMany({ where: { userId } });
+
+  return Result.success(tasks);
 }
 
 export function useTaskList(options?: {

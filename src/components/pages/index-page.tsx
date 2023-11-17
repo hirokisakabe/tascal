@@ -1,27 +1,18 @@
-"use client";
-
+import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
-import { Button } from "../parts";
-import { useAuth, useSignIn } from "@/lib";
+import { SignInButton } from "../signin-button";
+import { nextAuth } from "@/lib/next-auth";
 
-export function IndexPage() {
-  const auth = useAuth();
-  const { signIn } = useSignIn();
+export async function IndexPage() {
+  const session = await getServerSession(nextAuth.authOptions);
 
-  if (auth.status === "loading") {
-    return (
-      <main className="flex min-h-screen flex-col items-center justify-between p-24">
-        <div>Loading...</div>
-      </main>
-    );
-  }
-  if (auth.status === "authenticated") {
+  if (session) {
     redirect("/dashboard");
   }
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <Button onClick={() => signIn()}>Sign In</Button>
+      <SignInButton />
     </main>
   );
 }
