@@ -1,24 +1,16 @@
-"use client";
-
 import { redirect } from "next/navigation";
 import { Tab } from "@headlessui/react";
+import { getServerSession } from "next-auth";
 import { Header } from "../header";
 import { TaskCalenderTab } from "../task-calender-tab";
 import { TaskListTab } from "../task-list-tab";
 import { Typography } from "../parts";
-import { useAuth } from "@/lib";
+import { nextAuth } from "@/lib/next-auth";
 
-export function DashboardPage() {
-  const auth = useAuth();
+export async function DashboardPage() {
+  const session = await getServerSession(nextAuth.authOptions);
 
-  if (auth.status === "loading") {
-    return (
-      <main className="flex min-h-screen flex-col items-center justify-between p-24">
-        <div>Loading...</div>
-      </main>
-    );
-  }
-  if (auth.status === "not_authenticated") {
+  if (!session) {
     redirect("/");
   }
 

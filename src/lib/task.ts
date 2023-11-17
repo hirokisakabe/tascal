@@ -84,12 +84,18 @@ export async function updateTask({
 }
 
 export async function completeTask({ id }: { id: string }) {
-  const userId = getUserId();
+  "use server";
 
-  if (!userId) {
-    console.error("Failed to get userId");
-    return;
+
+  const session = await getServerSession(nextAuth.authOptions);
+
+
+  if (!session) {
+    return Result.failure("Failed to get session.");
   }
+
+
+  const tasks = await prisma.task.insert({ where: { userId } });
 
   await updateDoc(doc(firestore, "users", userId, "tasks", id), {
     isCompleted: true,

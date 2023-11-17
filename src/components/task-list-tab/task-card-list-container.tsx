@@ -1,14 +1,12 @@
 import { TaskCardList } from "./task-card-list";
-import { useTaskCalender } from "./use-task-card-list";
+import { fetchTaskList } from "@/lib";
 
-export function TaskCardListContainer() {
-  const { taskList, toggleExcludeIsCompleted } = useTaskCalender();
+export async function TaskCardListContainer() {
+  const taskList = await fetchTaskList();
 
-  return (
-    <TaskCardList
-      taskList={taskList}
-      excludeIsCompleted
-      toggleExcludeIsCompleted={toggleExcludeIsCompleted}
-    />
-  );
+  if (!taskList.success) {
+    return <>Failed to fetch</>;
+  }
+
+  return <TaskCardList taskList={taskList.value} />;
 }

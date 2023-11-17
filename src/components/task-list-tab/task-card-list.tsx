@@ -5,12 +5,10 @@ import { Task } from "@/model";
 
 type Props = {
   taskList: Task[] | null;
-  excludeIsCompleted: boolean;
-  toggleExcludeIsCompleted: () => unknown;
 };
 
 export function TaskCardList(props: Props) {
-  const { taskList, excludeIsCompleted, toggleExcludeIsCompleted } = props;
+  const { taskList } = props;
 
   if (!taskList) {
     return <>loading</>;
@@ -19,10 +17,7 @@ export function TaskCardList(props: Props) {
   return (
     <div className="w-full space-y-2 py-3">
       <div className="flex justify-end space-x-2">
-        <IsCompletedFilterButton
-          excludeIsCompleted={excludeIsCompleted}
-          onClick={toggleExcludeIsCompleted}
-        />
+        <IsCompletedFilterButton />
         <CreateTaskButton />
       </div>
       <div className="space-y-1">
