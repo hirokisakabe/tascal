@@ -9,20 +9,40 @@ import {
 	Select,
 	SelectItem,
 } from "@nextui-org/react";
-import { deleteTask, updateTask } from "../_lib/actions";
+import { deleteTask } from "../_actions/deleteTask";
+import { updateTask } from "../_actions/updateTask";
+import { useCategories } from "../_hooks/useCategories";
+import type { Task } from "../_model/task";
+import { Ymd } from "../_model/ymd";
+import { SubmitButton } from "./SubmitButton";
 
 type Props = {
 	isOpen: boolean;
 	onOpenChange: () => unknown;
+	task: Task;
 };
 
-const categories = [
-	{ categoryId: "1", label: "dummy_1" },
-	{ categoryId: "2", label: "dummy_2" },
-	{ categoryId: "3", label: "dummy_3" },
-];
-
 export function UpdateTaskModal(props: Props) {
+	const updateTaskWithTaskId = updateTask.bind(null, props.task.id);
+
+	const categories = useCategories();
+
+	if (categories.state === "loading") {
+		return (
+			<Modal isOpen={props.isOpen} onOpenChange={props.onOpenChange}>
+				<ModalContent>Loading</ModalContent>
+			</Modal>
+		);
+	}
+
+	if (categories.state === "error") {
+		return (
+			<Modal isOpen={props.isOpen} onOpenChange={props.onOpenChange}>
+				<ModalContent>Error</ModalContent>
+			</Modal>
+		);
+	}
+
 	return (
 		<Modal isOpen={props.isOpen} onOpenChange={props.onOpenChange}>
 			<ModalContent>
@@ -31,28 +51,47 @@ export function UpdateTaskModal(props: Props) {
 						<ModalHeader className="flex flex-col gap-1">
 							タスクを編集
 						</ModalHeader>
-						<form action={updateTask}>
+						<form action={updateTaskWithTaskId}>
 							<ModalBody>
-								<Input type="text" label="タイトル" />
-								<Input type="date" label="実施日" />
-								<Select label="カテゴリを選択" className="max-w-xs">
-									{categories.map((category) => (
-										<SelectItem
-											key={category.categoryId}
-											value={category.categoryId}
-										>
-											{category.label}
+								<Input
+									type="text"
+									name="title"
+									label="タイトル"
+									defaultValue={props.task.title}
+								/>
+								<Input
+									type="date"
+									name="targetDate"
+									label="実施日"
+									defaultValue={
+										props.task.targetYmd
+											? Ymd.convertYmdToStr(props.task.targetYmd)
+											: undefined
+									}
+								/>
+								<Select
+									label="カテゴリを選択"
+									name="category"
+									className="max-w-xs"
+									items={categories.categories}
+									defaultSelectedKeys={
+										props.task.category ? [props.task.category.id] : undefined
+									}
+								>
+									{(category) => (
+										<SelectItem key={category.id} value={category.id}>
+											{category.name}
 										</SelectItem>
-									))}
+									)}
 								</Select>
 							</ModalBody>
 							<ModalFooter>
 								<Button color="danger" variant="light" onPress={onClose}>
 									キャンセル
 								</Button>
-								<Button color="primary" type="submit" onPress={onClose}>
+								<SubmitButton color="primary" onPress={onClose}>
 									完了
-								</Button>
+								</SubmitButton>
 							</ModalFooter>
 						</form>
 						<ModalFooter>
@@ -62,7 +101,7 @@ export function UpdateTaskModal(props: Props) {
 									color="danger"
 									variant="light"
 									onPress={async () => {
-										await deleteTask();
+										await deleteTask(props.task.id);
 										onClose();
 									}}
 								>
@@ -73,6 +112,7 @@ export function UpdateTaskModal(props: Props) {
 					</>
 				)}
 			</ModalContent>
+			)
 		</Modal>
 	);
 }

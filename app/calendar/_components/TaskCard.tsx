@@ -13,7 +13,11 @@ export function TaskCard(props: Props) {
 	const { isOpen, onOpen, onOpenChange } = useDisclosure();
 	return (
 		<>
-			<UpdateTaskModal isOpen={isOpen} onOpenChange={onOpenChange} />
+			<UpdateTaskModal
+				isOpen={isOpen}
+				onOpenChange={onOpenChange}
+				task={props.task}
+			/>
 			<button type="button" onClick={onOpen}>
 				<div>{props.task.title}</div>
 			</button>
