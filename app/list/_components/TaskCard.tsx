@@ -22,16 +22,22 @@ export function TaskCard(props: Props) {
 			<button type="button" onClick={onOpen}>
 				<Card>
 					<CardBody>
-						<div className="flex justify-between items-center px-3">
-							<div>{props.task.title}</div>
-							<div>
-								{props.task.targetYmd
-									? Ymd.convertYmdToStr(props.task.targetYmd)
-									: null}
+						<div className="flex  items-center px-3">
+							<div className="basis-1/2">{props.task.title}</div>
+							<div className="basis-1/4">
+								<div className="flex justify-end">
+									{props.task.targetYmd
+										? Ymd.convertYmdToStr(props.task.targetYmd)
+										: null}
+								</div>
 							</div>
-							<Button isIconOnly variant="light" aria-label="Check">
-								<CheckCircleIcon />
-							</Button>
+							<div className="basis-1/4">
+								<div className="flex justify-end">
+									<Button isIconOnly variant="light" aria-label="Check">
+										<CheckCircleIcon />
+									</Button>
+								</div>
+							</div>
 						</div>
 					</CardBody>
 				</Card>
