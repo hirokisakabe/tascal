@@ -17,6 +17,10 @@ const TaskSchema = z.object({
 
 export type Task = z.infer<typeof TaskSchema>;
 
-export function isTask(target: unknown) {
+export const Task = {
+	isTask,
+};
+
+function isTask(target: unknown) {
 	return TaskSchema.safeParse(target);
 }

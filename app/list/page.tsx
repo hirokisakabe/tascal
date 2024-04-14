@@ -3,8 +3,8 @@ import AddTaskButton from "./_components/AddTaskButton";
 import { TaskCard } from "./_components/TaskCard";
 import { fetchTasks } from "./_lib/fetchTask";
 
-export default function Page() {
-	const tasks = fetchTasks();
+export default async function Page() {
+	const tasks = await fetchTasks();
 
 	return (
 		<div>
@@ -14,11 +14,7 @@ export default function Page() {
 			</div>
 			<div className="grid gap-0.5">
 				{tasks.map((task) => (
-					<TaskCard
-						key={task.id}
-						title={task.title}
-						targetYmd={task.targetYmd}
-					/>
+					<TaskCard key={task.id} task={task} />
 				))}
 			</div>
 		</div>
