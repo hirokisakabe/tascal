@@ -21,11 +21,11 @@ export function TaskCard(props: Props) {
 				onOpenChange={onOpenChange}
 				task={props.task}
 			/>
-			<button type="button" onClick={onOpen}>
-				<Card className={props.task.isCompleted ? "bg-zinc-50" : ""}>
-					<CardBody>
-						<div className="flex  items-center px-3">
-							<div className="basis-1/2">
+			<Card className={props.task.isCompleted ? "bg-zinc-50" : ""}>
+				<CardBody>
+					<div className="flex  items-center px-3">
+						<button className="grow flex" type="button" onClick={onOpen}>
+							<div className="basis-3/4 flex justify-start">
 								{props.task.isCompleted ? (
 									<div className="line-through text-zinc-500">
 										{props.task.title}
@@ -34,42 +34,38 @@ export function TaskCard(props: Props) {
 									<div>{props.task.title}</div>
 								)}
 							</div>
-							<div className="basis-1/4">
-								<div className="flex justify-end">
-									{props.task.targetYmd
-										? Ymd.convertYmdToStr(props.task.targetYmd)
-										: null}
-								</div>
+							<div className="basis-1/4 flex justify-start">
+								{props.task.targetYmd
+									? Ymd.convertYmdToStr(props.task.targetYmd)
+									: null}
 							</div>
-							<div className="basis-1/4">
-								<div className="flex justify-end">
-									{props.task.isCompleted ? (
-										<Button
-											size="sm"
-											isIconOnly
-											variant="faded"
-											aria-label="Check"
-											onClick={() => uncompleteTask(props.task.id)}
-										>
-											<CheckIcon />
-										</Button>
-									) : (
-										<Button
-											size="sm"
-											isIconOnly
-											variant="light"
-											aria-label="Check"
-											onClick={() => completeTask(props.task.id)}
-										>
-											<CheckIcon />
-										</Button>
-									)}
-								</div>
-							</div>
+						</button>
+						<div className="flex justify-end">
+							{props.task.isCompleted ? (
+								<Button
+									size="sm"
+									isIconOnly
+									variant="faded"
+									aria-label="Check"
+									onClick={() => uncompleteTask(props.task.id)}
+								>
+									<CheckIcon />
+								</Button>
+							) : (
+								<Button
+									size="sm"
+									isIconOnly
+									variant="light"
+									aria-label="Check"
+									onClick={() => completeTask(props.task.id)}
+								>
+									<CheckIcon />
+								</Button>
+							)}
 						</div>
-					</CardBody>
-				</Card>
-			</button>
+					</div>
+				</CardBody>
+			</Card>
 		</>
 	);
 }
