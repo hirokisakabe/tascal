@@ -10,12 +10,19 @@ function convertDateToYmd(date: Date) {
 	return ymd.data;
 }
 
-export async function fetchTasks() {
+export async function fetchTasks({
+	includeCompleted,
+}: { includeCompleted?: boolean }) {
 	const prisma = new PrismaClient();
 
 	const tasks = await prisma.task.findMany({
 		include: { category: true },
 		orderBy: { targetDate: "desc" },
+		where: includeCompleted
+			? undefined
+			: {
+					completed: false,
+				},
 	});
 
 	return tasks.map((task) => ({
