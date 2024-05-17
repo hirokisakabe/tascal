@@ -6,21 +6,21 @@ import { Button, Card, CardBody, useDisclosure } from "@nextui-org/react";
 import { UpdateTaskModal } from "../../_components/UpdateTaskModal";
 
 type Props = {
-	task: Task;
+  task: Task;
 };
 
 export function TaskCard(props: Props) {
-	const { isOpen, onOpen, onOpenChange } = useDisclosure();
-	return (
-		<>
-			<UpdateTaskModal
-				isOpen={isOpen}
-				onOpenChange={onOpenChange}
-				task={props.task}
-			/>
-			<button type="button" onClick={onOpen}>
-				<div>{props.task.title}</div>
-			</button>
-		</>
-	);
+  const { isOpen, onOpen, onOpenChange } = useDisclosure();
+  return (
+    <>
+      <UpdateTaskModal
+        isOpen={isOpen}
+        onOpenChange={onOpenChange}
+        task={props.task}
+      />
+      <button type="button" onClick={onOpen}>
+        <div>{props.task.title}</div>
+      </button>
+    </>
+  );
 }

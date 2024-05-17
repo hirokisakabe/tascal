@@ -7,28 +7,28 @@ import { useDisclosure } from "@nextui-org/react";
 import { AddTaskModal } from "../../_components/AddTaskModal";
 
 type Props = {
-	targetYmd: Ymd;
+  targetYmd: Ymd;
 };
 
 export function AddTaskButton(props: Props) {
-	const { isOpen, onOpen, onOpenChange } = useDisclosure();
+  const { isOpen, onOpen, onOpenChange } = useDisclosure();
 
-	return (
-		<>
-			<AddTaskModal
-				isOpen={isOpen}
-				onOpenChange={onOpenChange}
-				defaultTargetYmd={props.targetYmd}
-			/>
-			<Button
-				size="sm"
-				isIconOnly
-				variant="light"
-				aria-label="タスクを追加"
-				onClick={onOpen}
-			>
-				<PlusIcon />
-			</Button>
-		</>
-	);
+  return (
+    <>
+      <AddTaskModal
+        isOpen={isOpen}
+        onOpenChange={onOpenChange}
+        defaultTargetYmd={props.targetYmd}
+      />
+      <Button
+        size="sm"
+        isIconOnly
+        variant="light"
+        aria-label="タスクを追加"
+        onClick={onOpen}
+      >
+        <PlusIcon />
+      </Button>
+    </>
+  );
 }
