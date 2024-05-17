@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidateTag } from "next/cache";
 import { getPrismaClient } from "../_lib/prisma";
 
 export async function completeTask(taskId: string) {
@@ -13,5 +13,5 @@ export async function completeTask(taskId: string) {
 		},
 	});
 
-	revalidatePath("/");
+	revalidateTag("tasks");
 }
