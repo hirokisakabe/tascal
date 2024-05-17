@@ -3,38 +3,38 @@ import { PrismaClient } from "@prisma/client";
 import { unstable_cache } from "next/cache";
 
 function convertDateToYmd(date: Date) {
-	const ymd = Ymd.convertDateToYmd(date);
+  const ymd = Ymd.convertDateToYmd(date);
 
-	if (!ymd.success) {
-		return null;
-	}
-	return ymd.data;
+  if (!ymd.success) {
+    return null;
+  }
+  return ymd.data;
 }
 
 async function _fetchTasks({
-	includeCompleted,
+  includeCompleted,
 }: {
-	includeCompleted?: boolean;
+  includeCompleted?: boolean;
 }) {
-	const prisma = new PrismaClient();
+  const prisma = new PrismaClient();
 
-	const tasks = await prisma.task.findMany({
-		include: { category: true },
-		orderBy: { targetDate: "desc" },
-		where: includeCompleted
-			? undefined
-			: {
-					completed: false,
-				},
-	});
+  const tasks = await prisma.task.findMany({
+    include: { category: true },
+    orderBy: { targetDate: "desc" },
+    where: includeCompleted
+      ? undefined
+      : {
+          completed: false,
+        },
+  });
 
-	return tasks.map((task) => ({
-		...task,
-		isCompleted: task.completed,
-		targetYmd: task.targetDate ? convertDateToYmd(task.targetDate) : null,
-	}));
+  return tasks.map((task) => ({
+    ...task,
+    isCompleted: task.completed,
+    targetYmd: task.targetDate ? convertDateToYmd(task.targetDate) : null,
+  }));
 }
 
 export const fetchTasks = unstable_cache(_fetchTasks, ["tasks"], {
-	tags: ["tasks"],
+  tags: ["tasks"],
 });

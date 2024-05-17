@@ -7,14 +7,14 @@ import { useFormStatus } from "react-dom";
 type Props = ComponentProps<typeof Button>;
 
 export function SubmitButton({
-	children,
-	...props
+  children,
+  ...props
 }: { children: React.ReactNode } & Props) {
-	const { pending } = useFormStatus();
+  const { pending } = useFormStatus();
 
-	return (
-		<Button {...props} type="submit" disabled={pending}>
-			{children}
-		</Button>
-	);
+  return (
+    <Button {...props} type="submit" disabled={pending}>
+      {children}
+    </Button>
+  );
 }
