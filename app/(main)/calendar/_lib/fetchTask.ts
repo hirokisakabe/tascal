@@ -1,3 +1,4 @@
+import { getUserId } from "@/app/_lib/auth";
 import { Ymd } from "@/app/_model/ymd";
 import { PrismaClient } from "@prisma/client";
 import { unstable_cache } from "next/cache";
@@ -13,10 +14,14 @@ function convertDateToYmd(date: Date) {
 
 async function _fetchTasks() {
   const prisma = new PrismaClient();
+  const userId = await getUserId();
 
   const tasks = await prisma.task.findMany({
     include: { category: true },
     orderBy: { targetDate: "desc" },
+    where: {
+      authorId: userId,
+    },
   });
 
   return tasks.map((task) => ({

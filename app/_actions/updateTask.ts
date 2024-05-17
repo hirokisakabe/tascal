@@ -3,6 +3,7 @@
 import { revalidatePath, revalidateTag } from "next/cache";
 import { z } from "zod";
 import { getPrismaClient } from "../_lib/prisma";
+import { getUserId } from "../_lib/auth";
 
 const schema = z.object({
   title: z.preprocess(
@@ -29,9 +30,12 @@ export async function updateTask(taskId: string, formData: FormData) {
     };
   }
 
+  const userId = await getUserId();
+
   await getPrismaClient().task.update({
     where: {
       id: taskId,
+      authorId: userId,
     },
     data: {
       title: validatedFields.data.title,
