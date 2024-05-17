@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { z } from "zod";
 import { getPrismaClient } from "../_lib/prisma";
 
@@ -38,5 +38,5 @@ export async function createTask(formData: FormData) {
 		},
 	});
 
-	revalidatePath("/");
+	revalidateTag("tasks");
 }
