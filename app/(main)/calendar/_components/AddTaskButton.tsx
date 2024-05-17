@@ -4,7 +4,7 @@ import type { Ymd } from "@/app/_model/ymd";
 import { PlusIcon } from "@heroicons/react/24/solid";
 import { Button } from "@nextui-org/react";
 import { useDisclosure } from "@nextui-org/react";
-import { AddTaskModal } from "../../_components/AddTaskModal";
+import { AddTaskModal } from "../../../_components/AddTaskModal";
 
 type Props = {
   targetYmd: Ymd;

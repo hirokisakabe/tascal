@@ -5,7 +5,7 @@ import { Ymd } from "@/app/_model/ymd";
 import { createNumberSequence } from "@/app/_utils/createNumberSequence";
 import { format } from "date-fns";
 import { useState } from "react";
-import { Typography } from "../../_components/Typography";
+import { Typography } from "../../../_components/Typography";
 import { AddTaskButton } from "./AddTaskButton";
 import { CalendarDayCellDayLabel } from "./CalendarDayCellDayLabel";
 import { CalendarDayCellShowMoreOrLessButton } from "./CalendarDayCellShowMoreOrLessButton";

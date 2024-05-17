@@ -2,7 +2,7 @@
 
 import { Button } from "@nextui-org/react";
 import { useDisclosure } from "@nextui-org/react";
-import { AddTaskModal } from "../../_components/AddTaskModal";
+import { AddTaskModal } from "../../../_components/AddTaskModal";
 
 export default function AddTaskButton() {
   const { isOpen, onOpen, onOpenChange } = useDisclosure();

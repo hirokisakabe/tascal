@@ -1,3 +1,5 @@
+import { redirect } from "next/navigation";
+import { auth } from "../../auth";
 import AddTaskButton from "./_components/AddTaskButton";
 import ShowCompleteTaskCheckbox from "./_components/ShowCompleteTaskCheckbox";
 import { TaskCard } from "./_components/TaskCard";
@@ -8,6 +10,11 @@ export default async function Page({
 }: {
   searchParams: { [key: string]: string | string[] | undefined };
 }) {
+  const session = await auth();
+  if (!session) {
+    redirect("/login");
+  }
+
   const showCompleteTask = searchParams?.showCompleteTask === "true";
 
   const tasks = await fetchTasks({ includeCompleted: showCompleteTask });
