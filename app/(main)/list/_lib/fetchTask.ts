@@ -1,3 +1,4 @@
+import { getUserId } from "@/app/_lib/auth";
 import { Ymd } from "@/app/_model/ymd";
 import { PrismaClient } from "@prisma/client";
 import { unstable_cache } from "next/cache";
@@ -17,15 +18,15 @@ async function _fetchTasks({
   includeCompleted?: boolean;
 }) {
   const prisma = new PrismaClient();
+  const userId = await getUserId();
 
   const tasks = await prisma.task.findMany({
     include: { category: true },
     orderBy: { targetDate: "desc" },
-    where: includeCompleted
-      ? undefined
-      : {
-          completed: false,
-        },
+    where: {
+      authorId: userId,
+      completed: includeCompleted ? undefined : false,
+    },
   });
 
   return tasks.map((task) => ({
