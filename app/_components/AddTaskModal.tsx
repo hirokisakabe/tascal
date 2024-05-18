@@ -67,7 +67,12 @@ export function AddTaskModal(props: Props) {
               noValidate
             >
               <ModalBody>
-                <Input type="text" name={fields.title.name} label="タイトル" />
+                <Input
+                  type="text"
+                  name={fields.title.name}
+                  label="タイトル"
+                  errorMessage={fields.title.errors}
+                />
                 <Input
                   type="date"
                   name={fields.targetDate.name}
@@ -77,12 +82,14 @@ export function AddTaskModal(props: Props) {
                       ? Ymd.convertYmdToStr(props.defaultTargetYmd)
                       : undefined
                   }
+                  errorMessage={fields.targetDate.errors}
                 />
                 <Select
                   label="カテゴリを選択"
                   name={fields.categoryId.name}
                   className="max-w-xs"
                   items={categories.categories}
+                  errorMessage={fields.categoryId.errors}
                 >
                   {(category) => (
                     <SelectItem key={category.id} value={category.id}>
