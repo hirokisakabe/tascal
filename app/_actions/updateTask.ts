@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath, revalidateTag } from "next/cache";
+import { revalidateTag } from "next/cache";
 import { z } from "zod";
 import { getPrismaClient } from "../_lib/prisma";
 import { getUserId } from "../_lib/auth";

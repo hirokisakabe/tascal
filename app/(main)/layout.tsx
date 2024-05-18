@@ -1,4 +1,4 @@
-import { Button, Divider, User } from "@nextui-org/react";
+import { Button, Divider } from "@nextui-org/react";
 import Link from "next/link";
 import { signOut } from "../auth";
 import { UserProfileIcon } from "../_components/UserProfileIcon";
