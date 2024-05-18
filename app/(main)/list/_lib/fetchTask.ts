@@ -22,7 +22,7 @@ async function _fetchTasks({
 
   const tasks = await prisma.task.findMany({
     include: { category: true },
-    orderBy: { targetDate: "desc" },
+    orderBy: { targetDate: "asc" },
     where: {
       authorId: userId,
       completed: includeCompleted ? undefined : false,
