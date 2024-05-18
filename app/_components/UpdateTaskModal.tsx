@@ -76,6 +76,7 @@ export function UpdateTaskModal(props: Props) {
                   name={fields.title.name}
                   label="タイトル"
                   defaultValue={props.task.title}
+                  errorMessage={fields.title.errors}
                 />
                 <Input
                   type="date"
@@ -86,6 +87,7 @@ export function UpdateTaskModal(props: Props) {
                       ? Ymd.convertYmdToStr(props.task.targetYmd)
                       : undefined
                   }
+                  errorMessage={fields.targetDate.errors}
                 />
                 <Select
                   label="カテゴリを選択"
@@ -95,6 +97,7 @@ export function UpdateTaskModal(props: Props) {
                   defaultSelectedKeys={
                     props.task.category ? [props.task.category.id] : undefined
                   }
+                  errorMessage={fields.categoryId.errors}
                 >
                   {(category) => (
                     <SelectItem key={category.id} value={category.id}>
