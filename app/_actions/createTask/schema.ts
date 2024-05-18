@@ -3,11 +3,11 @@ import { z } from "zod";
 export const createTaskSchema = z.object({
   title: z.preprocess(
     (value) => (value === "" ? undefined : value),
-    z.string({ required_error: "title is required" }),
+    z.string({ required_error: "タイトルは必須です" }),
   ),
   targetDate: z.preprocess(
     (value) => (value === "" ? undefined : value),
-    z.string({ required_error: "targetDate is required" }),
+    z.string({ required_error: "実施日は必須です" }),
   ),
   categoryId: z.string().optional(),
 });
