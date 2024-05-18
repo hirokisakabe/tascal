@@ -9,10 +9,14 @@ import {
   Select,
   SelectItem,
 } from "@nextui-org/react";
-import { createTask } from "../_actions/createTask";
+import { createTask } from "../_actions/createTask/action";
+import { createTaskSchema } from "../_actions/createTask/schema";
 import { useCategories } from "../_hooks/useCategories";
 import { Ymd } from "../_model/ymd";
 import { SubmitButton } from "./SubmitButton";
+import { useForm } from "@conform-to/react";
+import { parseWithZod } from "@conform-to/zod";
+import { useFormState } from "react-dom";
 
 type Props = {
   isOpen: boolean;
@@ -22,6 +26,15 @@ type Props = {
 
 export function AddTaskModal(props: Props) {
   const categories = useCategories();
+
+  const [lastResult, action] = useFormState(createTask, {});
+  const [form, fields] = useForm({
+    lastResult,
+    onValidate({ formData }) {
+      return parseWithZod(formData, { schema: createTaskSchema });
+    },
+    shouldValidate: "onBlur",
+  });
 
   if (categories.state === "loading") {
     return (
@@ -47,12 +60,17 @@ export function AddTaskModal(props: Props) {
             <ModalHeader className="flex flex-col gap-1">
               タスクを追加
             </ModalHeader>
-            <form action={createTask}>
+            <form
+              id={form.id}
+              onSubmit={form.onSubmit}
+              action={action}
+              noValidate
+            >
               <ModalBody>
-                <Input type="text" name="title" label="タイトル" />
+                <Input type="text" name={fields.title.name} label="タイトル" />
                 <Input
                   type="date"
-                  name="targetDate"
+                  name={fields.targetDate.name}
                   label="実施日"
                   defaultValue={
                     props.defaultTargetYmd
@@ -62,7 +80,7 @@ export function AddTaskModal(props: Props) {
                 />
                 <Select
                   label="カテゴリを選択"
-                  name="category"
+                  name={fields.categoryId.name}
                   className="max-w-xs"
                   items={categories.categories}
                 >
