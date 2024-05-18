@@ -19,7 +19,7 @@ export function TaskCard(props: Props) {
         task={props.task}
       />
       <button type="button" onClick={onOpen}>
-        <div>{props.task.title}</div>
+        <span>{props.task.title}</span>
       </button>
     </>
   );
