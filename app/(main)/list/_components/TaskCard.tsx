@@ -25,20 +25,20 @@ export function TaskCard(props: Props) {
         <CardBody>
           <div className="flex  items-center px-3">
             <button className="grow flex" type="button" onClick={onOpen}>
-              <div className="basis-3/4 flex justify-start">
-                {props.task.isCompleted ? (
-                  <div className="line-through text-zinc-500">
-                    {props.task.title}
-                  </div>
-                ) : (
-                  <div>{props.task.title}</div>
-                )}
-              </div>
-              <div className="basis-1/4 flex justify-start">
+              <span className="basis-3/4 flex justify-start">
+                <span
+                  className={
+                    props.task.isCompleted ? "line-through text-zinc-500" : ""
+                  }
+                >
+                  {props.task.title}
+                </span>
+              </span>
+              <span className="basis-1/4 flex justify-start">
                 {props.task.targetYmd
                   ? Ymd.convertYmdToStr(props.task.targetYmd)
                   : null}
-              </div>
+              </span>
             </button>
             <div className="flex justify-end">
               {props.task.isCompleted ? (

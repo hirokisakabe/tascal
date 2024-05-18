@@ -16,3 +16,4 @@ jobs:
           node-version: 21
       - run: npm ci
       - run: npm run lint
+      - run: npm run lint:markup
