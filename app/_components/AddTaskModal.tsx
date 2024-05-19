@@ -63,7 +63,13 @@ export function AddTaskModal(props: Props) {
             <form
               id={form.id}
               onSubmit={form.onSubmit}
-              action={action}
+              action={(formData: FormData) => {
+                action(formData);
+
+                if (lastResult.status === "success") {
+                  onClose();
+                }
+              }}
               noValidate
             >
               <ModalBody>
@@ -102,9 +108,7 @@ export function AddTaskModal(props: Props) {
                 <Button color="danger" variant="light" onPress={onClose}>
                   キャンセル
                 </Button>
-                <SubmitButton color="primary" onPress={onClose}>
-                  追加
-                </SubmitButton>
+                <SubmitButton color="primary">追加</SubmitButton>
               </ModalFooter>
             </form>
           </>
