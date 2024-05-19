@@ -30,11 +30,11 @@ export default function RootLayout({
           </div>
         </div>
       </div>
-      <div className="flex gap-3 py-1">
-        <div className="border-2 border-solid rounded-lg bg-slate-50 p-1">
+      <div className="flex py-1">
+        <div className="text-sm border bg-slate-50 p-1">
           <Link href="/list">一覧</Link>
         </div>
-        <div className="border-2 border-solid rounded-lg bg-slate-50 p-1">
+        <div className="text-sm border bg-slate-50 p-1">
           <Link href="/calendar">カレンダー</Link>
         </div>
       </div>
