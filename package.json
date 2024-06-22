@@ -10,6 +10,7 @@
     "lint:fix": "next lint --fix",
     "lint:markup": "markuplint \"**/*.tsx\"",
     "lint:markup:fix": "markuplint \"**/*.tsx\"  --fix",
+    "test": "playwright test",
     "prisma:migrate": "npx prisma migrate dev --name init"
   },
   "dependencies": {
