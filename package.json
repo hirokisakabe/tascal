@@ -11,6 +11,7 @@
     "lint:markup": "markuplint \"**/*.tsx\"",
     "lint:markup:fix": "markuplint \"**/*.tsx\"  --fix",
     "test": "playwright test",
+    "prisma:generate": "prisma generate",
     "prisma:migrate": "npx prisma migrate dev --name init"
   },
   "dependencies": {
