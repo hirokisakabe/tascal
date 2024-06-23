@@ -20,19 +20,34 @@ jobs:
       - run: npm run lint
       - run: npm run lint:markup
       - run: npm run prisma:generate
+      - run: npx prisma migrate dev
+        env:
+          AUTH_SECRET: ${{ secrets.AUTH_SECRET }}
+          AUTH_GOOGLE_ID: ${{ secrets.AUTH_GOOGLE_ID }}
+          AUTH_GOOGLE_SECRET: ${{ secrets.AUTH_GOOGLE_SECRET }}
+          POSTGRES_URL: postgres://postgres:hoge@localhost:5432/postgres
+          POSTGRES_PRISMA_URL: postgres://postgres:hoge@localhost:5432/postgres
+          POSTGRES_URL_NO_SSL: postgres://postgres:hoge@localhost:5432/postgres
+          POSTGRES_URL_NON_POOLING: postgres://postgres:hoge@localhost:5432/postgres
+          POSTGRES_USER: postgres
+          POSTGRES_HOST: localhost
+          POSTGRES_PASSWORD: hoge
+          POSTGRES_DATABASE: postgres
+          GOOGLE_ACCOUNT_EMAIL: ${{ secrets.GOOGLE_ACCOUNT_EMAIL }}
+          GOOGLE_ACCOUNT_PASSWORD: ${{ secrets.GOOGLE_ACCOUNT_PASSWORD }}
       - run: npm run test
         env:
           AUTH_SECRET: ${{ secrets.AUTH_SECRET }}
           AUTH_GOOGLE_ID: ${{ secrets.AUTH_GOOGLE_ID }}
           AUTH_GOOGLE_SECRET: ${{ secrets.AUTH_GOOGLE_SECRET }}
-          POSTGRES_URL: ${{ secrets.POSTGRES_URL }}
-          POSTGRES_PRISMA_URL: ${{ secrets.POSTGRES_PRISMA_URL }}
-          POSTGRES_URL_NO_SSL: ${{ secrets.POSTGRES_URL_NO_SSL }}
-          POSTGRES_URL_NON_POOLING: ${{ secrets.POSTGRES_URL_NON_POOLING }}
-          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
-          POSTGRES_HOST: ${{ secrets.POSTGRES_HOST }}
-          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
-          POSTGRES_DATABASE: ${{ secrets.POSTGRES_DATABASE }}
+          POSTGRES_URL: postgres://postgres:hoge@localhost:5432/postgres
+          POSTGRES_PRISMA_URL: postgres://postgres:hoge@localhost:5432/postgres
+          POSTGRES_URL_NO_SSL: postgres://postgres:hoge@localhost:5432/postgres
+          POSTGRES_URL_NON_POOLING: postgres://postgres:hoge@localhost:5432/postgres
+          POSTGRES_USER: postgres
+          POSTGRES_HOST: localhost
+          POSTGRES_PASSWORD: hoge
+          POSTGRES_DATABASE: postgres
           GOOGLE_ACCOUNT_EMAIL: ${{ secrets.GOOGLE_ACCOUNT_EMAIL }}
           GOOGLE_ACCOUNT_PASSWORD: ${{ secrets.GOOGLE_ACCOUNT_PASSWORD }}
       - uses: actions/upload-artifact@v4
@@ -41,3 +56,15 @@ jobs:
           name: playwright-report
           path: playwright-report/
           retention-days: 30
+    services:
+      postgres:
+        image: postgres:latest
+        env:
+          POSTGRES_PASSWORD: hoge
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
