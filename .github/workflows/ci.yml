@@ -6,6 +6,21 @@ on:
     branches:
       - main
 
+env:
+  AUTH_SECRET: ${{ secrets.AUTH_SECRET }}
+  AUTH_GOOGLE_ID: ${{ secrets.AUTH_GOOGLE_ID }}
+  AUTH_GOOGLE_SECRET: ${{ secrets.AUTH_GOOGLE_SECRET }}
+  POSTGRES_URL: postgres://postgres:hoge@localhost:5432/postgres
+  POSTGRES_PRISMA_URL: postgres://postgres:hoge@localhost:5432/postgres
+  POSTGRES_URL_NO_SSL: postgres://postgres:hoge@localhost:5432/postgres
+  POSTGRES_URL_NON_POOLING: postgres://postgres:hoge@localhost:5432/postgres
+  POSTGRES_USER: postgres
+  POSTGRES_HOST: localhost
+  POSTGRES_PASSWORD: hoge
+  POSTGRES_DATABASE: postgres
+  GOOGLE_ACCOUNT_EMAIL: ${{ secrets.GOOGLE_ACCOUNT_EMAIL }}
+  GOOGLE_ACCOUNT_PASSWORD: ${{ secrets.GOOGLE_ACCOUNT_PASSWORD }}
+
 jobs:
   ci:
     runs-on: ubuntu-latest
@@ -15,45 +30,169 @@ jobs:
         with:
           node-version: 21
       - run: npm ci
-      - run: npx playwright install --with-deps
       - run: npm run format:check
       - run: npm run lint
       - run: npm run lint:markup
+  e2e-firefox:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 21
+      - run: npm ci
+      - run: npx playwright install firefox --with-deps
       - run: npm run prisma:generate
       - run: npx prisma migrate dev
         env:
-          AUTH_SECRET: ${{ secrets.AUTH_SECRET }}
-          AUTH_GOOGLE_ID: ${{ secrets.AUTH_GOOGLE_ID }}
-          AUTH_GOOGLE_SECRET: ${{ secrets.AUTH_GOOGLE_SECRET }}
-          POSTGRES_URL: postgres://postgres:hoge@localhost:5432/postgres
-          POSTGRES_PRISMA_URL: postgres://postgres:hoge@localhost:5432/postgres
-          POSTGRES_URL_NO_SSL: postgres://postgres:hoge@localhost:5432/postgres
-          POSTGRES_URL_NON_POOLING: postgres://postgres:hoge@localhost:5432/postgres
-          POSTGRES_USER: postgres
-          POSTGRES_HOST: localhost
-          POSTGRES_PASSWORD: hoge
-          POSTGRES_DATABASE: postgres
-          GOOGLE_ACCOUNT_EMAIL: ${{ secrets.GOOGLE_ACCOUNT_EMAIL }}
-          GOOGLE_ACCOUNT_PASSWORD: ${{ secrets.GOOGLE_ACCOUNT_PASSWORD }}
-      - run: npm run test
+          AUTH_SECRET: ${{env.AUTH_SECRET}}
+          AUTH_GOOGLE_ID: ${{env.AUTH_GOOGLE_ID}}
+          AUTH_GOOGLE_SECRET: ${{env.AUTH_GOOGLE_SECRET}}
+          POSTGRES_URL: ${{env.POSTGRES_URL}}
+          POSTGRES_PRISMA_URL: ${{env.POSTGRES_PRISMA_URL}}
+          POSTGRES_URL_NO_SSL: ${{env.POSTGRES_URL_NO_SSL}}
+          POSTGRES_URL_NON_POOLING: ${{env.POSTGRES_URL_NON_POOLING}}
+          POSTGRES_USER: ${{env.POSTGRES_USER}}
+          POSTGRES_HOST: ${{env.POSTGRES_HOST}}
+          POSTGRES_PASSWORD: ${{env.POSTGRES_PASSWORD}}
+          POSTGRES_DATABASE: ${{env.POSTGRES_DATABASE}}
+          GOOGLE_ACCOUNT_EMAIL: ${{env.GOOGLE_ACCOUNT_EMAIL}}
+          GOOGLE_ACCOUNT_PASSWORD: ${{env.GOOGLE_ACCOUNT_PASSWORD}}
+      - run: npm run test -- --project=firefox
         env:
-          AUTH_SECRET: ${{ secrets.AUTH_SECRET }}
-          AUTH_GOOGLE_ID: ${{ secrets.AUTH_GOOGLE_ID }}
-          AUTH_GOOGLE_SECRET: ${{ secrets.AUTH_GOOGLE_SECRET }}
-          POSTGRES_URL: postgres://postgres:hoge@localhost:5432/postgres
-          POSTGRES_PRISMA_URL: postgres://postgres:hoge@localhost:5432/postgres
-          POSTGRES_URL_NO_SSL: postgres://postgres:hoge@localhost:5432/postgres
-          POSTGRES_URL_NON_POOLING: postgres://postgres:hoge@localhost:5432/postgres
-          POSTGRES_USER: postgres
-          POSTGRES_HOST: localhost
-          POSTGRES_PASSWORD: hoge
-          POSTGRES_DATABASE: postgres
-          GOOGLE_ACCOUNT_EMAIL: ${{ secrets.GOOGLE_ACCOUNT_EMAIL }}
-          GOOGLE_ACCOUNT_PASSWORD: ${{ secrets.GOOGLE_ACCOUNT_PASSWORD }}
+          AUTH_SECRET: ${{env.AUTH_SECRET}}
+          AUTH_GOOGLE_ID: ${{env.AUTH_GOOGLE_ID}}
+          AUTH_GOOGLE_SECRET: ${{env.AUTH_GOOGLE_SECRET}}
+          POSTGRES_URL: ${{env.POSTGRES_URL}}
+          POSTGRES_PRISMA_URL: ${{env.POSTGRES_PRISMA_URL}}
+          POSTGRES_URL_NO_SSL: ${{env.POSTGRES_URL_NO_SSL}}
+          POSTGRES_URL_NON_POOLING: ${{env.POSTGRES_URL_NON_POOLING}}
+          POSTGRES_USER: ${{env.POSTGRES_USER}}
+          POSTGRES_HOST: ${{env.POSTGRES_HOST}}
+          POSTGRES_PASSWORD: ${{env.POSTGRES_PASSWORD}}
+          POSTGRES_DATABASE: ${{env.POSTGRES_DATABASE}}
+          GOOGLE_ACCOUNT_EMAIL: ${{env.GOOGLE_ACCOUNT_EMAIL}}
+          GOOGLE_ACCOUNT_PASSWORD: ${{env.GOOGLE_ACCOUNT_PASSWORD}}
       - uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
         with:
-          name: playwright-report
+          name: playwright-report-firefox
+          path: playwright-report/
+          retention-days: 30
+    services:
+      postgres:
+        image: postgres:latest
+        env:
+          POSTGRES_PASSWORD: hoge
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+  e2e-chromium:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 21
+      - run: npm ci
+      - run: npx playwright install firefox chromium --with-deps
+      - run: npm run prisma:generate
+      - run: npx prisma migrate dev
+        env:
+          AUTH_SECRET: ${{env.AUTH_SECRET}}
+          AUTH_GOOGLE_ID: ${{env.AUTH_GOOGLE_ID}}
+          AUTH_GOOGLE_SECRET: ${{env.AUTH_GOOGLE_SECRET}}
+          POSTGRES_URL: ${{env.POSTGRES_URL}}
+          POSTGRES_PRISMA_URL: ${{env.POSTGRES_PRISMA_URL}}
+          POSTGRES_URL_NO_SSL: ${{env.POSTGRES_URL_NO_SSL}}
+          POSTGRES_URL_NON_POOLING: ${{env.POSTGRES_URL_NON_POOLING}}
+          POSTGRES_USER: ${{env.POSTGRES_USER}}
+          POSTGRES_HOST: ${{env.POSTGRES_HOST}}
+          POSTGRES_PASSWORD: ${{env.POSTGRES_PASSWORD}}
+          POSTGRES_DATABASE: ${{env.POSTGRES_DATABASE}}
+          GOOGLE_ACCOUNT_EMAIL: ${{env.GOOGLE_ACCOUNT_EMAIL}}
+          GOOGLE_ACCOUNT_PASSWORD: ${{env.GOOGLE_ACCOUNT_PASSWORD}}
+      - run: npm run test -- --project=chromium
+        env:
+          AUTH_SECRET: ${{env.AUTH_SECRET}}
+          AUTH_GOOGLE_ID: ${{env.AUTH_GOOGLE_ID}}
+          AUTH_GOOGLE_SECRET: ${{env.AUTH_GOOGLE_SECRET}}
+          POSTGRES_URL: ${{env.POSTGRES_URL}}
+          POSTGRES_PRISMA_URL: ${{env.POSTGRES_PRISMA_URL}}
+          POSTGRES_URL_NO_SSL: ${{env.POSTGRES_URL_NO_SSL}}
+          POSTGRES_URL_NON_POOLING: ${{env.POSTGRES_URL_NON_POOLING}}
+          POSTGRES_USER: ${{env.POSTGRES_USER}}
+          POSTGRES_HOST: ${{env.POSTGRES_HOST}}
+          POSTGRES_PASSWORD: ${{env.POSTGRES_PASSWORD}}
+          POSTGRES_DATABASE: ${{env.POSTGRES_DATABASE}}
+          GOOGLE_ACCOUNT_EMAIL: ${{env.GOOGLE_ACCOUNT_EMAIL}}
+          GOOGLE_ACCOUNT_PASSWORD: ${{env.GOOGLE_ACCOUNT_PASSWORD}}
+      - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: playwright-report-chromium
+          path: playwright-report/
+          retention-days: 30
+    services:
+      postgres:
+        image: postgres:latest
+        env:
+          POSTGRES_PASSWORD: hoge
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+  e2e-webkit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 21
+      - run: npm ci
+      - run: npx playwright install webkit firefox --with-deps
+      - run: npm run prisma:generate
+      - run: npx prisma migrate dev
+        env:
+          AUTH_SECRET: ${{env.AUTH_SECRET}}
+          AUTH_GOOGLE_ID: ${{env.AUTH_GOOGLE_ID}}
+          AUTH_GOOGLE_SECRET: ${{env.AUTH_GOOGLE_SECRET}}
+          POSTGRES_URL: ${{env.POSTGRES_URL}}
+          POSTGRES_PRISMA_URL: ${{env.POSTGRES_PRISMA_URL}}
+          POSTGRES_URL_NO_SSL: ${{env.POSTGRES_URL_NO_SSL}}
+          POSTGRES_URL_NON_POOLING: ${{env.POSTGRES_URL_NON_POOLING}}
+          POSTGRES_USER: ${{env.POSTGRES_USER}}
+          POSTGRES_HOST: ${{env.POSTGRES_HOST}}
+          POSTGRES_PASSWORD: ${{env.POSTGRES_PASSWORD}}
+          POSTGRES_DATABASE: ${{env.POSTGRES_DATABASE}}
+          GOOGLE_ACCOUNT_EMAIL: ${{env.GOOGLE_ACCOUNT_EMAIL}}
+          GOOGLE_ACCOUNT_PASSWORD: ${{env.GOOGLE_ACCOUNT_PASSWORD}}
+      - run: npm run test -- --project=webkit
+        env:
+          AUTH_SECRET: ${{env.AUTH_SECRET}}
+          AUTH_GOOGLE_ID: ${{env.AUTH_GOOGLE_ID}}
+          AUTH_GOOGLE_SECRET: ${{env.AUTH_GOOGLE_SECRET}}
+          POSTGRES_URL: ${{env.POSTGRES_URL}}
+          POSTGRES_PRISMA_URL: ${{env.POSTGRES_PRISMA_URL}}
+          POSTGRES_URL_NO_SSL: ${{env.POSTGRES_URL_NO_SSL}}
+          POSTGRES_URL_NON_POOLING: ${{env.POSTGRES_URL_NON_POOLING}}
+          POSTGRES_USER: ${{env.POSTGRES_USER}}
+          POSTGRES_HOST: ${{env.POSTGRES_HOST}}
+          POSTGRES_PASSWORD: ${{env.POSTGRES_PASSWORD}}
+          POSTGRES_DATABASE: ${{env.POSTGRES_DATABASE}}
+          GOOGLE_ACCOUNT_EMAIL: ${{env.GOOGLE_ACCOUNT_EMAIL}}
+          GOOGLE_ACCOUNT_PASSWORD: ${{env.GOOGLE_ACCOUNT_PASSWORD}}
+      - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: playwright-report-webkit
           path: playwright-report/
           retention-days: 30
     services:
