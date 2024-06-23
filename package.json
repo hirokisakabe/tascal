@@ -10,6 +10,8 @@
     "lint:fix": "next lint --fix",
     "lint:markup": "markuplint \"**/*.tsx\"",
     "lint:markup:fix": "markuplint \"**/*.tsx\"  --fix",
+    "test": "playwright test",
+    "prisma:generate": "prisma generate",
     "prisma:migrate": "npx prisma migrate dev --name init"
   },
   "dependencies": {
@@ -34,6 +36,7 @@
   "devDependencies": {
     "@markuplint/jsx-parser": "4.7.2",
     "@markuplint/react-spec": "4.5.2",
+    "@playwright/test": "^1.44.1",
     "@types/node": "20.12.7",
     "@types/react": "^18",
     "@types/react-dom": "^18",
