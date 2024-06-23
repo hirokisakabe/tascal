@@ -27,3 +27,16 @@ test("Add task", async ({ page }) => {
   await expect(page.getByText("テストタイトル")).toBeVisible();
   await expect(page.getByText("2020-01-01")).toBeVisible();
 });
+
+test("Delete task", async ({ page }) => {
+  await page.goto("http://localhost:3000/list");
+
+  await expect(page.getByText("ふがタイトル")).toBeVisible();
+  await expect(page.getByText("2020-01-02")).toBeVisible();
+
+  await page.getByText("ふがタイトル").click();
+  await page.getByText("タスクを削除").click();
+
+  await expect(page.getByText("ふがタイトル")).not.toBeVisible();
+  await expect(page.getByText("2020-01-02")).not.toBeVisible();
+});
