@@ -1,4 +1,6 @@
 import { test as setup, expect } from "@playwright/test";
+// eslint-disable-next-line no-restricted-imports
+import { PrismaClient } from "@prisma/client";
 
 const authFile = "playwright/.auth/user.json";
 
@@ -10,6 +12,8 @@ if (!GOOGLE_ACCOUNT_EMAIL || !GOOGLE_ACCOUNT_PASSWORD) {
     "Please set GOOGLE_ACCOUNT_EMAIL and GOOGLE_ACCOUNT_PASSWORD",
   );
 }
+
+setup.describe.configure({ mode: "serial" });
 
 setup("authenticate", async ({ page }) => {
   await page.goto("http://localhost:3000/login");
@@ -34,4 +38,22 @@ setup("authenticate", async ({ page }) => {
   await expect(page.getByText("Hiroki")).toBeVisible();
 
   await page.context().storageState({ path: authFile });
+});
+
+setup("seed database", async () => {
+  const prismaClient = new PrismaClient();
+
+  await prismaClient.task.create({
+    data: {
+      title: "ふがタイトル",
+      targetDate: new Date("2020-01-02"),
+      author: {
+        connect: {
+          email: GOOGLE_ACCOUNT_EMAIL,
+        },
+      },
+    },
+  });
+
+  prismaClient.$disconnect();
 });
