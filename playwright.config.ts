@@ -33,19 +33,31 @@ export default defineConfig({
 
   /* Configure projects for major browsers */
   projects: [
+
+    {
+      name: "setup",
+      testMatch: /.*\.setup\.ts/,
+      use: {
+        // Chromeだと「"The browser or app may not be secure"」となり、認証が通らないので、Firefoxを使う
+        ...devices["Desktop Firefox"],
+      },
+    },
     {
       name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
+      use: { ...devices['Desktop Chrome'], storageState: 'playwright/.auth/user.json' },
+      dependencies: ["setup"],
     },
 
     {
       name: 'firefox',
-      use: { ...devices['Desktop Firefox'] },
+      use: { ...devices['Desktop Firefox'], storageState: 'playwright/.auth/user.json' },
+      dependencies: ["setup"],
     },
 
     {
       name: 'webkit',
-      use: { ...devices['Desktop Safari'] },
+      use: { ...devices['Desktop Safari'], storageState: 'playwright/.auth/user.json' },
+      dependencies: ["setup"],
     },
 
     /* Test against mobile viewports. */
