@@ -29,6 +29,8 @@ setup("authenticate", async ({ page }) => {
   await page.getByRole("button", { name: "Next" }).click();
   await page.getByRole("button", { name: "Continue" }).click();
 
+  await page.waitForURL("http://localhost:3000/list");
+
   await expect(page.getByText("Hiroki")).toBeVisible();
 
   await page.context().storageState({ path: authFile });
