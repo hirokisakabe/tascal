@@ -8,9 +8,10 @@ export const Route = createFileRoute("/_authenticated/")({
 function HomePage() {
   const { data: session } = authClient.useSession();
 
-  const handleSignOut = async () => {
-    await authClient.signOut();
-    window.location.href = "/login";
+  const handleSignOut = () => {
+    void authClient.signOut().then(() => {
+      window.location.href = "/login";
+    });
   };
 
   return (

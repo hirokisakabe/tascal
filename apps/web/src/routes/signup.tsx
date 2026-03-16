@@ -13,22 +13,23 @@ function SignupPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
 
-    const { error } = await authClient.signUp.email({
-      name,
-      email,
-      password,
-    });
-
-    if (error) {
-      setError(error.message ?? "サインアップに失敗しました");
-      return;
-    }
-
-    navigate({ to: "/" });
+    void authClient.signUp
+      .email({
+        name,
+        email,
+        password,
+      })
+      .then(({ error }) => {
+        if (error) {
+          setError(error.message ?? "サインアップに失敗しました");
+          return;
+        }
+        void navigate({ to: "/" });
+      });
   };
 
   return (
@@ -74,7 +75,7 @@ function SignupPage() {
           href="/login"
           onClick={(e) => {
             e.preventDefault();
-            navigate({ to: "/login" });
+            void navigate({ to: "/login" });
           }}
         >
           ログイン

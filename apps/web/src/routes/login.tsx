@@ -12,21 +12,22 @@ function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
 
-    const { error } = await authClient.signIn.email({
-      email,
-      password,
-    });
-
-    if (error) {
-      setError(error.message ?? "ログインに失敗しました");
-      return;
-    }
-
-    navigate({ to: "/" });
+    void authClient.signIn
+      .email({
+        email,
+        password,
+      })
+      .then(({ error }) => {
+        if (error) {
+          setError(error.message ?? "ログインに失敗しました");
+          return;
+        }
+        void navigate({ to: "/" });
+      });
   };
 
   return (
@@ -62,7 +63,7 @@ function LoginPage() {
           href="/signup"
           onClick={(e) => {
             e.preventDefault();
-            navigate({ to: "/signup" });
+            void navigate({ to: "/signup" });
           }}
         >
           サインアップ
