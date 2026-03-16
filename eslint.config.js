@@ -7,7 +7,15 @@ import globals from "globals";
 export default tseslint.config(
   { ignores: ["**/dist"] },
   js.configs.recommended,
-  ...tseslint.configs.recommended,
+  ...tseslint.configs.recommendedTypeChecked,
+  {
+    languageOptions: {
+      parserOptions: {
+        projectService: true,
+        tsconfigRootDir: import.meta.dirname,
+      },
+    },
+  },
   {
     files: ["apps/web/**/*.{ts,tsx}"],
     plugins: {
@@ -27,5 +35,9 @@ export default tseslint.config(
     languageOptions: {
       globals: globals.node,
     },
+  },
+  {
+    files: ["**/*.js"],
+    ...tseslint.configs.disableTypeChecked,
   },
 );
