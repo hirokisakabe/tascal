@@ -5,7 +5,7 @@ import reactRefresh from "eslint-plugin-react-refresh";
 import globals from "globals";
 
 export default tseslint.config(
-  { ignores: ["**/dist"] },
+  { ignores: ["dist"] },
   js.configs.recommended,
   ...tseslint.configs.recommendedTypeChecked,
   {
@@ -14,10 +14,8 @@ export default tseslint.config(
         projectService: true,
         tsconfigRootDir: import.meta.dirname,
       },
+      globals: globals.browser,
     },
-  },
-  {
-    files: ["apps/web/**/*.{ts,tsx}"],
     plugins: {
       "react-hooks": reactHooks,
       "react-refresh": reactRefresh,
@@ -25,15 +23,6 @@ export default tseslint.config(
     rules: {
       ...reactHooks.configs.recommended.rules,
       "react-refresh/only-export-components": "warn",
-    },
-    languageOptions: {
-      globals: globals.browser,
-    },
-  },
-  {
-    files: ["apps/api/**/*.ts"],
-    languageOptions: {
-      globals: globals.node,
     },
   },
   {
