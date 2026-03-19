@@ -5,7 +5,11 @@ install:
 	cd apps/web && npm install
 
 dev:
-	cd apps/api && npm run dev & cd apps/web && npm run dev & wait
+	trap 'docker compose down' EXIT; \
+	docker compose up -d db && \
+	cd apps/api && npm run dev & \
+	cd apps/web && npm run dev & \
+	wait
 
 build:
 	cd apps/api && npm run build
