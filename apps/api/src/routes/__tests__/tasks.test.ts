@@ -1,10 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { Hono } from "hono";
-import type { auth } from "../../auth.js";
+import type { Auth } from "../../auth.js";
 
 type AuthVariables = {
-  user: typeof auth.$Infer.Session.user | null;
-  session: typeof auth.$Infer.Session.session | null;
+  user: Auth["$Infer"]["Session"]["user"] | null;
+  session: Auth["$Infer"]["Session"]["session"] | null;
 };
 
 const mockUser = {
@@ -35,7 +35,7 @@ const mockUpdate = vi.fn();
 const mockDelete = vi.fn();
 
 vi.mock("../../db/index.js", () => ({
-  db: {
+  getDb: () => ({
     select: () => ({
       from: () => ({
         where: mockSelect,
@@ -58,7 +58,7 @@ vi.mock("../../db/index.js", () => ({
         returning: mockDelete,
       }),
     }),
-  },
+  }),
 }));
 
 vi.mock("../../db/schema.js", async () => {
