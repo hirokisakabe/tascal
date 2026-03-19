@@ -1,8 +1,11 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { DndContext, type DragEndEvent } from "@dnd-kit/core";
 import type { Task } from "../types/task";
-import { fetchTasks } from "../api/tasks";
+import { fetchTasks, updateTask } from "../api/tasks";
 import { getCalendarDays, formatDateKey } from "../utils/calendar";
 import { CalendarDayCell } from "./CalendarDayCell";
+import { TaskFormModal } from "./TaskFormModal";
+import { TaskDetailModal } from "./TaskDetailModal";
 
 const WEEKDAY_LABELS = ["日", "月", "火", "水", "木", "金", "土"];
 
@@ -13,6 +16,15 @@ export function Calendar() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  // モーダル状態
+  const [addDate, setAddDate] = useState<string | null>(null);
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+
+  const refreshTasks = useCallback(() => {
+    setRefreshKey((k) => k + 1);
+  }, []);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -35,7 +47,7 @@ export function Calendar() {
       });
 
     return () => controller.abort();
-  }, [year, month]);
+  }, [year, month, refreshKey]);
 
   const days = useMemo(() => getCalendarDays(year, month), [year, month]);
 
@@ -72,6 +84,28 @@ export function Calendar() {
     const today = new Date();
     setYear(today.getFullYear());
     setMonth(today.getMonth() + 1);
+  };
+
+  const handleToggleStatus = (task: Task) => {
+    const newStatus = task.status === "done" ? "todo" : "done";
+    void updateTask(task.id, { status: newStatus })
+      .then(() => refreshTasks())
+      .catch(() => setError("ステータスの更新に失敗しました"));
+  };
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over) return;
+
+    const task = active.data.current?.task as Task | undefined;
+    if (!task) return;
+
+    const newDate = over.id as string;
+    if (task.date === newDate) return;
+
+    void updateTask(task.id, { date: newDate })
+      .then(() => refreshTasks())
+      .catch(() => setError("タスクの移動に失敗しました"));
   };
 
   return (
@@ -111,40 +145,67 @@ export function Calendar() {
         </div>
       )}
 
-      <div
-        className={`overflow-hidden rounded-lg border border-gray-200 ${loading ? "opacity-50" : ""}`}
-      >
-        <div className="grid grid-cols-7">
-          {WEEKDAY_LABELS.map((label, i) => (
-            <div
-              key={label}
-              className={`border-b border-gray-200 py-2 text-center text-sm font-medium ${
-                i === 0
-                  ? "text-red-500"
-                  : i === 6
-                    ? "text-blue-500"
-                    : "text-gray-600"
-              }`}
-            >
-              {label}
-            </div>
-          ))}
-        </div>
+      <DndContext onDragEnd={handleDragEnd}>
+        <div
+          className={`overflow-hidden rounded-lg border border-gray-200 ${loading ? "opacity-50" : ""}`}
+        >
+          <div className="grid grid-cols-7">
+            {WEEKDAY_LABELS.map((label, i) => (
+              <div
+                key={label}
+                className={`border-b border-gray-200 py-2 text-center text-sm font-medium ${
+                  i === 0
+                    ? "text-red-500"
+                    : i === 6
+                      ? "text-blue-500"
+                      : "text-gray-600"
+                }`}
+              >
+                {label}
+              </div>
+            ))}
+          </div>
 
-        <div className="grid grid-cols-7">
-          {days.map((day) => {
-            const key = formatDateKey(day.date);
-            return (
-              <CalendarDayCell
-                key={key}
-                date={day.date}
-                isCurrentMonth={day.isCurrentMonth}
-                tasks={tasksByDate.get(key) ?? []}
-              />
-            );
-          })}
+          <div className="grid grid-cols-7">
+            {days.map((day) => {
+              const key = formatDateKey(day.date);
+              return (
+                <CalendarDayCell
+                  key={key}
+                  date={day.date}
+                  isCurrentMonth={day.isCurrentMonth}
+                  tasks={tasksByDate.get(key) ?? []}
+                  onAddClick={setAddDate}
+                  onTaskClick={setSelectedTask}
+                  onToggleStatus={handleToggleStatus}
+                />
+              );
+            })}
+          </div>
         </div>
-      </div>
+      </DndContext>
+
+      {addDate && (
+        <TaskFormModal
+          date={addDate}
+          onClose={() => setAddDate(null)}
+          onCreated={() => {
+            setAddDate(null);
+            refreshTasks();
+          }}
+        />
+      )}
+
+      {selectedTask && (
+        <TaskDetailModal
+          task={selectedTask}
+          onClose={() => setSelectedTask(null)}
+          onUpdated={() => {
+            setSelectedTask(null);
+            refreshTasks();
+          }}
+        />
+      )}
     </div>
   );
 }
