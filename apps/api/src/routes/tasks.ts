@@ -1,13 +1,13 @@
 import { Hono } from "hono";
 import { z } from "zod";
 import { eq, and, gte, lt } from "drizzle-orm";
-import { db } from "../db/index.js";
+import { getDb } from "../db/index.js";
 import { tasks } from "../db/schema.js";
-import type { auth } from "../auth.js";
+import type { Auth } from "../auth.js";
 
 type AuthVariables = {
-  user: typeof auth.$Infer.Session.user | null;
-  session: typeof auth.$Infer.Session.session | null;
+  user: Auth["$Infer"]["Session"]["user"] | null;
+  session: Auth["$Infer"]["Session"]["session"] | null;
 };
 
 const createTaskSchema = z.object({
@@ -68,7 +68,7 @@ app.get("/", async (c) => {
   const nextYear = month === 12 ? year + 1 : year;
   const endDate = `${nextYear}-${String(nextMonth).padStart(2, "0")}-01`;
 
-  const result = await db
+  const result = await getDb()
     .select()
     .from(tasks)
     .where(
@@ -99,7 +99,7 @@ app.post("/", async (c) => {
     );
   }
 
-  const [task] = await db
+  const [task] = await getDb()
     .insert(tasks)
     .values({
       title: parsed.data.title,
@@ -136,7 +136,7 @@ app.patch("/:id", async (c) => {
     );
   }
 
-  const [updated] = await db
+  const [updated] = await getDb()
     .update(tasks)
     .set({
       ...parsed.data,
@@ -162,7 +162,7 @@ app.delete("/:id", async (c) => {
     return c.json({ error: "不正なタスクIDです" }, 400);
   }
 
-  const [deleted] = await db
+  const [deleted] = await getDb()
     .delete(tasks)
     .where(and(eq(tasks.id, id), eq(tasks.userId, user.id)))
     .returning();

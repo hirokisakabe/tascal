@@ -1,12 +1,13 @@
 import { serve } from "@hono/node-server";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
-import { auth } from "./auth.js";
+import { getAuth } from "./auth.js";
+import type { Auth } from "./auth.js";
 import tasksApp from "./routes/tasks.js";
 
 type AuthVariables = {
-  user: typeof auth.$Infer.Session.user | null;
-  session: typeof auth.$Infer.Session.session | null;
+  user: Auth["$Infer"]["Session"]["user"] | null;
+  session: Auth["$Infer"]["Session"]["session"] | null;
 };
 
 const app = new Hono<{ Variables: AuthVariables }>();
@@ -21,7 +22,7 @@ app.use(
 
 // セッション取得ミドルウェア
 app.use("/api/*", async (c, next) => {
-  const session = await auth.api.getSession({
+  const session = await getAuth().api.getSession({
     headers: c.req.raw.headers,
   });
 
@@ -37,7 +38,7 @@ app.use("/api/*", async (c, next) => {
 });
 
 app.on(["POST", "GET"], "/api/auth/**", (c) => {
-  return auth.handler(c.req.raw);
+  return getAuth().handler(c.req.raw);
 });
 
 app.route("/api/tasks", tasksApp);
