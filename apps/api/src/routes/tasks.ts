@@ -140,7 +140,7 @@ app.patch("/:id", async (c) => {
     .update(tasks)
     .set({
       ...parsed.data,
-      updatedAt: new Date(),
+      updatedAt: new Date().toISOString(),
     })
     .where(and(eq(tasks.id, id), eq(tasks.userId, user.id)))
     .returning();
