@@ -29,3 +29,4 @@ typecheck:
 
 test:
 	cd apps/api && npm test
+	cd apps/web && npm test
