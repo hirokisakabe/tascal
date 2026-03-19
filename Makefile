@@ -1,4 +1,4 @@
-.PHONY: install dev build lint format format-check typecheck
+.PHONY: install dev build lint format format-check typecheck test
 
 install:
 	cd apps/api && npm install
@@ -26,3 +26,7 @@ format-check:
 typecheck:
 	cd apps/api && npm run typecheck
 	cd apps/web && npm run typecheck
+
+test:
+	cd apps/api && npm test
+	cd apps/web && npm test
