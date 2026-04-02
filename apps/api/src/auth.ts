@@ -13,7 +13,11 @@ function createAuth() {
     emailAndPassword: {
       enabled: true,
     },
-    trustedOrigins: ["http://localhost:5173"],
+    trustedOrigins: process.env.TRUSTED_ORIGINS
+      ? process.env.TRUSTED_ORIGINS.split(",")
+          .map((s) => s.trim())
+          .filter(Boolean)
+      : ["http://localhost:5173"],
   });
 }
 
