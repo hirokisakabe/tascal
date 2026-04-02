@@ -5,6 +5,7 @@ FROM base AS web-build
 WORKDIR /app/apps/web
 COPY apps/web/package.json apps/web/package-lock.json ./
 RUN npm ci
+COPY tsconfig.json /app/tsconfig.json
 COPY apps/web/ ./
 RUN npx vite build
 
