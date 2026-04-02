@@ -9,7 +9,7 @@ export function getDb(): NodePgDatabase<typeof schema> {
     const databaseUrl = process.env.DATABASE_URL;
     if (!databaseUrl) {
       throw new Error(
-        "DATABASE_URL environment variable is not set. Please set it in .env or .env.local file.",
+        "DATABASE_URL environment variable is not set. Please set it in apps/api/.env file.",
       );
     }
     const pool = new Pool({ connectionString: databaseUrl });

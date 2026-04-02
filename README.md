@@ -15,10 +15,10 @@
 make install
 ```
 
-`.env.example` を参考に `apps/api/.env.local` を作成します。
+`apps/api/.env.example` を参考に `apps/api/.env` を作成します。
 
 ```bash
-cp .env.example apps/api/.env.local
+cp apps/api/.env.example apps/api/.env
 # 必要に応じて値を編集
 ```
 
