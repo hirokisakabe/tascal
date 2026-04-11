@@ -1,7 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Calendar } from "../Calendar";
+import { renderWithQueryClient } from "../../test/helpers";
 
 // API モック
 const mockFetchTasks = vi.fn();
@@ -60,7 +61,7 @@ describe("Calendar", () => {
   });
 
   it("年月ヘッダーと曜日ラベルが表示される", async () => {
-    render(<Calendar />);
+    renderWithQueryClient(<Calendar />);
 
     const now = new Date();
     await waitFor(() => {
@@ -76,7 +77,7 @@ describe("Calendar", () => {
 
   it("マウント時にタスクを取得して表示する", async () => {
     mockFetchTasks.mockResolvedValue([mockTask]);
-    render(<Calendar />);
+    renderWithQueryClient(<Calendar />);
 
     await waitFor(() => {
       expect(screen.getByText("テストタスク")).toBeInTheDocument();
@@ -91,7 +92,7 @@ describe("Calendar", () => {
 
   it("前月・次月ボタンで月を切り替えられる", async () => {
     const user = userEvent.setup();
-    render(<Calendar />);
+    renderWithQueryClient(<Calendar />);
 
     const now = new Date();
     const currentMonth = now.getMonth() + 1;
@@ -125,7 +126,7 @@ describe("Calendar", () => {
 
   it("「今日」ボタンで今月に戻れる", async () => {
     const user = userEvent.setup();
-    render(<Calendar />);
+    renderWithQueryClient(<Calendar />);
 
     const now = new Date();
     const currentYear = now.getFullYear();
@@ -152,7 +153,7 @@ describe("Calendar", () => {
 
   it("タスク取得失敗時にエラーメッセージを表示する", async () => {
     mockFetchTasks.mockRejectedValue(new Error("API error"));
-    render(<Calendar />);
+    renderWithQueryClient(<Calendar />);
 
     await waitFor(() => {
       expect(
@@ -166,7 +167,7 @@ describe("Calendar", () => {
     mockCreateTask.mockResolvedValue(mockTask);
 
     const user = userEvent.setup();
-    render(<Calendar />);
+    renderWithQueryClient(<Calendar />);
 
     await waitFor(() => {
       expect(mockFetchTasks).toHaveBeenCalled();
@@ -200,7 +201,7 @@ describe("Calendar", () => {
     mockUpdateTask.mockResolvedValue({ ...mockTask, title: "更新後タスク" });
 
     const user = userEvent.setup();
-    render(<Calendar />);
+    renderWithQueryClient(<Calendar />);
 
     // タスクが表示されるのを待つ
     await waitFor(() => {
@@ -235,7 +236,7 @@ describe("Calendar", () => {
     vi.spyOn(window, "confirm").mockReturnValue(true);
 
     const user = userEvent.setup();
-    render(<Calendar />);
+    renderWithQueryClient(<Calendar />);
 
     await waitFor(() => {
       expect(screen.getByText("テストタスク")).toBeInTheDocument();
@@ -255,7 +256,7 @@ describe("Calendar", () => {
     mockFetchTasks.mockResolvedValue([]);
 
     const user = userEvent.setup();
-    render(<Calendar />);
+    renderWithQueryClient(<Calendar />);
 
     await waitFor(() => {
       expect(mockFetchTasks).toHaveBeenCalled();
@@ -278,7 +279,7 @@ describe("Calendar", () => {
     mockFetchTasks.mockResolvedValue([mockTask]);
     mockUpdateTask.mockResolvedValue({ ...mockTask, date: "2026-03-20" });
 
-    render(<Calendar />);
+    renderWithQueryClient(<Calendar />);
 
     await waitFor(() => {
       expect(screen.getByText("テストタスク")).toBeInTheDocument();
@@ -301,7 +302,7 @@ describe("Calendar", () => {
   it("同じ日付へのドロップでは更新しない", async () => {
     mockFetchTasks.mockResolvedValue([mockTask]);
 
-    render(<Calendar />);
+    renderWithQueryClient(<Calendar />);
 
     await waitFor(() => {
       expect(screen.getByText("テストタスク")).toBeInTheDocument();
@@ -318,7 +319,7 @@ describe("Calendar", () => {
   it("ドロップ先がない場合は更新しない", async () => {
     mockFetchTasks.mockResolvedValue([mockTask]);
 
-    render(<Calendar />);
+    renderWithQueryClient(<Calendar />);
 
     await waitFor(() => {
       expect(screen.getByText("テストタスク")).toBeInTheDocument();
@@ -337,7 +338,7 @@ describe("Calendar", () => {
     mockUpdateTask.mockResolvedValue({ ...mockTask, status: "done" });
 
     const user = userEvent.setup();
-    render(<Calendar />);
+    renderWithQueryClient(<Calendar />);
 
     await waitFor(() => {
       expect(screen.getByText("テストタスク")).toBeInTheDocument();

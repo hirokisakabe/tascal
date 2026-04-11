@@ -1,59 +1,64 @@
 import { useState } from "react";
 import type { Task } from "../types/task";
-import { updateTask, deleteTask } from "../api/tasks";
+import { useUpdateTask, useDeleteTask } from "../hooks/useTasks";
 
 type TaskDetailModalProps = {
   task: Task;
+  year: number;
+  month: number;
   onClose: () => void;
   onUpdated: () => void;
 };
 
 export function TaskDetailModal({
   task,
+  year,
+  month,
   onClose,
   onUpdated,
 }: TaskDetailModalProps) {
   const [title, setTitle] = useState(task.title);
   const [description, setDescription] = useState(task.description ?? "");
   const [date, setDate] = useState(task.date);
-  const [saving, setSaving] = useState(false);
-  const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleSave = async (e: React.FormEvent) => {
+  const updateTaskMutation = useUpdateTask(year, month);
+  const deleteTaskMutation = useDeleteTask(year, month);
+
+  const saving = updateTaskMutation.isPending;
+  const deleting = deleteTaskMutation.isPending;
+  const busy = saving || deleting;
+
+  const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim()) return;
 
-    setSaving(true);
     setError(null);
-    try {
-      await updateTask(task.id, {
-        title: title.trim(),
-        description: description.trim() || null,
-        date,
-      });
-      onUpdated();
-    } catch {
-      setError("タスクの更新に失敗しました");
-      setSaving(false);
-    }
+    updateTaskMutation.mutate(
+      {
+        id: task.id,
+        data: {
+          title: title.trim(),
+          description: description.trim() || null,
+          date,
+        },
+      },
+      {
+        onSuccess: () => onUpdated(),
+        onError: () => setError("タスクの更新に失敗しました"),
+      },
+    );
   };
 
-  const handleDelete = async () => {
+  const handleDelete = () => {
     if (!window.confirm("このタスクを削除しますか？")) return;
 
-    setDeleting(true);
     setError(null);
-    try {
-      await deleteTask(task.id);
-      onUpdated();
-    } catch {
-      setError("タスクの削除に失敗しました");
-      setDeleting(false);
-    }
+    deleteTaskMutation.mutate(task.id, {
+      onSuccess: () => onUpdated(),
+      onError: () => setError("タスクの削除に失敗しました"),
+    });
   };
-
-  const busy = saving || deleting;
 
   return (
     <div
@@ -70,7 +75,7 @@ export function TaskDetailModal({
             {error}
           </div>
         )}
-        <form onSubmit={(e) => void handleSave(e)} className="space-y-4">
+        <form onSubmit={handleSave} className="space-y-4">
           <div>
             <label
               htmlFor="detail-title"
@@ -121,7 +126,7 @@ export function TaskDetailModal({
           <div className="flex justify-between">
             <button
               type="button"
-              onClick={() => void handleDelete()}
+              onClick={handleDelete}
               disabled={busy}
               className="rounded-md bg-red-600 px-4 py-2 text-sm text-white hover:bg-red-700 disabled:opacity-50"
             >

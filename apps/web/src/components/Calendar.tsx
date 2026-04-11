@@ -1,7 +1,7 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { DndContext, type DragEndEvent } from "@dnd-kit/core";
 import type { Task } from "../types/task";
-import { fetchTasks, updateTask } from "../api/tasks";
+import { useTasks, useUpdateTask } from "../hooks/useTasks";
 import { getCalendarDays, formatDateKey } from "../utils/calendar";
 import { CalendarDayCell } from "./CalendarDayCell";
 import { TaskFormModal } from "./TaskFormModal";
@@ -13,41 +13,20 @@ export function Calendar() {
   const now = new Date();
   const [year, setYear] = useState(now.getFullYear());
   const [month, setMonth] = useState(now.getMonth() + 1);
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [refreshKey, setRefreshKey] = useState(0);
 
   // モーダル状態
   const [addDate, setAddDate] = useState<string | null>(null);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
 
-  const refreshTasks = useCallback(() => {
-    setRefreshKey((k) => k + 1);
-  }, []);
+  const {
+    data: tasks = [],
+    isLoading,
+    error: queryError,
+  } = useTasks(year, month);
 
-  useEffect(() => {
-    const controller = new AbortController();
-    setLoading(true);
-    setError(null);
+  const updateTaskMutation = useUpdateTask(year, month);
 
-    fetchTasks(year, month, controller.signal)
-      .then((data) => {
-        setTasks(data);
-      })
-      .catch((e: unknown) => {
-        if (e instanceof DOMException && e.name === "AbortError") return;
-        setTasks([]);
-        setError("タスクの取得に失敗しました");
-      })
-      .finally(() => {
-        if (!controller.signal.aborted) {
-          setLoading(false);
-        }
-      });
-
-    return () => controller.abort();
-  }, [year, month, refreshKey]);
+  const [mutationError, setMutationError] = useState<string | null>(null);
 
   const days = useMemo(() => getCalendarDays(year, month), [year, month]);
 
@@ -88,9 +67,13 @@ export function Calendar() {
 
   const handleToggleStatus = (task: Task) => {
     const newStatus = task.status === "done" ? "todo" : "done";
-    void updateTask(task.id, { status: newStatus })
-      .then(() => refreshTasks())
-      .catch(() => setError("ステータスの更新に失敗しました"));
+    setMutationError(null);
+    updateTaskMutation.mutate(
+      { id: task.id, data: { status: newStatus } },
+      {
+        onError: () => setMutationError("ステータスの更新に失敗しました"),
+      },
+    );
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
@@ -103,10 +86,16 @@ export function Calendar() {
     const newDate = over.id as string;
     if (task.date === newDate) return;
 
-    void updateTask(task.id, { date: newDate })
-      .then(() => refreshTasks())
-      .catch(() => setError("タスクの移動に失敗しました"));
+    setMutationError(null);
+    updateTaskMutation.mutate(
+      { id: task.id, data: { date: newDate } },
+      {
+        onError: () => setMutationError("タスクの移動に失敗しました"),
+      },
+    );
   };
+
+  const error = queryError ? "タスクの取得に失敗しました" : mutationError;
 
   return (
     <div className="mx-auto max-w-5xl">
@@ -147,7 +136,7 @@ export function Calendar() {
 
       <DndContext onDragEnd={handleDragEnd}>
         <div
-          className={`overflow-hidden rounded-lg border border-gray-200 ${loading ? "opacity-50" : ""}`}
+          className={`overflow-hidden rounded-lg border border-gray-200 ${isLoading ? "opacity-50" : ""}`}
         >
           <div className="grid grid-cols-7">
             {WEEKDAY_LABELS.map((label, i) => (
@@ -188,10 +177,11 @@ export function Calendar() {
       {addDate && (
         <TaskFormModal
           date={addDate}
+          year={year}
+          month={month}
           onClose={() => setAddDate(null)}
           onCreated={() => {
             setAddDate(null);
-            refreshTasks();
           }}
         />
       )}
@@ -199,10 +189,11 @@ export function Calendar() {
       {selectedTask && (
         <TaskDetailModal
           task={selectedTask}
+          year={year}
+          month={month}
           onClose={() => setSelectedTask(null)}
           onUpdated={() => {
             setSelectedTask(null);
-            refreshTasks();
           }}
         />
       )}
