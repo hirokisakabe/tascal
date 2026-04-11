@@ -20,6 +20,7 @@ export function DraggableTask({
   return (
     <div
       ref={setNodeRef}
+      onClick={(e) => e.stopPropagation()}
       className={`flex items-center gap-1 rounded px-1 py-0.5 text-sm ${
         task.status === "done"
           ? "text-gray-400 line-through"

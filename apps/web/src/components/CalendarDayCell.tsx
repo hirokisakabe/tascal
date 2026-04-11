@@ -32,7 +32,17 @@ export function CalendarDayCell({
   return (
     <div
       ref={setNodeRef}
-      className={`group relative min-h-32 border border-gray-200 p-1.5 ${
+      role="button"
+      tabIndex={0}
+      onClick={() => onAddClick(dateKey)}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onAddClick(dateKey);
+        }
+      }}
+      aria-label={`${dateKey}にタスクを追加`}
+      className={`group relative min-h-32 cursor-pointer border border-gray-200 p-1.5 ${
         !isCurrentMonth ? "bg-gray-50" : "bg-white"
       } ${isOver ? "bg-blue-50" : ""}`}
     >
@@ -49,14 +59,6 @@ export function CalendarDayCell({
           {date.getDate()}
         </span>
       </div>
-      <button
-        type="button"
-        onClick={() => onAddClick(dateKey)}
-        className="absolute right-1 top-1 hidden h-5 w-5 items-center justify-center rounded text-gray-400 hover:bg-gray-200 hover:text-gray-600 focus:flex group-hover:flex group-focus-within:flex"
-        aria-label={`${dateKey}にタスクを追加`}
-      >
-        +
-      </button>
       <div className="space-y-0.5">
         {visibleTasks.map((task) => (
           <DraggableTask

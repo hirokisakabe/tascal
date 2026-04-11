@@ -163,7 +163,7 @@ describe("Calendar", () => {
     });
   });
 
-  it("＋ボタンからタスク作成モーダルを開いて作成できる", async () => {
+  it("日付セルクリックからタスク作成モーダルを開いて作成できる", async () => {
     mockFetchTasks.mockResolvedValue([]);
     mockCreateTask.mockResolvedValue(mockTask);
 
@@ -174,11 +174,12 @@ describe("Calendar", () => {
       expect(mockFetchTasks).toHaveBeenCalled();
     });
 
-    // 日付セルの + ボタンをクリック
-    const addButtons = screen.getAllByRole("button", {
-      name: /にタスクを追加/,
-    });
-    await user.click(addButtons[0]);
+    // 日付セルの15日をクリック
+    const now = new Date();
+    const dateKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-15`;
+    await user.click(
+      screen.getByRole("button", { name: `${dateKey}にタスクを追加` }),
+    );
 
     // モーダルが表示される
     expect(screen.getByText(/タスクを追加/)).toBeInTheDocument();
@@ -263,10 +264,11 @@ describe("Calendar", () => {
       expect(mockFetchTasks).toHaveBeenCalled();
     });
 
-    const addButtons = screen.getAllByRole("button", {
-      name: /にタスクを追加/,
-    });
-    await user.click(addButtons[0]);
+    const now = new Date();
+    const dateKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-15`;
+    await user.click(
+      screen.getByRole("button", { name: `${dateKey}にタスクを追加` }),
+    );
     expect(screen.getByText(/タスクを追加/)).toBeInTheDocument();
 
     await user.click(screen.getByText("キャンセル"));
