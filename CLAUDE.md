@@ -78,7 +78,7 @@ Vite dev server が `/api` を `http://localhost:3000` にプロキシ。
 
 `apps/api/.env` に設定（`.env.example` 参照）：
 - `DATABASE_URL` — PostgreSQL 接続文字列
-- `CORS_ORIGIN` — 許可オリジン (カンマ区切り可)
+- `CORS_ORIGIN` — 許可オリジン
 - `BETTER_AUTH_SECRET` — 認証シークレット
 - `BETTER_AUTH_URL` — 認証ベース URL
 - `TRUSTED_ORIGINS` — better-auth 信頼オリジン
