@@ -7,7 +7,7 @@ import { CalendarDayCell } from "./CalendarDayCell";
 import { TaskFormModal } from "./TaskFormModal";
 import { TaskDetailModal } from "./TaskDetailModal";
 
-const WEEKDAY_LABELS = ["日", "月", "火", "水", "木", "金", "土"];
+const WEEKDAY_LABELS = ["月", "火", "水", "木", "金", "土", "日"];
 
 export function Calendar() {
   const now = new Date();
@@ -143,10 +143,10 @@ export function Calendar() {
               <div
                 key={label}
                 className={`border-b border-gray-200 py-2 text-center text-sm font-medium ${
-                  i === 0
-                    ? "text-red-500"
+                  i === 5
+                    ? "text-blue-500"
                     : i === 6
-                      ? "text-blue-500"
+                      ? "text-red-500"
                       : "text-gray-600"
                 }`}
               >
