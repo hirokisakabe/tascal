@@ -2,77 +2,97 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## プロジェクト概要
+
+tascal (task + calendar) — カレンダービューがメインのタスク管理 Web アプリ。API ファースト設計。
+
+## 技術スタック
+
+- **モノレポ**: `apps/api` (バックエンド) + `apps/web` (フロントエンド)、npm workspaces は未使用（各 app で独立 `npm install`）
+- **API**: Hono + Node.js + TypeScript、Zod バリデーション
+- **Web**: React 19 + Vite + TanStack Router (ファイルベースルーティング) + TanStack React Query + dnd-kit + Tailwind CSS v4
+- **DB**: PostgreSQL 17 (Docker Compose) + Drizzle ORM
+- **認証**: better-auth (メール/パスワード)
+- **テスト**: Vitest (API: app.request() + DB モック、Web: React Testing Library + jsdom)
+- **Node.js**: v24 (.node-version)
+
 ## コマンド
 
-### 開発（すべて Makefile 経由）
+ルートの Makefile から実行：
 
+| コマンド | 内容 |
+|---|---|
+| `make install` | 両 app の依存インストール |
+| `make dev` | DB 起動 + API + Web の開発サーバー起動 |
+| `make build` | 両 app ビルド |
+| `make lint` | ESLint (両 app) |
+| `make format` | Prettier 自動修正 |
+| `make format-check` | Prettier チェックのみ |
+| `make typecheck` | TypeScript 型チェック |
+| `make test` | テスト実行 |
+| `make knip` | 未使用コード・依存の検出 |
+| `make db-up` / `make db-down` | PostgreSQL の起動/停止 |
+| `make db-migrate` | Drizzle マイグレーション適用 |
+
+個別 app でのテスト実行：
 ```bash
-make dev            # DB + API + Web をまとめて起動（Ctrl+C で全停止）
-make install        # 両アプリの npm install
-make db-up          # PostgreSQL コンテナのみ起動
-make db-down        # PostgreSQL コンテナ停止
-make db-migrate     # Drizzle マイグレーション実行
-```
-
-### ビルド・検証
-
-```bash
-make lint           # 両アプリの ESLint
-make format         # 両アプリの Prettier フォーマット
-make format-check   # フォーマット差分確認
-make typecheck      # 両アプリの tsc --noEmit
-make test           # 両アプリの Vitest
-```
-
-### 個別アプリ操作（apps/api or apps/web ディレクトリで実行）
-
-```bash
-npm run lint
-npm run format
-npm run format:check
-npm run typecheck
-npm test                # vitest run（単発実行）
-npm run test:watch      # vitest（ウォッチモード）
-```
-
-### 単一テストファイル実行
-
-```bash
-cd apps/api && npx vitest run src/routes/__tests__/tasks.test.ts
+cd apps/api && npx vitest run src/routes/__tests__/tasks.test.ts  # 単一テスト
 cd apps/web && npx vitest run src/components/__tests__/Calendar.test.tsx
 ```
 
-### DB マイグレーション生成
-
-```bash
-cd apps/api && npm run db:generate
-```
+ウォッチモード: `cd apps/api && npm run test:watch`
 
 ## アーキテクチャ
 
-モノレポ構成（npm workspaces ではなく Makefile で管理）。`apps/api` と `apps/web` は独立した npm プロジェクト。
+### API (apps/api)
 
-### API (`apps/api`) — Hono + Drizzle ORM + PostgreSQL
+- `src/index.ts` — エントリポイント。Hono アプリ作成、CORS 設定、ルートマウント、SPA 静的ファイル配信
+- `src/routes/tasks.ts` — タスク CRUD (`GET /api/tasks?year&month`, `POST`, `PATCH /:id`, `DELETE /:id`)。認証ミドルウェアで保護
+- `src/auth.ts` — better-auth 設定 (Drizzle アダプタ)
+- `src/db/schema.ts` — Drizzle スキーマ定義 (users, tasks, sessions, accounts, verifications)
+- `src/db/index.ts` — DB コネクション (シングルトン)
+- `drizzle/` — マイグレーションファイル
 
-- **エントリ**: `src/index.ts` — Hono サーバー（ポート 3000）、CORS・セッションミドルウェア設定
-- **認証**: `src/auth.ts` — better-auth（email/password）、Drizzle アダプタ。`/api/auth/**` でハンドリング
-- **DB**: `src/db/schema.ts` に Drizzle スキーマ定義（users/sessions/accounts/verifications + tasks テーブル）。`src/db/index.ts` で接続シングルトン
-- **ルート**: `src/routes/` 以下。現在は `tasks.ts`（CRUD、認証必須）のみ
-- **テスト**: `src/routes/__tests__/` に Vitest テスト。DB をモック化して HTTP リクエストをテスト
+### Web (apps/web)
 
-### Web (`apps/web`) — React 19 + TanStack Router + Tailwind CSS 4
+- `src/routes/` — TanStack Router のファイルベースルーティング
+  - `__root.tsx` — ルートレイアウト、NotFound 表示
+  - `_authenticated.tsx` — 認証ガード (セッション未取得で /login へリダイレクト)
+  - `_authenticated/index.tsx` — メインページ (カレンダー表示)
+  - `login.tsx`, `signup.tsx` — 認証ページ
+- `src/components/` — Calendar, TaskFormModal, TaskDetailModal, DraggableTask, CalendarDayCell 等
+- `src/hooks/useTasks.ts` — React Query によるタスク CRUD フック
+- `src/api/tasks.ts` — API クライアント (fetch ベース)
+- `src/auth-client.ts` — better-auth クライアント
+- `src/routeTree.gen.ts` — 自動生成ファイル（編集不可）
 
-- **ルーティング**: TanStack Router のファイルベースルーティング（`src/routes/`）。Vite プラグインが自動生成
-- **認証ガード**: `src/routes/_authenticated.tsx` — 未認証時は `/login` へリダイレクト
-- **API クライアント**: `src/api/tasks.ts` — fetch ベースの CRUD 関数。`src/auth-client.ts` — better-auth クライアント
-- **主要コンポーネント**: `src/components/` — Calendar（月間表示 + dnd-kit でドラッグ&ドロップ）、TaskFormModal（作成）、TaskDetailModal（編集・削除）
-- **テスト**: `src/components/__tests__/` に Vitest + React Testing Library + jsdom
-- **開発時プロキシ**: Vite が `/api` を `http://localhost:3000` に転送
+### DB スキーマ
 
-### 認証フロー
+tasks テーブルの主要カラム: `id`, `userId`, `title`, `description`, `date` (DATE型), `status` ('todo' | 'done')
 
-API・Web 両方で better-auth を使用。API 側が認証サーバー、Web 側は `createAuthClient({ baseURL: "http://localhost:3000" })` で接続。Cookie ベースのセッション管理。
+### 開発時のプロキシ
 
-### CI
+Vite dev server が `/api` を `http://localhost:3000` にプロキシ。
 
-GitHub Actions（`.github/workflows/ci.yml`）で PR 時に API・Web を並列で lint / format:check / typecheck / test を実行。Node.js バージョンは `.node-version`（v24）から取得。
+## 環境変数
+
+`apps/api/.env` に設定（`.env.example` 参照）：
+- `DATABASE_URL` — PostgreSQL 接続文字列
+- `CORS_ORIGIN` — 許可オリジン
+- `BETTER_AUTH_SECRET` — 認証シークレット
+- `BETTER_AUTH_URL` — 認証ベース URL
+- `TRUSTED_ORIGINS` — better-auth 信頼オリジン
+- `PORT` — API ポート (デフォルト 3000)
+
+## CI
+
+GitHub Actions (`.github/workflows/ci.yml`) が PR で lint, format-check, typecheck, test, knip を実行。
+
+## テスト方針
+
+- API: `app.request()` + DB 層モックによる単体テスト
+- Web: React Testing Library による結合テスト (テスティングトロフィーに従い、単体テストより結合テストを優先)
+
+## デプロイ
+
+Docker マルチステージビルドで単一イメージ (Web 静的ファイル + API) を Google Cloud Run にデプロイ。
