@@ -1,5 +1,7 @@
-import { Hono } from "hono";
+import { Hono, type Env } from "hono";
 import { z } from "zod";
+import { zValidator } from "@hono/zod-validator";
+import type { Hook } from "@hono/zod-validator";
 import { eq, and, gte, lt } from "drizzle-orm";
 import { getDb } from "../db/index.js";
 import { tasks } from "../db/schema.js";
@@ -32,6 +34,19 @@ const listQuerySchema = z.object({
   month: z.coerce.number().int().min(1).max(12),
 });
 
+const paramIdSchema = z.object({
+  id: z.string().uuid("不正なタスクIDです"),
+});
+
+// バリデーションエラー時に既存形式 { error, details } で返す共通 hook
+function validationHook(errorMessage: string): Hook<unknown, Env, string> {
+  return (result, c) => {
+    if (!result.success) {
+      return c.json({ error: errorMessage, details: result.error.issues }, 400);
+    }
+  };
+}
+
 const app = new Hono<{ Variables: AuthVariables }>();
 
 // 認証ミドルウェア
@@ -44,134 +59,106 @@ app.use("*", async (c, next) => {
 });
 
 // GET /api/tasks?year=YYYY&month=MM
-app.get("/", async (c) => {
-  const user = c.get("user")!;
+app.get(
+  "/",
+  zValidator(
+    "query",
+    listQuerySchema,
+    validationHook("year と month のクエリパラメータが必要です"),
+  ),
+  async (c) => {
+    const user = c.get("user")!;
+    const { year, month } = c.req.valid("query");
 
-  const parsed = listQuerySchema.safeParse({
-    year: c.req.query("year"),
-    month: c.req.query("month"),
-  });
+    const startDate = `${year}-${String(month).padStart(2, "0")}-01`;
+    const nextMonth = month === 12 ? 1 : month + 1;
+    const nextYear = month === 12 ? year + 1 : year;
+    const endDate = `${nextYear}-${String(nextMonth).padStart(2, "0")}-01`;
 
-  if (!parsed.success) {
-    return c.json(
-      {
-        error: "year と month のクエリパラメータが必要です",
-        details: parsed.error.issues,
-      },
-      400,
-    );
-  }
+    const result = await getDb()
+      .select()
+      .from(tasks)
+      .where(
+        and(
+          eq(tasks.userId, user.id),
+          gte(tasks.date, startDate),
+          lt(tasks.date, endDate),
+        ),
+      );
 
-  const { year, month } = parsed.data;
-  const startDate = `${year}-${String(month).padStart(2, "0")}-01`;
-  const nextMonth = month === 12 ? 1 : month + 1;
-  const nextYear = month === 12 ? year + 1 : year;
-  const endDate = `${nextYear}-${String(nextMonth).padStart(2, "0")}-01`;
-
-  const result = await getDb()
-    .select()
-    .from(tasks)
-    .where(
-      and(
-        eq(tasks.userId, user.id),
-        gte(tasks.date, startDate),
-        lt(tasks.date, endDate),
-      ),
-    );
-
-  return c.json(result);
-});
+    return c.json(result);
+  },
+);
 
 // POST /api/tasks
-app.post("/", async (c) => {
-  const user = c.get("user")!;
+app.post(
+  "/",
+  zValidator("json", createTaskSchema, validationHook("バリデーションエラー")),
+  async (c) => {
+    const user = c.get("user")!;
+    const data = c.req.valid("json");
 
-  const body: unknown = await c.req.json().catch(() => null);
-  if (!body) {
-    return c.json({ error: "リクエストボディが不正です" }, 400);
-  }
+    const [task] = await getDb()
+      .insert(tasks)
+      .values({
+        title: data.title,
+        description: data.description ?? null,
+        date: data.date,
+        status: data.status ?? "todo",
+        userId: user.id,
+      })
+      .returning();
 
-  const parsed = createTaskSchema.safeParse(body);
-  if (!parsed.success) {
-    return c.json(
-      { error: "バリデーションエラー", details: parsed.error.issues },
-      400,
-    );
-  }
-
-  const [task] = await getDb()
-    .insert(tasks)
-    .values({
-      title: parsed.data.title,
-      description: parsed.data.description ?? null,
-      date: parsed.data.date,
-      status: parsed.data.status ?? "todo",
-      userId: user.id,
-    })
-    .returning();
-
-  return c.json(task, 201);
-});
+    return c.json(task, 201);
+  },
+);
 
 // PATCH /api/tasks/:id
-app.patch("/:id", async (c) => {
-  const user = c.get("user")!;
-  const id = c.req.param("id");
+app.patch(
+  "/:id",
+  zValidator("param", paramIdSchema, validationHook("不正なタスクIDです")),
+  zValidator("json", updateTaskSchema, validationHook("バリデーションエラー")),
+  async (c) => {
+    const user = c.get("user")!;
+    const { id } = c.req.valid("param");
+    const data = c.req.valid("json");
 
-  const uuidSchema = z.string().uuid();
-  if (!uuidSchema.safeParse(id).success) {
-    return c.json({ error: "不正なタスクIDです" }, 400);
-  }
+    const [updated] = await getDb()
+      .update(tasks)
+      .set({
+        ...data,
+        updatedAt: new Date().toISOString(),
+      })
+      .where(and(eq(tasks.id, id), eq(tasks.userId, user.id)))
+      .returning();
 
-  const body: unknown = await c.req.json().catch(() => null);
-  if (!body) {
-    return c.json({ error: "リクエストボディが不正です" }, 400);
-  }
+    if (!updated) {
+      return c.json({ error: "タスクが見つかりません" }, 404);
+    }
 
-  const parsed = updateTaskSchema.safeParse(body);
-  if (!parsed.success) {
-    return c.json(
-      { error: "バリデーションエラー", details: parsed.error.issues },
-      400,
-    );
-  }
-
-  const [updated] = await getDb()
-    .update(tasks)
-    .set({
-      ...parsed.data,
-      updatedAt: new Date().toISOString(),
-    })
-    .where(and(eq(tasks.id, id), eq(tasks.userId, user.id)))
-    .returning();
-
-  if (!updated) {
-    return c.json({ error: "タスクが見つかりません" }, 404);
-  }
-
-  return c.json(updated);
-});
+    return c.json(updated);
+  },
+);
 
 // DELETE /api/tasks/:id
-app.delete("/:id", async (c) => {
-  const user = c.get("user")!;
-  const id = c.req.param("id");
+app.delete(
+  "/:id",
+  zValidator("param", paramIdSchema, validationHook("不正なタスクIDです")),
+  async (c) => {
+    const user = c.get("user")!;
+    const { id } = c.req.valid("param");
 
-  const uuidSchema = z.string().uuid();
-  if (!uuidSchema.safeParse(id).success) {
-    return c.json({ error: "不正なタスクIDです" }, 400);
-  }
+    const [deleted] = await getDb()
+      .delete(tasks)
+      .where(and(eq(tasks.id, id), eq(tasks.userId, user.id)))
+      .returning();
 
-  const [deleted] = await getDb()
-    .delete(tasks)
-    .where(and(eq(tasks.id, id), eq(tasks.userId, user.id)))
-    .returning();
+    if (!deleted) {
+      return c.json({ error: "タスクが見つかりません" }, 404);
+    }
 
-  if (!deleted) {
-    return c.json({ error: "タスクが見つかりません" }, 404);
-  }
-
-  return c.json({ message: "タスクを削除しました" });
-});
+    return c.json({ message: "タスクを削除しました" });
+  },
+);
 
 export default app;
