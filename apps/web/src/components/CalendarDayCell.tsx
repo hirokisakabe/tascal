@@ -32,7 +32,7 @@ export function CalendarDayCell({
   return (
     <div
       ref={setNodeRef}
-      className={`group relative min-h-24 border border-gray-200 p-1 ${
+      className={`group relative min-h-32 border border-gray-200 p-1.5 ${
         !isCurrentMonth ? "bg-gray-50" : "bg-white"
       } ${isOver ? "bg-blue-50" : ""}`}
     >

@@ -20,7 +20,7 @@ export function DraggableTask({
   return (
     <div
       ref={setNodeRef}
-      className={`flex items-center gap-1 rounded px-1 text-xs ${
+      className={`flex items-center gap-1 rounded px-1 py-0.5 text-sm ${
         task.status === "done"
           ? "text-gray-400 line-through"
           : "bg-blue-100 text-blue-800"
@@ -31,7 +31,7 @@ export function DraggableTask({
         checked={task.status === "done"}
         onChange={() => onToggleStatus(task)}
         onClick={(e) => e.stopPropagation()}
-        className="h-3 w-3 shrink-0 cursor-pointer"
+        className="h-3.5 w-3.5 shrink-0 cursor-pointer"
       />
       <span
         className="cursor-pointer truncate"
