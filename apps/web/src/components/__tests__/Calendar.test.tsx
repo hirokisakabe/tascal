@@ -17,20 +17,31 @@ vi.mock("../../api/tasks", () => ({
   deleteTask: (...args: unknown[]) => mockDeleteTask(...args) as unknown,
 }));
 
-// dnd-kit モック - onDragEnd をキャプチャして手動発火可能にする
+// dnd-kit モック - onDragStart/onDragEnd/onDragCancel をキャプチャして手動発火可能にする
+let capturedOnDragStart: ((event: unknown) => void) | null = null;
 let capturedOnDragEnd: ((event: unknown) => void) | null = null;
+let capturedOnDragCancel: (() => void) | null = null;
 
 vi.mock("@dnd-kit/core", () => ({
   DndContext: ({
     children,
+    onDragStart,
     onDragEnd,
+    onDragCancel,
   }: {
     children: React.ReactNode;
+    onDragStart?: (event: unknown) => void;
     onDragEnd?: (event: unknown) => void;
+    onDragCancel?: () => void;
   }) => {
+    capturedOnDragStart = onDragStart ?? null;
     capturedOnDragEnd = onDragEnd ?? null;
+    capturedOnDragCancel = onDragCancel ?? null;
     return <div>{children}</div>;
   },
+  DragOverlay: ({ children }: { children: React.ReactNode }) => (
+    <div data-testid="drag-overlay">{children}</div>
+  ),
   useDraggable: () => ({
     attributes: {},
     listeners: {},
@@ -334,6 +345,57 @@ describe("Calendar", () => {
     });
 
     expect(mockUpdateTask).not.toHaveBeenCalled();
+  });
+
+  it("ドラッグ開始時にDragOverlayにタスクのプレビューが表示される", async () => {
+    mockFetchTasks.mockResolvedValue([mockTask]);
+
+    renderWithQueryClient(<Calendar />);
+
+    await waitFor(() => {
+      expect(screen.getByText("テストタスク")).toBeInTheDocument();
+    });
+
+    // ドラッグ開始前はオーバーレイにタスクが表示されない
+    const overlay = screen.getByTestId("drag-overlay");
+    expect(overlay.textContent).toBe("");
+
+    // onDragStart を手動発火
+    capturedOnDragStart!({
+      active: { id: mockTask.id, data: { current: { task: mockTask } } },
+    });
+
+    await waitFor(() => {
+      expect(overlay.textContent).toContain("テストタスク");
+    });
+  });
+
+  it("ドラッグキャンセル時にDragOverlayのプレビューが消える", async () => {
+    mockFetchTasks.mockResolvedValue([mockTask]);
+
+    renderWithQueryClient(<Calendar />);
+
+    await waitFor(() => {
+      expect(screen.getByText("テストタスク")).toBeInTheDocument();
+    });
+
+    const overlay = screen.getByTestId("drag-overlay");
+
+    // ドラッグ開始
+    capturedOnDragStart!({
+      active: { id: mockTask.id, data: { current: { task: mockTask } } },
+    });
+
+    await waitFor(() => {
+      expect(overlay.textContent).toContain("テストタスク");
+    });
+
+    // キャンセル
+    capturedOnDragCancel!();
+
+    await waitFor(() => {
+      expect(overlay.textContent).toBe("");
+    });
   });
 
   it("チェックボックスでタスクのステータスを切り替えられる", async () => {

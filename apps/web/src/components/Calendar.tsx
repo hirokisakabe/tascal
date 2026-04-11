@@ -1,5 +1,10 @@
 import { useMemo, useState } from "react";
-import { DndContext, type DragEndEvent } from "@dnd-kit/core";
+import {
+  DndContext,
+  DragOverlay,
+  type DragEndEvent,
+  type DragStartEvent,
+} from "@dnd-kit/core";
 import type { Task } from "../types/task";
 import { useTasks, useUpdateTask } from "../hooks/useTasks";
 import { getCalendarDays, formatDateKey } from "../utils/calendar";
@@ -13,6 +18,9 @@ export function Calendar() {
   const now = new Date();
   const [year, setYear] = useState(now.getFullYear());
   const [month, setMonth] = useState(now.getMonth() + 1);
+
+  // ドラッグ状態
+  const [activeTask, setActiveTask] = useState<Task | null>(null);
 
   // モーダル状態
   const [addDate, setAddDate] = useState<string | null>(null);
@@ -76,7 +84,18 @@ export function Calendar() {
     );
   };
 
+  const handleDragStart = (event: DragStartEvent) => {
+    const task = event.active.data.current?.task as Task | undefined;
+    setActiveTask(task ?? null);
+  };
+
+  const handleDragCancel = () => {
+    setActiveTask(null);
+  };
+
   const handleDragEnd = (event: DragEndEvent) => {
+    setActiveTask(null);
+
     const { active, over } = event;
     if (!over) return;
 
@@ -134,7 +153,11 @@ export function Calendar() {
         </div>
       )}
 
-      <DndContext onDragEnd={handleDragEnd}>
+      <DndContext
+        onDragStart={handleDragStart}
+        onDragEnd={handleDragEnd}
+        onDragCancel={handleDragCancel}
+      >
         <div
           className={`overflow-hidden rounded-lg border border-gray-200 ${isLoading ? "opacity-50" : ""}`}
         >
@@ -172,6 +195,26 @@ export function Calendar() {
             })}
           </div>
         </div>
+        <DragOverlay>
+          {activeTask && (
+            <div
+              className={`flex items-center gap-1 rounded px-1 py-0.5 text-sm ${
+                activeTask.status === "done"
+                  ? "text-gray-400 line-through"
+                  : "bg-blue-100 text-blue-800"
+              }`}
+            >
+              <input
+                type="checkbox"
+                checked={activeTask.status === "done"}
+                readOnly
+                className="h-3.5 w-3.5 shrink-0"
+              />
+              <span className="truncate">{activeTask.title}</span>
+              <span className="ml-auto shrink-0 text-gray-400">⠿</span>
+            </div>
+          )}
+        </DragOverlay>
       </DndContext>
 
       {addDate && (
