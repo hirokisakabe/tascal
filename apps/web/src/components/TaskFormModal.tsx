@@ -1,39 +1,42 @@
 import { useState } from "react";
-import { createTask } from "../api/tasks";
+import { useCreateTask } from "../hooks/useTasks";
 
 type TaskFormModalProps = {
   date: string;
+  year: number;
+  month: number;
   onClose: () => void;
   onCreated: () => void;
 };
 
 export function TaskFormModal({
   date,
+  year,
+  month,
   onClose,
   onCreated,
 }: TaskFormModalProps) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const createTaskMutation = useCreateTask(year, month);
+  const saving = createTaskMutation.isPending;
+  const error = createTaskMutation.error ? "タスクの作成に失敗しました" : null;
+
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim()) return;
 
-    setSaving(true);
-    setError(null);
-    try {
-      await createTask({
+    createTaskMutation.mutate(
+      {
         title: title.trim(),
         description: description.trim() || null,
         date,
-      });
-      onCreated();
-    } catch {
-      setError("タスクの作成に失敗しました");
-      setSaving(false);
-    }
+      },
+      {
+        onSuccess: () => onCreated(),
+      },
+    );
   };
 
   return (
@@ -53,7 +56,7 @@ export function TaskFormModal({
             {error}
           </div>
         )}
-        <form onSubmit={(e) => void handleSubmit(e)} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label
               htmlFor="task-title"

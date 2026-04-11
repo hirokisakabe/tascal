@@ -1,7 +1,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { TaskDetailModal } from "../TaskDetailModal";
+import { renderWithQueryClient } from "../../test/helpers";
 
 const mockUpdateTask = vi.fn();
 const mockDeleteTask = vi.fn();
@@ -25,6 +26,8 @@ const mockTask = {
 describe("TaskDetailModal", () => {
   const defaultProps = {
     task: mockTask,
+    year: 2026,
+    month: 3,
     onClose: vi.fn(),
     onUpdated: vi.fn(),
   };
@@ -38,7 +41,7 @@ describe("TaskDetailModal", () => {
   });
 
   it("タスクの情報がフォームに表示される", () => {
-    render(<TaskDetailModal {...defaultProps} />);
+    renderWithQueryClient(<TaskDetailModal {...defaultProps} />);
 
     expect(screen.getByText("タスクの詳細")).toBeInTheDocument();
     expect(screen.getByDisplayValue("既存タスク")).toBeInTheDocument();
@@ -49,7 +52,7 @@ describe("TaskDetailModal", () => {
   it("タイトルを変更して保存できる", async () => {
     mockUpdateTask.mockResolvedValue({ ...mockTask, title: "変更後" });
     const user = userEvent.setup();
-    render(<TaskDetailModal {...defaultProps} />);
+    renderWithQueryClient(<TaskDetailModal {...defaultProps} />);
 
     const titleInput = screen.getByLabelText(/タイトル/);
     await user.clear(titleInput);
@@ -62,7 +65,9 @@ describe("TaskDetailModal", () => {
         expect.objectContaining({ title: "変更後" }),
       );
     });
-    expect(defaultProps.onUpdated).toHaveBeenCalled();
+    await waitFor(() => {
+      expect(defaultProps.onUpdated).toHaveBeenCalled();
+    });
   });
 
   it("削除ボタンで確認後に削除できる", async () => {
@@ -70,21 +75,23 @@ describe("TaskDetailModal", () => {
     vi.spyOn(window, "confirm").mockReturnValue(true);
 
     const user = userEvent.setup();
-    render(<TaskDetailModal {...defaultProps} />);
+    renderWithQueryClient(<TaskDetailModal {...defaultProps} />);
 
     await user.click(screen.getByText("削除"));
 
     await waitFor(() => {
       expect(mockDeleteTask).toHaveBeenCalledWith("task-1");
     });
-    expect(defaultProps.onUpdated).toHaveBeenCalled();
+    await waitFor(() => {
+      expect(defaultProps.onUpdated).toHaveBeenCalled();
+    });
   });
 
   it("削除確認でキャンセルすると削除されない", async () => {
     vi.spyOn(window, "confirm").mockReturnValue(false);
 
     const user = userEvent.setup();
-    render(<TaskDetailModal {...defaultProps} />);
+    renderWithQueryClient(<TaskDetailModal {...defaultProps} />);
 
     await user.click(screen.getByText("削除"));
 
@@ -93,7 +100,7 @@ describe("TaskDetailModal", () => {
 
   it("キャンセルで onClose が呼ばれる", async () => {
     const user = userEvent.setup();
-    render(<TaskDetailModal {...defaultProps} />);
+    renderWithQueryClient(<TaskDetailModal {...defaultProps} />);
 
     await user.click(screen.getByText("キャンセル"));
     expect(defaultProps.onClose).toHaveBeenCalled();
@@ -102,7 +109,7 @@ describe("TaskDetailModal", () => {
   it("更新失敗時にエラーメッセージを表示する", async () => {
     mockUpdateTask.mockRejectedValue(new Error("更新失敗"));
     const user = userEvent.setup();
-    render(<TaskDetailModal {...defaultProps} />);
+    renderWithQueryClient(<TaskDetailModal {...defaultProps} />);
 
     await user.click(screen.getByText("保存"));
 
@@ -119,7 +126,7 @@ describe("TaskDetailModal", () => {
     vi.spyOn(window, "confirm").mockReturnValue(true);
 
     const user = userEvent.setup();
-    render(<TaskDetailModal {...defaultProps} />);
+    renderWithQueryClient(<TaskDetailModal {...defaultProps} />);
 
     await user.click(screen.getByText("削除"));
 
@@ -132,7 +139,7 @@ describe("TaskDetailModal", () => {
   });
 
   it("description が null のタスクでも正しく表示される", () => {
-    render(
+    renderWithQueryClient(
       <TaskDetailModal
         {...defaultProps}
         task={{ ...mockTask, description: null }}
