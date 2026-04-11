@@ -1,0 +1,174 @@
+name: Preview Environment
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, closed]
+
+env:
+  PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+  PROJECT_NUMBER: ${{ secrets.GCP_PROJECT_NUMBER }}
+  REGION: asia-northeast1
+  REPOSITORY: tascal
+  SERVICE_NAME: tascal-pr-${{ github.event.pull_request.number }}
+  NEON_BRANCH_NAME: pr-${{ github.event.pull_request.number }}
+
+jobs:
+  deploy-preview:
+    if: github.event.action != 'closed' && github.event.pull_request.head.repo.fork == false
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+      pull-requests: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+
+      - id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+
+      - uses: google-github-actions/setup-gcloud@v2
+
+      - name: Configure Docker for Artifact Registry
+        run: gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev --quiet
+
+      - name: Build and push Docker image
+        run: |
+          IMAGE=${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.SERVICE_NAME }}:${{ github.sha }}
+          docker build -t $IMAGE .
+          docker push $IMAGE
+
+      - name: Install neonctl
+        run: npm install -g neonctl
+
+      - name: Create or reset Neon Branch
+        id: neon-branch
+        env:
+          NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
+          NEON_PROJECT_ID: ${{ secrets.NEON_PROJECT_ID }}
+        run: |
+          # 既存ブランチがあれば削除して再作成（synchronize 対応）
+          if neonctl branches get "${{ env.NEON_BRANCH_NAME }}" \
+            --project-id "$NEON_PROJECT_ID" \
+            --output json 2>/dev/null; then
+            neonctl branches delete "${{ env.NEON_BRANCH_NAME }}" \
+              --project-id "$NEON_PROJECT_ID"
+          fi
+
+          # main ブランチから copy-on-write で新規作成
+          neonctl branches create \
+            --name "${{ env.NEON_BRANCH_NAME }}" \
+            --project-id "$NEON_PROJECT_ID" \
+            --output json
+
+          # 接続文字列を取得
+          DATABASE_URL=$(neonctl connection-string "${{ env.NEON_BRANCH_NAME }}" \
+            --project-id "$NEON_PROJECT_ID" \
+            --pooled)
+          echo "::add-mask::$DATABASE_URL"
+          echo "database_url=$DATABASE_URL" >> "$GITHUB_OUTPUT"
+
+      - name: Run database migrations
+        env:
+          DATABASE_URL: ${{ steps.neon-branch.outputs.database_url }}
+        run: |
+          cd apps/api
+          npm ci
+          npx drizzle-kit migrate
+
+      - name: Compute preview URL
+        id: preview-url
+        run: |
+          PREVIEW_URL="https://${{ env.SERVICE_NAME }}-${{ env.PROJECT_NUMBER }}.${{ env.REGION }}.run.app"
+          echo "url=$PREVIEW_URL" >> "$GITHUB_OUTPUT"
+
+      - name: Deploy to Cloud Run
+        run: |
+          IMAGE=${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.SERVICE_NAME }}:${{ github.sha }}
+          gcloud run deploy ${{ env.SERVICE_NAME }} \
+            --image $IMAGE \
+            --region ${{ env.REGION }} \
+            --platform managed \
+            --allow-unauthenticated \
+            --memory 256Mi \
+            --cpu 1 \
+            --min-instances 0 \
+            --max-instances 2 \
+            --port 8080 \
+            --set-env-vars "DATABASE_URL=${{ steps.neon-branch.outputs.database_url }},BETTER_AUTH_URL=${{ steps.preview-url.outputs.url }},TRUSTED_ORIGINS=${{ steps.preview-url.outputs.url }},CORS_ORIGIN=${{ steps.preview-url.outputs.url }}" \
+            --set-secrets "BETTER_AUTH_SECRET=BETTER_AUTH_SECRET:latest"
+
+      - name: Comment preview URL on PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const body = `🚀 プレビュー環境がデプロイされました！\n\n**URL:** ${{ steps.preview-url.outputs.url }}`;
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+            const existing = comments.find(c =>
+              c.user.type === 'Bot' && c.body.includes('プレビュー環境がデプロイされました')
+            );
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body,
+              });
+            }
+
+  cleanup-preview:
+    if: github.event.action == 'closed' && github.event.pull_request.head.repo.fork == false
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+
+      - id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+
+      - uses: google-github-actions/setup-gcloud@v2
+
+      - name: Delete Cloud Run service
+        run: |
+          gcloud run services delete ${{ env.SERVICE_NAME }} \
+            --region ${{ env.REGION }} \
+            --quiet || true
+
+      - name: Install neonctl
+        run: npm install -g neonctl
+
+      - name: Delete Neon Branch
+        env:
+          NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
+          NEON_PROJECT_ID: ${{ secrets.NEON_PROJECT_ID }}
+        run: |
+          neonctl branches delete "${{ env.NEON_BRANCH_NAME }}" \
+            --project-id "$NEON_PROJECT_ID" || true
