@@ -1,4 +1,4 @@
-.PHONY: install dev build lint format format-check typecheck test db-up db-down db-migrate
+.PHONY: install dev build lint format format-check typecheck test knip db-up db-down db-migrate
 
 install:
 	cd apps/api && npm install
@@ -34,6 +34,10 @@ typecheck:
 test:
 	cd apps/api && npm test
 	cd apps/web && npm test
+
+knip:
+	cd apps/api && npm run knip
+	cd apps/web && npm run knip
 
 db-up:
 	docker compose up -d db
