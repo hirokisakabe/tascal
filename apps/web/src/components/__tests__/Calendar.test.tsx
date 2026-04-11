@@ -70,9 +70,10 @@ describe("Calendar", () => {
       ).toBeInTheDocument();
     });
 
-    for (const label of ["日", "月", "火", "水", "木", "金", "土"]) {
-      expect(screen.getByText(label)).toBeInTheDocument();
-    }
+    const headers = screen
+      .getAllByText(/^[月火水木金土日]$/)
+      .map((el) => el.textContent);
+    expect(headers).toEqual(["月", "火", "水", "木", "金", "土", "日"]);
   });
 
   it("マウント時にタスクを取得して表示する", async () => {

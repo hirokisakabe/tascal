@@ -5,7 +5,7 @@ export type CalendarDay = {
 
 export function getCalendarDays(year: number, month: number): CalendarDay[] {
   const firstDay = new Date(year, month - 1, 1);
-  const startDayOfWeek = firstDay.getDay(); // 0 = Sunday
+  const startDayOfWeek = (firstDay.getDay() + 6) % 7; // 0 = Monday
 
   const days: CalendarDay[] = [];
 
