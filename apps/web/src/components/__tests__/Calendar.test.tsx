@@ -401,7 +401,7 @@ describe("Calendar", () => {
     });
   });
 
-  it("4件以上タスクがある日セルで「+N件」をクリックするとタスク一覧モーダルが表示される", async () => {
+  it("4件以上タスクがある日セルで「+N件」をクリックするとセルが展開され全タスクが表示される", async () => {
     const now = new Date();
     const dateKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-15`;
     const manyTasks = Array.from({ length: 5 }, (_, i) => ({
@@ -423,25 +423,57 @@ describe("Calendar", () => {
     const showMoreButton = screen.getByText("+2 件");
     expect(showMoreButton).toBeInTheDocument();
 
-    // クリックするとタスク一覧モーダルが表示される
+    // クリックするとセルが展開され全タスクが表示される
     await user.click(showMoreButton);
 
     await waitFor(() => {
-      expect(screen.getByText(/のタスク/)).toBeInTheDocument();
+      expect(screen.getByText("タスク4")).toBeInTheDocument();
+      expect(screen.getByText("タスク5")).toBeInTheDocument();
     });
 
-    // モーダル内に全5件のタスクが表示される（カレンダーセルにも3件表示されているため getAllByText を使用）
-    for (let i = 1; i <= 5; i++) {
-      expect(screen.getAllByText(`タスク${i}`).length).toBeGreaterThanOrEqual(
-        1,
-      );
-    }
-    // カレンダーでは非表示だったタスク4,5がモーダルで表示される
-    expect(screen.getAllByText("タスク4")).toHaveLength(1);
-    expect(screen.getAllByText("タスク5")).toHaveLength(1);
+    // 「折りたたむ」ボタンが表示される
+    expect(screen.getByText("折りたたむ")).toBeInTheDocument();
+
+    // +N件ボタンは消える
+    expect(screen.queryByText("+2 件")).not.toBeInTheDocument();
   });
 
-  it("タスク一覧モーダルからタスクをクリックすると詳細モーダルが開く", async () => {
+  it("展開されたセルの「折りたたむ」をクリックするとセルが折りたたまれる", async () => {
+    const now = new Date();
+    const dateKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-15`;
+    const manyTasks = Array.from({ length: 5 }, (_, i) => ({
+      ...mockTask,
+      id: `task-${i + 1}`,
+      title: `タスク${i + 1}`,
+      date: dateKey,
+    }));
+    mockFetchTasks.mockResolvedValue(manyTasks);
+
+    const user = userEvent.setup();
+    renderWithQueryClient(<Calendar />);
+
+    await waitFor(() => {
+      expect(screen.getByText("タスク1")).toBeInTheDocument();
+    });
+
+    // 展開
+    await user.click(screen.getByText("+2 件"));
+
+    await waitFor(() => {
+      expect(screen.getByText("折りたたむ")).toBeInTheDocument();
+    });
+
+    // 折りたたむ
+    await user.click(screen.getByText("折りたたむ"));
+
+    await waitFor(() => {
+      expect(screen.queryByText("タスク4")).not.toBeInTheDocument();
+      expect(screen.queryByText("タスク5")).not.toBeInTheDocument();
+      expect(screen.getByText("+2 件")).toBeInTheDocument();
+    });
+  });
+
+  it("展開されたセルでタスクをクリックすると詳細モーダルが開く", async () => {
     const now = new Date();
     const dateKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-15`;
     const manyTasks = Array.from({ length: 4 }, (_, i) => ({
@@ -460,14 +492,14 @@ describe("Calendar", () => {
       expect(screen.getByText("タスク1")).toBeInTheDocument();
     });
 
-    // +1 件をクリック
+    // +1 件をクリックしてセルを展開
     await user.click(screen.getByText("+1 件"));
 
     await waitFor(() => {
-      expect(screen.getByText(/のタスク/)).toBeInTheDocument();
+      expect(screen.getByText("タスク4")).toBeInTheDocument();
     });
 
-    // タスク4をクリック → 詳細モーダルに遷移
+    // タスク4をクリック → 詳細モーダルが開く
     await user.click(screen.getByText("タスク4"));
 
     await waitFor(() => {
