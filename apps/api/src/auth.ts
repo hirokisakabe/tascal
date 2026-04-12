@@ -1,5 +1,6 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import { bearer } from "better-auth/plugins";
 import { getDb } from "./db/index.js";
 import * as schema from "./db/schema.js";
 
@@ -13,6 +14,7 @@ function createAuth() {
     emailAndPassword: {
       enabled: true,
     },
+    plugins: [bearer()],
     trustedOrigins: process.env.TRUSTED_ORIGINS
       ? process.env.TRUSTED_ORIGINS.split(",")
           .map((s) => s.trim())
