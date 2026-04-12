@@ -8,11 +8,12 @@ tascal (task + calendar) — カレンダービューがメインのタスク管
 
 ## 技術スタック
 
-- **モノレポ**: `apps/api` (バックエンド) + `apps/web` (フロントエンド)、npm workspaces は未使用（各 app で独立 `npm install`）
+- **モノレポ**: `apps/api` (バックエンド) + `apps/web` (フロントエンド) + `apps/cli` (CLI)、npm workspaces は未使用（各 app で独立 `npm install`）
 - **API**: Hono + Node.js + TypeScript、Zod バリデーション
-- **Web**: React 19 + Vite + TanStack Router (ファイルベースルーティング) + TanStack React Query + dnd-kit + Tailwind CSS v4
+- **Web**: React 19 + Vite + TanStack Router (ファイルベースルーティング) + TanStack React Query + dnd-kit + Tailwind CSS v4 + Headless UI
+- **CLI**: citty (CLI フレームワーク) + consola (ロギング)、npm パッケージ `tascal-cli` として公開
 - **DB**: PostgreSQL 17 (Docker Compose) + Drizzle ORM
-- **認証**: better-auth (メール/パスワード)
+- **認証**: better-auth (メール/パスワード + Bearer トークン)
 - **テスト**: Vitest (API: app.request() + DB モック、Web: React Testing Library + jsdom)
 - **Node.js**: v24 (.node-version)
 
@@ -22,17 +23,18 @@ tascal (task + calendar) — カレンダービューがメインのタスク管
 
 | コマンド | 内容 |
 |---|---|
-| `make install` | 両 app の依存インストール |
+| `make install` | 全 app の依存インストール |
 | `make dev` | DB 起動 + API + Web の開発サーバー起動 |
-| `make build` | 両 app ビルド |
-| `make lint` | ESLint (両 app) |
+| `make build` | 全 app ビルド |
+| `make lint` | ESLint (全 app) |
 | `make format` | Prettier 自動修正 |
 | `make format-check` | Prettier チェックのみ |
 | `make typecheck` | TypeScript 型チェック |
-| `make test` | テスト実行 |
+| `make test` | テスト実行 (API + Web) |
 | `make knip` | 未使用コード・依存の検出 |
 | `make db-up` / `make db-down` | PostgreSQL の起動/停止 |
 | `make db-migrate` | Drizzle マイグレーション適用 |
+| `make db-seed` | テストデータ投入 |
 
 個別 app でのテスト実行：
 ```bash
@@ -46,12 +48,15 @@ cd apps/web && npx vitest run src/components/__tests__/Calendar.test.tsx
 
 ### API (apps/api)
 
-- `src/index.ts` — エントリポイント。Hono アプリ作成、CORS 設定、ルートマウント、SPA 静的ファイル配信
+- `src/index.ts` — エントリポイント。サーバー起動のみ
+- `src/app.ts` — Hono アプリ定義。CORS 設定、セッション取得ミドルウェア、ルートマウント、SPA 静的ファイル配信
 - `src/routes/tasks.ts` — タスク CRUD (`GET /api/tasks?year&month`, `POST`, `PATCH /:id`, `DELETE /:id`)。認証ミドルウェアで保護
-- `src/auth.ts` — better-auth 設定 (Drizzle アダプタ)
+- `src/auth.ts` — better-auth 設定 (Drizzle アダプタ、Bearer トークンプラグイン)
 - `src/db/schema.ts` — Drizzle スキーマ定義 (users, tasks, sessions, accounts, verifications)
 - `src/db/index.ts` — DB コネクション (シングルトン)
+- `src/db/seed.ts` — テストデータ投入スクリプト
 - `drizzle/` — マイグレーションファイル
+- `/healthz` — ヘルスチェックエンドポイント（認証不要、DB 疎通確認）
 
 ### Web (apps/web)
 
@@ -60,15 +65,24 @@ cd apps/web && npx vitest run src/components/__tests__/Calendar.test.tsx
   - `_authenticated.tsx` — 認証ガード (セッション未取得で /login へリダイレクト)
   - `_authenticated/index.tsx` — メインページ (カレンダー表示)
   - `login.tsx`, `signup.tsx` — 認証ページ
-- `src/components/` — Calendar, TaskFormModal, TaskDetailModal, DraggableTask, CalendarDayCell 等
+- `src/components/` — Calendar, TaskFormModal, TaskDetailModal, DraggableTask, CalendarDayCell, DayTaskListModal, ModalWrapper 等
 - `src/hooks/useTasks.ts` — React Query によるタスク CRUD フック
 - `src/api/tasks.ts` — API クライアント (fetch ベース)
 - `src/auth-client.ts` — better-auth クライアント
+- `src/types/task.ts` — Task 型定義
+- `src/utils/calendar.ts` — カレンダーユーティリティ関数 (getCalendarDays, formatDateKey, isToday)
 - `src/routeTree.gen.ts` — 自動生成ファイル（編集不可）
+
+### CLI (apps/cli)
+
+- `src/index.ts` — エントリポイント。citty による CLI 定義
+- `src/commands/` — サブコマンド (login, logout, list, add, edit, delete, done, undo)
+- `src/api.ts` — API クライアント (Bearer トークン認証)
+- `src/config.ts` — 設定管理 (`~/.tascalrc` に JSON 保存)
 
 ### DB スキーマ
 
-tasks テーブルの主要カラム: `id`, `userId`, `title`, `description`, `date` (DATE型), `status` ('todo' | 'done')
+tasks テーブルの主要カラム: `id`, `userId`, `title`, `description`, `date` (DATE型), `status` ('todo' | 'done'), `createdAt`, `updatedAt`
 
 ### 開発時のプロキシ
 
@@ -86,7 +100,7 @@ Vite dev server が `/api` を `http://localhost:3000` にプロキシ。
 
 ## CI
 
-GitHub Actions (`.github/workflows/ci.yml`) が PR で lint, format-check, typecheck, test, knip を実行。
+GitHub Actions (`.github/workflows/ci.yml`) が PR で api, web, cli の 3 ジョブを実行。各ジョブで lint, format-check, typecheck, knip を実行し、api と web ではさらに test も実行。
 
 ## テスト方針
 
