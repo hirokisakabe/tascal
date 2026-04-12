@@ -16,16 +16,18 @@ function HomePage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      <header className="border-b border-gray-200 bg-white px-4 py-1.5">
+    <div className="min-h-screen bg-surface">
+      <header className="border-b border-border-light bg-white px-4 py-1.5">
         <div className="mx-auto flex max-w-[1600px] items-center justify-between">
-          <h1 className="text-lg font-bold text-gray-900">tascal</h1>
+          <h1 className="text-lg font-bold text-on-surface">tascal</h1>
           <div className="flex items-center gap-4">
-            <span className="text-sm text-gray-600">{session?.user?.name}</span>
+            <span className="text-sm text-on-surface-secondary">
+              {session?.user?.name}
+            </span>
             <button
               type="button"
               onClick={handleSignOut}
-              className="rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50"
+              className="rounded-md border border-border bg-white px-3 py-1.5 text-sm text-on-surface-secondary hover:bg-surface-hover"
             >
               ログアウト
             </button>

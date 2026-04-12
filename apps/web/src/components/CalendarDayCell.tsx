@@ -66,18 +66,18 @@ export function CalendarDayCell({
         }
       }}
       aria-label={`${dateKey}にタスクを追加`}
-      className={`group relative min-h-40 cursor-pointer border-[0.5px] border-gray-200 p-1.5 ${
-        !isCurrentMonth ? "bg-gray-50" : "bg-white"
-      } ${isOver ? "bg-blue-50 ring-2 ring-blue-400 ring-inset" : isExpanded ? "z-10 shadow-lg ring-2 ring-blue-300" : ""}`}
+      className={`group relative min-h-40 cursor-pointer border-[0.5px] border-border-light p-1.5 ${
+        !isCurrentMonth ? "bg-surface" : "bg-white"
+      } ${isOver ? "bg-primary-lighter ring-2 ring-primary-muted ring-inset" : isExpanded ? "z-10 shadow-lg ring-2 ring-primary-muted" : ""}`}
     >
       <div className="mb-1 flex items-center">
         <span
           className={`inline-flex h-7 w-7 items-center justify-center rounded-full text-sm ${
             today
-              ? "bg-blue-600 font-bold text-white"
+              ? "bg-primary font-bold text-white"
               : isCurrentMonth
-                ? "text-gray-900"
-                : "text-gray-400"
+                ? "text-on-surface"
+                : "text-on-surface-muted"
           }`}
         >
           {date.getDate()}
@@ -104,7 +104,7 @@ export function CalendarDayCell({
                 e.stopPropagation();
               }
             }}
-            className="w-full cursor-pointer rounded px-1 text-left text-xs text-gray-500 hover:bg-gray-100 hover:text-gray-700"
+            className="w-full cursor-pointer rounded px-1 text-left text-xs text-on-surface-muted hover:bg-surface-hover hover:text-on-surface-secondary"
           >
             +{remainingCount} 件
           </button>
@@ -116,7 +116,7 @@ export function CalendarDayCell({
               e.stopPropagation();
               onCollapse();
             }}
-            className="w-full cursor-pointer rounded px-1 text-center text-xs text-gray-500 hover:bg-gray-100 hover:text-gray-700"
+            className="w-full cursor-pointer rounded px-1 text-center text-xs text-on-surface-muted hover:bg-surface-hover hover:text-on-surface-secondary"
           >
             折りたたむ
           </button>

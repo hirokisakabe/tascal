@@ -33,16 +33,16 @@ function SignupPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-100 px-4">
+    <div className="flex min-h-screen items-center justify-center bg-surface px-4">
       <div className="w-full max-w-sm rounded-lg bg-white p-6 shadow-xl">
-        <h1 className="mb-6 text-center text-lg font-bold text-gray-900">
+        <h1 className="mb-6 text-center text-lg font-bold text-on-surface">
           サインアップ
         </h1>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label
               htmlFor="name"
-              className="mb-1 block text-sm font-medium text-gray-700"
+              className="mb-1 block text-sm font-medium text-on-surface-secondary"
             >
               名前
             </label>
@@ -52,13 +52,13 @@ function SignupPage() {
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="w-full rounded-md border border-border px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
             />
           </div>
           <div>
             <label
               htmlFor="email"
-              className="mb-1 block text-sm font-medium text-gray-700"
+              className="mb-1 block text-sm font-medium text-on-surface-secondary"
             >
               メールアドレス
             </label>
@@ -68,13 +68,13 @@ function SignupPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="w-full rounded-md border border-border px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
             />
           </div>
           <div>
             <label
               htmlFor="password"
-              className="mb-1 block text-sm font-medium text-gray-700"
+              className="mb-1 block text-sm font-medium text-on-surface-secondary"
             >
               パスワード
             </label>
@@ -84,22 +84,22 @@ function SignupPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="w-full rounded-md border border-border px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
             />
           </div>
           {error && (
-            <p className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">
+            <p className="rounded-md bg-danger-light px-3 py-2 text-sm text-danger">
               {error}
             </p>
           )}
           <button
             type="submit"
-            className="w-full rounded-md bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700"
+            className="w-full rounded-md bg-primary px-4 py-2 text-sm text-white hover:bg-primary-dark"
           >
             サインアップ
           </button>
         </form>
-        <p className="mt-4 text-center text-sm text-gray-600">
+        <p className="mt-4 text-center text-sm text-on-surface-secondary">
           すでにアカウントをお持ちの方は
           <a
             href="/login"
@@ -107,7 +107,7 @@ function SignupPage() {
               e.preventDefault();
               void navigate({ to: "/login" });
             }}
-            className="ml-1 text-blue-600 hover:text-blue-700 hover:underline"
+            className="ml-1 text-primary hover:text-primary-dark hover:underline"
           >
             ログイン
           </a>
