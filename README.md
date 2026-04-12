@@ -1,8 +1,8 @@
 # tascal
 
-[![CI](https://github.com/hirokisakabe/tascal/actions/workflows/ci.yml/badge.svg)](https://github.com/hirokisakabe/tascal/actions/workflows/ci.yml)
-
 **tascal** (task + calendar) は、カレンダービューでタスクを管理する Web アプリです。
+
+https://tascal.dev/
 
 日付ごとにタスクを視覚的に把握でき、ドラッグ&ドロップで手軽にスケジュールを調整できます。Web ブラウザに加え、CLI からもタスクを操作できます。
 
