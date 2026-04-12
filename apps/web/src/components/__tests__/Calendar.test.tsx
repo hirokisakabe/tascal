@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { screen, waitFor } from "@testing-library/react";
+import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Calendar } from "../Calendar";
 import { renderWithQueryClient } from "../../test/helpers";
@@ -249,7 +249,6 @@ describe("Calendar", () => {
   it("詳細モーダルからタスクを削除できる", async () => {
     mockFetchTasks.mockResolvedValue([mockTask]);
     mockDeleteTask.mockResolvedValue(undefined);
-    vi.spyOn(window, "confirm").mockReturnValue(true);
 
     const user = userEvent.setup();
     renderWithQueryClient(<Calendar />);
@@ -262,6 +261,11 @@ describe("Calendar", () => {
     expect(screen.getByText("タスクの詳細")).toBeInTheDocument();
 
     await user.click(screen.getByText("削除"));
+
+    const confirmDialog = screen.getByRole("dialog", { name: "タスクの削除" });
+    await user.click(
+      within(confirmDialog).getByRole("button", { name: "削除" }),
+    );
 
     await waitFor(() => {
       expect(mockDeleteTask).toHaveBeenCalledWith(mockTask.id);
