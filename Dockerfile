@@ -11,6 +11,7 @@ COPY apps/cli/package.json apps/cli/package.json
 RUN pnpm install --frozen-lockfile
 COPY tsconfig.json ./
 COPY apps/api/tsconfig.json apps/api/tsconfig.json
+COPY apps/api/src/ apps/api/src/
 COPY apps/web/ apps/web/
 RUN pnpm --filter @tascal/web run build
 
@@ -25,7 +26,7 @@ RUN pnpm install --frozen-lockfile
 COPY tsconfig.json ./
 COPY apps/api/ apps/api/
 RUN pnpm --filter @tascal/api run build
-RUN pnpm deploy --filter @tascal/api --prod /app/api-deploy
+RUN pnpm deploy --filter @tascal/api --legacy --prod /app/api-deploy
 
 # --- Production ---
 FROM base AS production
