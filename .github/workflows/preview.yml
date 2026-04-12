@@ -14,7 +14,7 @@ env:
 
 jobs:
   deploy-preview:
-    if: github.event.action != 'closed' && github.event.pull_request.head.repo.fork == false
+    if: github.event.action != 'closed' && github.event.pull_request.head.repo.fork == false && github.event.pull_request.user.login != 'dependabot[bot]'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -134,7 +134,7 @@ jobs:
             }
 
   cleanup-preview:
-    if: github.event.action == 'closed' && github.event.pull_request.head.repo.fork == false
+    if: github.event.action == 'closed' && github.event.pull_request.head.repo.fork == false && github.event.pull_request.user.login != 'dependabot[bot]'
     runs-on: ubuntu-latest
     permissions:
       contents: read
