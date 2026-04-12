@@ -7,6 +7,7 @@ import {
   useSensors,
   type DragEndEvent,
   type DragStartEvent,
+  type DropAnimation,
 } from "@dnd-kit/core";
 import type { Task } from "../types/task";
 import { useTasks, useUpdateTask } from "../hooks/useTasks";
@@ -16,6 +17,24 @@ import { TaskFormModal } from "./TaskFormModal";
 import { TaskDetailModal } from "./TaskDetailModal";
 
 const WEEKDAY_LABELS = ["月", "火", "水", "木", "金", "土", "日"];
+
+const dropAnimationConfig: DropAnimation = {
+  keyframes({ transform }) {
+    return [
+      {
+        opacity: 1,
+        transform: `translate(${transform.initial.x}px, ${transform.initial.y}px)`,
+      },
+      {
+        opacity: 0,
+        transform: `translate(${transform.initial.x}px, ${transform.initial.y}px)`,
+      },
+    ];
+  },
+  duration: 200,
+  easing: "ease-out",
+  sideEffects: () => () => {},
+};
 
 export function Calendar() {
   const now = new Date();
@@ -218,7 +237,7 @@ export function Calendar() {
             })}
           </div>
         </div>
-        <DragOverlay dropAnimation={null}>
+        <DragOverlay dropAnimation={dropAnimationConfig}>
           {activeTask && (
             <div
               className={`flex items-center gap-1 rounded px-1 py-0.5 text-sm shadow-lg scale-105 ${

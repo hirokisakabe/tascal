@@ -24,10 +24,12 @@ export function DraggableTask({
       {...attributes}
       onClick={(e) => e.stopPropagation()}
       className={`flex items-center gap-1 rounded px-1 py-0.5 text-sm touch-none ${isDragging ? "cursor-grabbing" : "cursor-grab"} ${
-        task.status === "done"
-          ? "text-gray-400 line-through"
-          : "bg-blue-100 text-blue-800"
-      } ${isDragging ? "opacity-50" : ""}`}
+        isDragging
+          ? "border border-dashed border-gray-300 bg-gray-100 text-transparent [&_input]:invisible"
+          : task.status === "done"
+            ? "text-gray-400 line-through"
+            : "bg-blue-100 text-blue-800"
+      }`}
     >
       <input
         type="checkbox"
