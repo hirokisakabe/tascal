@@ -30,7 +30,7 @@ async function generateOgpImage() {
   <!-- App name -->
   <text x="600" y="430" text-anchor="middle" font-family="system-ui,sans-serif" font-size="72" font-weight="700" fill="#ffffff" letter-spacing="-1">tascal</text>
   <!-- Tagline -->
-  <text x="600" y="490" text-anchor="middle" font-family="system-ui,sans-serif" font-size="28" fill="rgba(255,255,255,0.8)">カレンダーで、タスクをかんたん管理</text>
+  <text x="600" y="490" text-anchor="middle" font-family="system-ui,sans-serif" font-size="28" fill="rgba(255,255,255,0.8)">タスク管理を、カレンダーから。</text>
 </svg>`;
 
   const png = await sharp(Buffer.from(ogpSvg)).png().toBuffer();
