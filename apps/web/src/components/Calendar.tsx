@@ -218,7 +218,7 @@ export function Calendar() {
             })}
           </div>
         </div>
-        <DragOverlay dropAnimation={null}>
+        <DragOverlay>
           {activeTask && (
             <div
               className={`flex items-center gap-1 rounded px-1 py-0.5 text-sm shadow-lg scale-105 ${
