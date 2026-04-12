@@ -20,8 +20,10 @@ export function DraggableTask({
   return (
     <div
       ref={setNodeRef}
+      {...listeners}
+      {...attributes}
       onClick={(e) => e.stopPropagation()}
-      className={`flex items-center gap-1 rounded px-1 py-0.5 text-sm ${
+      className={`flex cursor-grab items-center gap-1 rounded px-1 py-0.5 text-sm touch-none ${
         task.status === "done"
           ? "text-gray-400 line-through"
           : "bg-blue-100 text-blue-800"
@@ -32,6 +34,7 @@ export function DraggableTask({
         checked={task.status === "done"}
         onChange={() => onToggleStatus(task)}
         onClick={(e) => e.stopPropagation()}
+        onPointerDown={(e) => e.stopPropagation()}
         className="h-3.5 w-3.5 shrink-0 cursor-pointer"
       />
       <span
@@ -39,14 +42,6 @@ export function DraggableTask({
         onClick={() => onTaskClick(task)}
       >
         {task.title}
-      </span>
-      <span
-        className="ml-auto shrink-0 cursor-grab touch-none text-gray-400"
-        {...listeners}
-        {...attributes}
-        aria-label="ドラッグして移動"
-      >
-        ⠿
       </span>
     </div>
   );

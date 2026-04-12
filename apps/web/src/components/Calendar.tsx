@@ -2,6 +2,9 @@ import { useMemo, useState } from "react";
 import {
   DndContext,
   DragOverlay,
+  PointerSensor,
+  useSensor,
+  useSensors,
   type DragEndEvent,
   type DragStartEvent,
 } from "@dnd-kit/core";
@@ -18,6 +21,12 @@ export function Calendar() {
   const now = new Date();
   const [year, setYear] = useState(now.getFullYear());
   const [month, setMonth] = useState(now.getMonth() + 1);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: { distance: 5 },
+    }),
+  );
 
   // ドラッグ状態
   const [activeTask, setActiveTask] = useState<Task | null>(null);
@@ -154,6 +163,7 @@ export function Calendar() {
       )}
 
       <DndContext
+        sensors={sensors}
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
         onDragCancel={handleDragCancel}
@@ -211,7 +221,6 @@ export function Calendar() {
                 className="h-3.5 w-3.5 shrink-0"
               />
               <span className="truncate">{activeTask.title}</span>
-              <span className="ml-auto shrink-0 text-gray-400">⠿</span>
             </div>
           )}
         </DragOverlay>
