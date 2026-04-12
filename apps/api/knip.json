@@ -1,0 +1,11 @@
+{
+  "ignoreBinaries": ["tsc", "tsx", "eslint", "prettier", "vitest", "knip"],
+  "ignoreDependencies": [
+    "@eslint/js",
+    "typescript-eslint",
+    "globals",
+    "vitest"
+  ],
+  "eslint": true,
+  "vitest": true
+}

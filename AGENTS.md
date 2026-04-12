@@ -8,7 +8,7 @@ tascal (task + calendar) — カレンダービューがメインのタスク管
 
 ## 技術スタック
 
-- **モノレポ**: `apps/api` (バックエンド) + `apps/web` (フロントエンド) + `apps/cli` (CLI)、npm workspaces は未使用（各 app で独立 `npm install`）
+- **モノレポ**: `apps/api` (バックエンド) + `apps/web` (フロントエンド) + `apps/cli` (CLI)、pnpm workspaces で依存管理を統一
 - **API**: Hono + Node.js + TypeScript、Zod バリデーション
 - **Web**: React 19 + Vite + TanStack Router (ファイルベースルーティング) + TanStack React Query + dnd-kit + Tailwind CSS v4 + Headless UI
 - **CLI**: citty (CLI フレームワーク) + consola (ロギング)、npm パッケージ `tascal-cli` として公開
@@ -19,30 +19,30 @@ tascal (task + calendar) — カレンダービューがメインのタスク管
 
 ## コマンド
 
-ルートの Makefile から実行：
+ルートの `package.json` scripts から実行：
 
 | コマンド | 内容 |
 |---|---|
-| `make install` | 全 app の依存インストール |
-| `make dev` | DB 起動 + API + Web の開発サーバー起動 |
-| `make build` | 全 app ビルド |
-| `make lint` | ESLint (全 app) |
-| `make format` | Prettier 自動修正 |
-| `make format-check` | Prettier チェックのみ |
-| `make typecheck` | TypeScript 型チェック |
-| `make test` | テスト実行 (API + Web) |
-| `make knip` | 未使用コード・依存の検出 |
-| `make db-up` / `make db-down` | PostgreSQL の起動/停止 |
-| `make db-migrate` | Drizzle マイグレーション適用 |
-| `make db-seed` | テストデータ投入 |
+| `pnpm install` | 全 app の依存インストール |
+| `pnpm dev` | DB 起動 + API + Web の開発サーバー起動 |
+| `pnpm build` | 全 app ビルド |
+| `pnpm lint` | ESLint (全 app) |
+| `pnpm format` | Prettier 自動修正 |
+| `pnpm format:check` | Prettier チェックのみ |
+| `pnpm typecheck` | TypeScript 型チェック |
+| `pnpm test` | テスト実行 (API + Web) |
+| `pnpm knip` | 未使用コード・依存の検出 |
+| `pnpm db:up` / `pnpm db:down` | PostgreSQL の起動/停止 |
+| `pnpm db:migrate` | Drizzle マイグレーション適用 |
+| `pnpm db:seed` | テストデータ投入 |
 
 個別 app でのテスト実行：
 ```bash
-cd apps/api && npx vitest run src/routes/__tests__/tasks.test.ts  # 単一テスト
-cd apps/web && npx vitest run src/components/__tests__/Calendar.test.tsx
+pnpm --filter @tascal/api exec vitest run src/routes/__tests__/tasks.test.ts  # 単一テスト
+pnpm --filter @tascal/web exec vitest run src/components/__tests__/Calendar.test.tsx
 ```
 
-ウォッチモード: `cd apps/api && npm run test:watch`
+ウォッチモード: `pnpm --filter @tascal/api run test:watch`
 
 ## アーキテクチャ
 
