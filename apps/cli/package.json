@@ -37,6 +37,7 @@
     "knip": "knip"
   },
   "dependencies": {
+    "@clack/prompts": "^1.2.0",
     "citty": "^0.1.6",
     "consola": "^3.4.2"
   },
