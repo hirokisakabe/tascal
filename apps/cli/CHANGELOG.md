@@ -1,5 +1,11 @@
 # tascal-cli
 
+## 0.1.3
+
+### Patch Changes
+
+- fa5b475: CLI login で Origin ヘッダーを付与し、better-auth の CSRF 保護による 403 エラーを修正。エラー時のログにステータスコードとレスポンスボディを含めるよう改善。
+
 ## 0.1.2
 
 ### Patch Changes
