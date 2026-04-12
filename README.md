@@ -1,5 +1,7 @@
 # tascal
 
+**タスク管理を、カレンダーから。**
+
 **tascal** (task + calendar) は、カレンダービューでタスクを管理する Web アプリです。
 
 https://tascal.dev/
