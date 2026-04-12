@@ -17,6 +17,7 @@ export async function createTask(data: {
   description?: string | null;
   date: string;
   status?: "todo" | "done";
+  categoryId?: string | null;
 }): Promise<Task> {
   const res = await fetch("/api/tasks", {
     method: "POST",
@@ -36,6 +37,7 @@ export async function updateTask(
     description?: string | null;
     date?: string;
     status?: "todo" | "done";
+    categoryId?: string | null;
   },
 ): Promise<Task> {
   const res = await fetch(`/api/tasks/${id}`, {

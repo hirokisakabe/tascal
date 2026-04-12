@@ -23,6 +23,7 @@ export function useCreateTask(year: number, month: number) {
       description?: string | null;
       date: string;
       status?: "todo" | "done";
+      categoryId?: string | null;
     }) => createTask(data),
     onMutate: async (newTask) => {
       await queryClient.cancelQueries({ queryKey: key });
@@ -36,6 +37,7 @@ export function useCreateTask(year: number, month: number) {
           description: newTask.description ?? null,
           date: newTask.date,
           status: newTask.status ?? "todo",
+          categoryId: newTask.categoryId ?? null,
           userId: "",
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
@@ -70,6 +72,7 @@ export function useUpdateTask(year: number, month: number) {
         description?: string | null;
         date?: string;
         status?: "todo" | "done";
+        categoryId?: string | null;
       };
     }) => updateTask(id, data),
     onMutate: async ({ id, data }) => {

@@ -1,17 +1,22 @@
 import { useDraggable } from "@dnd-kit/core";
 import type { Task } from "../types/task";
+import type { Category } from "../types/category";
+import { CATEGORY_COLORS } from "../constants/categoryColors";
 
 type DraggableTaskProps = {
   task: Task;
+  category: Category | null;
   onTaskClick: (task: Task) => void;
   onToggleStatus: (task: Task) => void;
 };
 
 export function DraggableTask({
   task,
+  category,
   onTaskClick,
   onToggleStatus,
 }: DraggableTaskProps) {
+  const categoryBg = category ? CATEGORY_COLORS[category.color].bg : null;
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: task.id,
     data: { task },
@@ -28,8 +33,15 @@ export function DraggableTask({
           ? "border border-dashed border-border bg-surface text-transparent [&_input]:invisible"
           : task.status === "done"
             ? "text-on-surface-muted line-through"
-            : "bg-primary-light text-primary"
+            : categoryBg
+              ? "text-on-surface"
+              : "bg-white text-on-surface"
       }`}
+      style={
+        !isDragging && task.status !== "done" && categoryBg
+          ? { backgroundColor: categoryBg }
+          : undefined
+      }
     >
       <input
         type="checkbox"

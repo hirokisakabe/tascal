@@ -4,7 +4,7 @@ import { zValidator } from "@hono/zod-validator";
 import type { Hook } from "@hono/zod-validator";
 import { eq, and, gte, lt } from "drizzle-orm";
 import { getDb } from "../db/index.js";
-import { tasks } from "../db/schema.js";
+import { categories, tasks } from "../db/schema.js";
 import type { Auth } from "../auth.js";
 
 type AuthVariables = {
@@ -17,6 +17,7 @@ const createTaskSchema = z.object({
   description: z.string().nullable().optional(),
   date: z.string().date("日付はYYYY-MM-DD形式の実在する日付で指定してください"),
   status: z.enum(["todo", "done"]).optional(),
+  categoryId: z.string().uuid().nullable().optional(),
 });
 
 const updateTaskSchema = z.object({
@@ -27,6 +28,7 @@ const updateTaskSchema = z.object({
     .date("日付はYYYY-MM-DD形式の実在する日付で指定してください")
     .optional(),
   status: z.enum(["todo", "done"]).optional(),
+  categoryId: z.string().uuid().nullable().optional(),
 });
 
 const listQuerySchema = z.object({
@@ -97,6 +99,19 @@ app.post(
   async (c) => {
     const user = c.get("user")!;
     const data = c.req.valid("json");
+    const categoryId = data.categoryId ?? null;
+
+    if (categoryId) {
+      const [cat] = await getDb()
+        .select()
+        .from(categories)
+        .where(
+          and(eq(categories.id, categoryId), eq(categories.userId, user.id)),
+        );
+      if (!cat) {
+        return c.json({ error: "カテゴリが見つかりません" }, 400);
+      }
+    }
 
     const [task] = await getDb()
       .insert(tasks)
@@ -105,6 +120,7 @@ app.post(
         description: data.description ?? null,
         date: data.date,
         status: data.status ?? "todo",
+        categoryId,
         userId: user.id,
       })
       .returning();
@@ -122,6 +138,21 @@ app.patch(
     const user = c.get("user")!;
     const { id } = c.req.valid("param");
     const data = c.req.valid("json");
+
+    if (data.categoryId) {
+      const [cat] = await getDb()
+        .select()
+        .from(categories)
+        .where(
+          and(
+            eq(categories.id, data.categoryId),
+            eq(categories.userId, user.id),
+          ),
+        );
+      if (!cat) {
+        return c.json({ error: "カテゴリが見つかりません" }, 400);
+      }
+    }
 
     const [updated] = await getDb()
       .update(tasks)

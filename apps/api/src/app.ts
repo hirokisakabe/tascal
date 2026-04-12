@@ -5,6 +5,7 @@ import { cors } from "hono/cors";
 import { getAuth } from "./auth.js";
 import type { Auth } from "./auth.js";
 import { getDb } from "./db/index.js";
+import categoriesApp from "./routes/categories.js";
 import tasksApp from "./routes/tasks.js";
 import usersApp from "./routes/users.js";
 
@@ -58,6 +59,7 @@ app.on(["POST", "GET"], "/api/auth/**", (c) => {
   return getAuth().handler(c.req.raw);
 });
 
+app.route("/api/categories", categoriesApp);
 app.route("/api/tasks", tasksApp);
 app.route("/api/users", usersApp);
 

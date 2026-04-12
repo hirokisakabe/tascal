@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useCategories } from "../hooks/useCategories";
 import { useCreateTask } from "../hooks/useTasks";
 import { ModalWrapper } from "./ModalWrapper";
 
@@ -21,7 +22,9 @@ export function TaskFormModal({
 }: TaskFormModalProps) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [categoryId, setCategoryId] = useState<string>("");
 
+  const { data: categories = [] } = useCategories();
   const createTaskMutation = useCreateTask(year, month);
   const saving = createTaskMutation.isPending;
   const error = createTaskMutation.error ? "タスクの作成に失敗しました" : null;
@@ -35,6 +38,7 @@ export function TaskFormModal({
         title: title.trim(),
         description: description.trim() || null,
         date,
+        categoryId: categoryId || null,
       },
       {
         onSuccess: () => onCreated(),
@@ -85,6 +89,29 @@ export function TaskFormModal({
             className="w-full rounded-md border border-border px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
           />
         </div>
+        {categories.length > 0 && (
+          <div>
+            <label
+              htmlFor="task-category"
+              className="mb-1 block text-sm font-medium text-on-surface-secondary"
+            >
+              カテゴリ
+            </label>
+            <select
+              id="task-category"
+              value={categoryId}
+              onChange={(e) => setCategoryId(e.target.value)}
+              className="w-full rounded-md border border-border px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+            >
+              <option value="">カテゴリなし</option>
+              {categories.map((cat) => (
+                <option key={cat.id} value={cat.id}>
+                  {cat.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
         <div className="flex justify-end gap-2">
           <button
             type="button"
