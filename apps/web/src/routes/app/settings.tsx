@@ -8,6 +8,7 @@ import {
 } from "@headlessui/react";
 import { authClient } from "../../auth-client";
 import { CategoryForm } from "../../components/CategoryForm";
+import { DeleteAccountModal } from "../../components/DeleteAccountModal";
 import { CATEGORY_COLORS } from "../../constants/categoryColors";
 import {
   useCategories,
@@ -37,6 +38,7 @@ function SettingsPage() {
   const [deletingCategory, setDeletingCategory] = useState<Category | null>(
     null,
   );
+  const [showDeleteAccountModal, setShowDeleteAccountModal] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const handleCreate = (data: { name: string; color: CategoryColor }) => {
@@ -104,13 +106,6 @@ function SettingsPage() {
                 <line x1="3" y1="10" x2="21" y2="10" />
               </svg>
             </Link>
-            <button
-              type="button"
-              onClick={handleSignOut}
-              className="rounded-md border border-border bg-white px-3 py-1.5 text-sm text-on-surface-secondary hover:bg-surface-hover"
-            >
-              ログアウト
-            </button>
           </div>
         </div>
       </header>
@@ -209,7 +204,33 @@ function SettingsPage() {
             )}
           </>
         )}
+        <h2 className="mb-4 mt-8 text-xl font-bold text-on-surface">
+          アカウント
+        </h2>
+        <div className="space-y-3">
+          <button
+            type="button"
+            onClick={handleSignOut}
+            className="rounded-md border border-border bg-white px-4 py-2 text-sm text-on-surface-secondary hover:bg-surface-hover"
+          >
+            ログアウト
+          </button>
+          <div>
+            <button
+              type="button"
+              onClick={() => setShowDeleteAccountModal(true)}
+              className="rounded-md border border-danger bg-white px-4 py-2 text-sm text-danger hover:bg-danger-light"
+            >
+              アカウント削除
+            </button>
+          </div>
+        </div>
       </main>
+
+      <DeleteAccountModal
+        open={showDeleteAccountModal}
+        onClose={() => setShowDeleteAccountModal(false)}
+      />
 
       {/* 削除確認ダイアログ */}
       <Dialog
