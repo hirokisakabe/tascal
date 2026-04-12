@@ -155,7 +155,7 @@ export function Calendar() {
   const error = queryError ? "タスクの取得に失敗しました" : mutationError;
 
   return (
-    <div className="mx-auto max-w-7xl">
+    <div className="mx-auto max-w-[1600px]">
       <div className="mb-4 flex items-center justify-between">
         <h2 className="text-xl font-bold text-gray-900">
           {year}年{month}月

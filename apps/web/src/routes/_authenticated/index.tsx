@@ -18,7 +18,7 @@ function HomePage() {
   return (
     <div className="min-h-screen bg-gray-100">
       <header className="border-b border-gray-200 bg-white px-4 py-3">
-        <div className="mx-auto flex max-w-7xl items-center justify-between">
+        <div className="mx-auto flex max-w-[1600px] items-center justify-between">
           <h1 className="text-lg font-bold text-gray-900">tascal</h1>
           <div className="flex items-center gap-4">
             <span className="text-sm text-gray-600">{session?.user?.name}</span>
