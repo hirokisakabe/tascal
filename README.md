@@ -1,54 +1,39 @@
 # tascal
 
-[![CI](https://github.com/hirokisakabe/tascal/actions/workflows/ci.yml/badge.svg)](https://github.com/hirokisakabe/tascal/actions/workflows/ci.yml)
+**タスク管理を、カレンダーから。**
 
-## ローカル開発
+**tascal** (task + calendar) は、カレンダービューでタスクを管理する Web アプリです。
 
-### 前提条件
+https://tascal.dev/
 
-- Node.js
-- pnpm (corepack で自動有効化)
-- Docker
+日付ごとにタスクを視覚的に把握でき、ドラッグ&ドロップで手軽にスケジュールを調整できます。Web ブラウザに加え、CLI からもタスクを操作できます。
 
-### セットアップ
+## 主な機能
 
-```bash
-corepack enable pnpm
-pnpm install
-```
+### Web アプリ
 
-`apps/api/.env.example` を参考に `apps/api/.env` を作成します。
+- **月間カレンダービュー** — タスクをカレンダー上に一覧表示。月の切り替えや「今日に戻る」ボタンで素早くナビゲーション
+- **タスクの作成・編集・削除** — カレンダーの日付をクリックしてタスクを作成。タイトル・説明・日付を編集可能
+- **ドラッグ&ドロップ** — タスクをドラッグして別の日付に移動
+- **完了管理** — チェックボックスでタスクの完了/未完了を切り替え。完了タスクは取り消し線で表示
+- **ユーザー認証** — メールアドレスとパスワードによるアカウント管理
 
-```bash
-cp apps/api/.env.example apps/api/.env
-# 必要に応じて値を編集
-```
+### CLI (`tascal-cli`)
 
-初回のみ DB マイグレーションを実行します。
+npm パッケージ [`tascal-cli`](https://www.npmjs.com/package/tascal-cli) としてインストールできます。
 
 ```bash
-pnpm db:up
-pnpm db:migrate
-pnpm db:down
+npm install -g tascal-cli
 ```
-
-### 開発サーバーの起動
-
-DB（PostgreSQL）・API・Web をまとめて起動します。`Ctrl+C` で全て停止します。
-
-```bash
-pnpm dev
-```
-
-### その他のコマンド
 
 | コマンド | 説明 |
 |---|---|
-| `pnpm db:up` | DB のみ起動（デタッチモード） |
-| `pnpm db:down` | DB を停止 |
-| `pnpm db:migrate` | DB マイグレーション実行 |
-| `pnpm lint` | リンター実行 |
-| `pnpm format` | フォーマッター実行 |
-| `pnpm typecheck` | 型チェック |
-| `pnpm test` | テスト実行 |
-| `pnpm build` | ビルド |
+| `tascal login` | ログイン |
+| `tascal logout` | ログアウト |
+| `tascal list` | タスク一覧の表示（年月指定可） |
+| `tascal add` | タスクの作成 |
+| `tascal edit <id>` | タスクの編集 |
+| `tascal delete <id>` | タスクの削除 |
+| `tascal done <id>` | タスクを完了にする |
+| `tascal undo <id>` | タスクを未完了に戻す |
+
