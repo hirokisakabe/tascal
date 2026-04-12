@@ -35,17 +35,3 @@ npm install -g tascal-cli
 | `tascal done <id>` | タスクを完了にする |
 | `tascal undo <id>` | タスクを未完了に戻す |
 
-## 技術スタック
-
-| レイヤー | 技術 |
-|---|---|
-| フロントエンド | React, Vite, TanStack Router / Query, dnd-kit, Tailwind CSS |
-| バックエンド | Hono, Node.js, TypeScript |
-| データベース | PostgreSQL, Drizzle ORM |
-| 認証 | better-auth |
-| CLI | citty |
-| インフラ | Docker, Google Cloud Run |
-
-## 開発
-
-開発環境のセットアップや利用可能なコマンドについては [AGENTS.md](./AGENTS.md) を参照してください。
