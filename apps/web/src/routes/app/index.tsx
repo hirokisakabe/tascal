@@ -1,6 +1,8 @@
+import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { authClient } from "../../auth-client";
 import { Calendar } from "../../components/Calendar";
+import { DeleteAccountModal } from "../../components/DeleteAccountModal";
 
 export const Route = createFileRoute("/app/")({
   component: HomePage,
@@ -8,6 +10,7 @@ export const Route = createFileRoute("/app/")({
 
 function HomePage() {
   const { data: session } = authClient.useSession();
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   const handleSignOut = () => {
     void authClient.signOut().then(() => {
@@ -31,12 +34,23 @@ function HomePage() {
             >
               ログアウト
             </button>
+            <button
+              type="button"
+              onClick={() => setShowDeleteModal(true)}
+              className="rounded-md border border-danger bg-white px-3 py-1.5 text-sm text-danger hover:bg-danger-light"
+            >
+              アカウント削除
+            </button>
           </div>
         </div>
       </header>
       <main className="p-4">
         <Calendar />
       </main>
+      <DeleteAccountModal
+        open={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+      />
     </div>
   );
 }
