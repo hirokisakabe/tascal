@@ -12,6 +12,7 @@ type CalendarDayCellProps = {
   onAddClick: (dateKey: string) => void;
   onTaskClick: (task: Task) => void;
   onToggleStatus: (task: Task) => void;
+  onShowMore: (dateKey: string) => void;
 };
 
 export function CalendarDayCell({
@@ -21,6 +22,7 @@ export function CalendarDayCell({
   onAddClick,
   onTaskClick,
   onToggleStatus,
+  onShowMore,
 }: CalendarDayCellProps) {
   const today = isToday(date);
   const dateKey = formatDateKey(date);
@@ -69,7 +71,21 @@ export function CalendarDayCell({
           />
         ))}
         {remainingCount > 0 && (
-          <div className="px-1 text-xs text-gray-500">+{remainingCount} 件</div>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onShowMore(dateKey);
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.stopPropagation();
+              }
+            }}
+            className="w-full cursor-pointer rounded px-1 text-left text-xs text-gray-500 hover:bg-gray-100 hover:text-gray-700"
+          >
+            +{remainingCount} 件
+          </button>
         )}
       </div>
     </div>
