@@ -10,7 +10,10 @@ import {
   type DropAnimation,
 } from "@dnd-kit/core";
 import type { Task } from "../types/task";
+import type { Category } from "../types/category";
+import { useCategories } from "../hooks/useCategories";
 import { useTasks, useUpdateTask } from "../hooks/useTasks";
+import { CATEGORY_COLORS } from "../constants/categoryColors";
 import { getCalendarDays, formatDateKey } from "../utils/calendar";
 import { CalendarDayCell } from "./CalendarDayCell";
 import { TaskFormModal } from "./TaskFormModal";
@@ -61,7 +64,16 @@ export function Calendar() {
     error: queryError,
   } = useTasks(year, month);
 
+  const { data: categories = [] } = useCategories();
   const updateTaskMutation = useUpdateTask(year, month);
+
+  const categoryMap = useMemo(() => {
+    const map = new Map<string, Category>();
+    for (const cat of categories) {
+      map.set(cat.id, cat);
+    }
+    return map;
+  }, [categories]);
 
   const [mutationError, setMutationError] = useState<string | null>(null);
 
@@ -226,6 +238,7 @@ export function Calendar() {
                   date={day.date}
                   isCurrentMonth={day.isCurrentMonth}
                   tasks={tasksByDate.get(key) ?? []}
+                  categoryMap={categoryMap}
                   isExpanded={expandedDate === key}
                   onAddClick={setAddDate}
                   onTaskClick={setSelectedTask}
@@ -238,23 +251,37 @@ export function Calendar() {
           </div>
         </div>
         <DragOverlay dropAnimation={dropAnimationConfig}>
-          {activeTask && (
-            <div
-              className={`flex items-center gap-1 rounded px-1 py-0.5 text-sm shadow-lg scale-105 ${
-                activeTask.status === "done"
-                  ? "bg-white text-on-surface-muted line-through"
-                  : "bg-primary-light text-primary"
-              }`}
-            >
-              <input
-                type="checkbox"
-                checked={activeTask.status === "done"}
-                readOnly
-                className="h-3.5 w-3.5 shrink-0"
-              />
-              <span className="break-all">{activeTask.title}</span>
-            </div>
-          )}
+          {activeTask &&
+            (() => {
+              const cat = activeTask.categoryId
+                ? categoryMap.get(activeTask.categoryId)
+                : null;
+              const bgColor = cat ? CATEGORY_COLORS[cat.color].bg : undefined;
+              return (
+                <div
+                  className={`flex items-center gap-1 rounded px-1 py-0.5 text-sm shadow-lg scale-105 ${
+                    activeTask.status === "done"
+                      ? "bg-white text-on-surface-muted line-through"
+                      : bgColor
+                        ? "text-on-surface"
+                        : "bg-primary-light text-primary"
+                  }`}
+                  style={
+                    activeTask.status !== "done" && bgColor
+                      ? { backgroundColor: bgColor }
+                      : undefined
+                  }
+                >
+                  <input
+                    type="checkbox"
+                    checked={activeTask.status === "done"}
+                    readOnly
+                    className="h-3.5 w-3.5 shrink-0"
+                  />
+                  <span className="break-all">{activeTask.title}</span>
+                </div>
+              );
+            })()}
         </DragOverlay>
       </DndContext>
 

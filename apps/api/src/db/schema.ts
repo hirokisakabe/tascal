@@ -11,6 +11,17 @@ import {
 
 export const taskStatusEnum = pgEnum("task_status", ["todo", "done"]);
 
+export const categoryColorEnum = pgEnum("category_color", [
+  "red",
+  "orange",
+  "yellow",
+  "green",
+  "teal",
+  "blue",
+  "purple",
+  "pink",
+]);
+
 export const users = pgTable("users", {
   id: text("id").primaryKey(),
   name: varchar("name", { length: 255 }).notNull(),
@@ -65,12 +76,26 @@ export const verifications = pgTable("verifications", {
   updatedAt: timestamp("updated_at", { mode: "string" }).notNull().defaultNow(),
 });
 
+export const categories = pgTable("categories", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  name: varchar("name", { length: 255 }).notNull(),
+  color: categoryColorEnum("color").notNull(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  createdAt: timestamp("created_at", { mode: "string" }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { mode: "string" }).notNull().defaultNow(),
+});
+
 export const tasks = pgTable("tasks", {
   id: uuid("id").primaryKey().defaultRandom(),
   title: varchar("title", { length: 255 }).notNull(),
   description: text("description"),
   date: date("date").notNull(),
   status: taskStatusEnum("status").notNull().default("todo"),
+  categoryId: uuid("category_id").references(() => categories.id, {
+    onDelete: "set null",
+  }),
   userId: text("user_id")
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),

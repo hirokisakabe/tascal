@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import type { Task } from "../types/task";
+import { useCategories } from "../hooks/useCategories";
 import { useUpdateTask, useDeleteTask } from "../hooks/useTasks";
 import { ModalWrapper } from "./ModalWrapper";
 import { DeleteConfirmDialog } from "./DeleteConfirmDialog";
@@ -24,6 +25,7 @@ export function TaskDetailModal({
   const [title, setTitle] = useState(task.title);
   const [description, setDescription] = useState(task.description ?? "");
   const [date, setDate] = useState(task.date);
+  const [categoryId, setCategoryId] = useState<string>(task.categoryId ?? "");
   const [error, setError] = useState<string | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
@@ -31,6 +33,7 @@ export function TaskDetailModal({
     if (!open) setShowDeleteConfirm(false);
   }, [open]);
 
+  const { data: categories = [] } = useCategories();
   const updateTaskMutation = useUpdateTask(year, month);
   const deleteTaskMutation = useDeleteTask(year, month);
 
@@ -50,6 +53,7 @@ export function TaskDetailModal({
           title: title.trim(),
           description: description.trim() || null,
           date,
+          categoryId: categoryId || null,
         },
       },
       {
@@ -129,6 +133,29 @@ export function TaskDetailModal({
               required
             />
           </div>
+          {categories.length > 0 && (
+            <div>
+              <label
+                htmlFor="detail-category"
+                className="mb-1 block text-sm font-medium text-on-surface-secondary"
+              >
+                カテゴリ
+              </label>
+              <select
+                id="detail-category"
+                value={categoryId}
+                onChange={(e) => setCategoryId(e.target.value)}
+                className="w-full rounded-md border border-border px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+              >
+                <option value="">カテゴリなし</option>
+                {categories.map((cat) => (
+                  <option key={cat.id} value={cat.id}>
+                    {cat.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
           <div className="flex justify-between">
             <button
               type="button"

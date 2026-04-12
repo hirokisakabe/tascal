@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { useDroppable } from "@dnd-kit/core";
 import type { Task } from "../types/task";
+import type { Category } from "../types/category";
 import { isToday, formatDateKey } from "../utils/calendar";
 import { DraggableTask } from "./DraggableTask";
 
@@ -10,6 +11,7 @@ type CalendarDayCellProps = {
   date: Date;
   isCurrentMonth: boolean;
   tasks: Task[];
+  categoryMap: Map<string, Category>;
   isExpanded: boolean;
   onAddClick: (dateKey: string) => void;
   onTaskClick: (task: Task) => void;
@@ -22,6 +24,7 @@ export function CalendarDayCell({
   date,
   isCurrentMonth,
   tasks,
+  categoryMap,
   isExpanded,
   onAddClick,
   onTaskClick,
@@ -88,6 +91,11 @@ export function CalendarDayCell({
           <DraggableTask
             key={task.id}
             task={task}
+            category={
+              task.categoryId
+                ? (categoryMap.get(task.categoryId) ?? null)
+                : null
+            }
             onTaskClick={onTaskClick}
             onToggleStatus={onToggleStatus}
           />

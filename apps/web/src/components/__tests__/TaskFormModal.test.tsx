@@ -43,6 +43,7 @@ describe("TaskFormModal", () => {
         title: "新規タスク",
         description: "タスクの説明文",
         date: "2026-03-15",
+        categoryId: null,
       });
     });
     await waitFor(() => {
@@ -68,6 +69,7 @@ describe("TaskFormModal", () => {
         title: "タスク",
         description: null,
         date: "2026-03-15",
+        categoryId: null,
       });
     });
   });
