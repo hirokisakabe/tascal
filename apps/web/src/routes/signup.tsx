@@ -28,7 +28,7 @@ function SignupPage() {
           setError(error.message ?? "サインアップに失敗しました");
           return;
         }
-        void navigate({ to: "/" });
+        void navigate({ to: "/app" });
       });
   };
 
