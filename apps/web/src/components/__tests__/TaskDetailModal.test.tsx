@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { screen, waitFor } from "@testing-library/react";
+import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { TaskDetailModal } from "../TaskDetailModal";
 import { renderWithQueryClient } from "../../test/helpers";
@@ -71,14 +71,23 @@ describe("TaskDetailModal", () => {
     });
   });
 
-  it("削除ボタンで確認後に削除できる", async () => {
+  it("削除ボタンで確認ダイアログが表示され、確認後に削除できる", async () => {
     mockDeleteTask.mockResolvedValue(undefined);
-    vi.spyOn(window, "confirm").mockReturnValue(true);
 
     const user = userEvent.setup();
     renderWithQueryClient(<TaskDetailModal {...defaultProps} />);
 
     await user.click(screen.getByText("削除"));
+
+    expect(screen.getByText("タスクの削除")).toBeInTheDocument();
+    expect(
+      screen.getByText("このタスクを削除しますか？この操作は取り消せません。"),
+    ).toBeInTheDocument();
+
+    const confirmDialog = screen.getByRole("dialog", { name: "タスクの削除" });
+    await user.click(
+      within(confirmDialog).getByRole("button", { name: "削除" }),
+    );
 
     await waitFor(() => {
       expect(mockDeleteTask).toHaveBeenCalledWith("task-1");
@@ -88,14 +97,22 @@ describe("TaskDetailModal", () => {
     });
   });
 
-  it("削除確認でキャンセルすると削除されない", async () => {
-    vi.spyOn(window, "confirm").mockReturnValue(false);
-
+  it("削除確認ダイアログでキャンセルすると削除されない", async () => {
     const user = userEvent.setup();
     renderWithQueryClient(<TaskDetailModal {...defaultProps} />);
 
     await user.click(screen.getByText("削除"));
 
+    expect(screen.getByText("タスクの削除")).toBeInTheDocument();
+
+    const confirmDialog = screen.getByRole("dialog", { name: "タスクの削除" });
+    await user.click(
+      within(confirmDialog).getByRole("button", { name: "キャンセル" }),
+    );
+
+    await waitFor(() => {
+      expect(screen.queryByText("タスクの削除")).not.toBeInTheDocument();
+    });
     expect(mockDeleteTask).not.toHaveBeenCalled();
   });
 
@@ -124,12 +141,16 @@ describe("TaskDetailModal", () => {
 
   it("削除失敗時にエラーメッセージを表示する", async () => {
     mockDeleteTask.mockRejectedValue(new Error("削除失敗"));
-    vi.spyOn(window, "confirm").mockReturnValue(true);
 
     const user = userEvent.setup();
     renderWithQueryClient(<TaskDetailModal {...defaultProps} />);
 
     await user.click(screen.getByText("削除"));
+
+    const confirmDialog = screen.getByRole("dialog", { name: "タスクの削除" });
+    await user.click(
+      within(confirmDialog).getByRole("button", { name: "削除" }),
+    );
 
     await waitFor(() => {
       expect(
