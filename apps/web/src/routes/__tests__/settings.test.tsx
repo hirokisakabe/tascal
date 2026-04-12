@@ -43,7 +43,7 @@ describe("SettingsPage アカウントセクション", () => {
     });
     mockFetchCategories.mockResolvedValue([]);
     // Import to trigger createFileRoute and capture the component
-    await import("../app/settings.tsx");
+    await import("../app/settings");
   });
 
   function renderSettingsPage() {
