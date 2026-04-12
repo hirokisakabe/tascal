@@ -4,11 +4,9 @@
 
 ### タスク管理を、カレンダーから。
 
-シンプルなカレンダー UI でタスクを俯瞰・整理できる、オープンソースのタスク管理アプリ
+シンプルなカレンダー UI でタスクを俯瞰・整理できるタスク管理アプリ
 
-[Web アプリを使う](https://tascal.dev/) | [CLI (npm)](https://www.npmjs.com/package/tascal-cli)
-
-[![CI](https://github.com/hirokisakabe/tascal/actions/workflows/ci.yml/badge.svg)](https://github.com/hirokisakabe/tascal/actions/workflows/ci.yml)
+[Web アプリ](https://tascal.dev/) | [CLI](https://www.npmjs.com/package/tascal-cli)
 
 </div>
 
@@ -57,24 +55,3 @@ tascal undo <id>      # 未完了に戻す
 tascal delete <id>    # 削除
 ```
 
-## セルフホスト
-
-tascal はオープンソースなので、自分のサーバーで動かすこともできます。
-
-```bash
-git clone https://github.com/hirokisakabe/tascal.git
-cd tascal
-pnpm install
-cp apps/api/.env.example apps/api/.env  # 環境変数を設定
-pnpm dev                                # DB + API + Web を起動
-```
-
-詳しいセットアップ手順や環境変数の説明は [CLAUDE.md](./CLAUDE.md) を参照してください。
-
-## Tech Stack
-
-React, Hono, PostgreSQL, Drizzle ORM, Tailwind CSS, TanStack Router, dnd-kit, better-auth, Vitest — pnpm workspaces によるモノレポ構成で、Docker + Google Cloud Run にデプロイしています。
-
-## Contributing
-
-Issue や Pull Request はいつでも歓迎です。バグ報告・機能提案・ドキュメント改善など、どんな貢献でもお気軽にどうぞ。
