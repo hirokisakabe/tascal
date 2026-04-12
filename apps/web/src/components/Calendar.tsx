@@ -208,9 +208,9 @@ export function Calendar() {
         <DragOverlay>
           {activeTask && (
             <div
-              className={`flex items-center gap-1 rounded px-1 py-0.5 text-sm ${
+              className={`flex items-center gap-1 rounded px-1 py-0.5 text-sm shadow-lg scale-105 ${
                 activeTask.status === "done"
-                  ? "text-gray-400 line-through"
+                  ? "bg-white text-gray-400 line-through"
                   : "bg-blue-100 text-blue-800"
               }`}
             >
