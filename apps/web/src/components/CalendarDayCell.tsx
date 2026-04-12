@@ -4,7 +4,7 @@ import type { Task } from "../types/task";
 import { isToday, formatDateKey } from "../utils/calendar";
 import { DraggableTask } from "./DraggableTask";
 
-const MAX_VISIBLE_TASKS = 3;
+const MAX_VISIBLE_TASKS = 4;
 
 type CalendarDayCellProps = {
   date: Date;
@@ -66,11 +66,11 @@ export function CalendarDayCell({
         }
       }}
       aria-label={`${dateKey}にタスクを追加`}
-      className={`group relative min-h-32 cursor-pointer border border-gray-200 p-1.5 ${
+      className={`group relative min-h-40 cursor-pointer border-[0.5px] border-gray-200 p-1.5 ${
         !isCurrentMonth ? "bg-gray-50" : "bg-white"
       } ${isOver ? "bg-blue-50 ring-2 ring-blue-400 ring-inset" : isExpanded ? "z-10 shadow-lg ring-2 ring-blue-300" : ""}`}
     >
-      <div className="mb-1 flex items-center justify-center">
+      <div className="mb-1 flex items-center">
         <span
           className={`inline-flex h-7 w-7 items-center justify-center rounded-full text-sm ${
             today
@@ -83,7 +83,7 @@ export function CalendarDayCell({
           {date.getDate()}
         </span>
       </div>
-      <div className="space-y-0.5">
+      <div className="space-y-1">
         {visibleTasks.map((task) => (
           <DraggableTask
             key={task.id}
