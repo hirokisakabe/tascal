@@ -75,9 +75,9 @@ export function TaskDetailModal({
   return (
     <>
       <ModalWrapper open={open} onClose={onClose}>
-        <h3 className="mb-4 text-lg font-bold text-gray-900">タスクの詳細</h3>
+        <h3 className="mb-4 text-lg font-bold text-on-surface">タスクの詳細</h3>
         {error && (
-          <div className="mb-3 rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">
+          <div className="mb-3 rounded-md bg-danger-light px-3 py-2 text-sm text-danger">
             {error}
           </div>
         )}
@@ -85,23 +85,23 @@ export function TaskDetailModal({
           <div>
             <label
               htmlFor="detail-title"
-              className="mb-1 block text-sm font-medium text-gray-700"
+              className="mb-1 block text-sm font-medium text-on-surface-secondary"
             >
-              タイトル <span className="text-red-500">*</span>
+              タイトル <span className="text-danger">*</span>
             </label>
             <input
               id="detail-title"
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="w-full rounded-md border border-border px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
               required
             />
           </div>
           <div>
             <label
               htmlFor="detail-description"
-              className="mb-1 block text-sm font-medium text-gray-700"
+              className="mb-1 block text-sm font-medium text-on-surface-secondary"
             >
               説明
             </label>
@@ -110,13 +110,13 @@ export function TaskDetailModal({
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               rows={3}
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="w-full rounded-md border border-border px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
             />
           </div>
           <div>
             <label
               htmlFor="detail-date"
-              className="mb-1 block text-sm font-medium text-gray-700"
+              className="mb-1 block text-sm font-medium text-on-surface-secondary"
             >
               日付
             </label>
@@ -125,7 +125,7 @@ export function TaskDetailModal({
               type="date"
               value={date}
               onChange={(e) => setDate(e.target.value)}
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="w-full rounded-md border border-border px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
               required
             />
           </div>
@@ -134,7 +134,7 @@ export function TaskDetailModal({
               type="button"
               onClick={handleDelete}
               disabled={busy}
-              className="rounded-md bg-red-600 px-4 py-2 text-sm text-white hover:bg-red-700 disabled:opacity-50"
+              className="rounded-md bg-danger px-4 py-2 text-sm text-white hover:bg-danger-dark disabled:opacity-50"
             >
               {deleting ? "削除中..." : "削除"}
             </button>
@@ -142,14 +142,14 @@ export function TaskDetailModal({
               <button
                 type="button"
                 onClick={onClose}
-                className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                className="rounded-md border border-border bg-white px-4 py-2 text-sm text-on-surface-secondary hover:bg-surface-hover"
               >
                 キャンセル
               </button>
               <button
                 type="submit"
                 disabled={busy || !title.trim()}
-                className="rounded-md bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700 disabled:opacity-50"
+                className="rounded-md bg-primary px-4 py-2 text-sm text-white hover:bg-primary-dark disabled:opacity-50"
               >
                 {saving ? "保存中..." : "保存"}
               </button>

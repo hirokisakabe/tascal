@@ -157,28 +157,28 @@ export function Calendar() {
   return (
     <div className="mx-auto max-w-[1600px]">
       <div className="mb-2 flex items-center justify-between">
-        <h2 className="text-xl font-bold text-gray-900">
+        <h2 className="text-xl font-bold text-on-surface">
           {year}年{month}月
         </h2>
         <div className="flex items-center gap-2">
           <button
             type="button"
             onClick={goToToday}
-            className="rounded-md border border-gray-300 bg-white px-2 py-1 text-xs text-gray-700 hover:bg-gray-50"
+            className="rounded-md border border-border bg-white px-2 py-1 text-xs text-on-surface-secondary hover:bg-surface-hover"
           >
             今日
           </button>
           <button
             type="button"
             onClick={goToPrevMonth}
-            className="rounded-md border border-gray-300 bg-white px-2 py-1 text-xs text-gray-700 hover:bg-gray-50"
+            className="rounded-md border border-border bg-white px-2 py-1 text-xs text-on-surface-secondary hover:bg-surface-hover"
           >
             ←
           </button>
           <button
             type="button"
             onClick={goToNextMonth}
-            className="rounded-md border border-gray-300 bg-white px-2 py-1 text-xs text-gray-700 hover:bg-gray-50"
+            className="rounded-md border border-border bg-white px-2 py-1 text-xs text-on-surface-secondary hover:bg-surface-hover"
           >
             →
           </button>
@@ -186,7 +186,7 @@ export function Calendar() {
       </div>
 
       {error && (
-        <div className="mb-4 rounded-md bg-red-50 px-4 py-3 text-sm text-red-700">
+        <div className="mb-4 rounded-md bg-danger-light px-4 py-3 text-sm text-danger">
           {error}
         </div>
       )}
@@ -198,18 +198,18 @@ export function Calendar() {
         onDragCancel={handleDragCancel}
       >
         <div
-          className={`overflow-hidden rounded-lg border border-gray-200 ${isLoading ? "opacity-50" : ""}`}
+          className={`overflow-hidden rounded-lg border border-border-light ${isLoading ? "opacity-50" : ""}`}
         >
           <div className="grid grid-cols-7">
             {WEEKDAY_LABELS.map((label, i) => (
               <div
                 key={label}
-                className={`border-b border-gray-200 py-1 text-center text-sm font-medium ${
+                className={`border-b border-border-light py-1 text-center text-sm font-medium ${
                   i === 5
-                    ? "text-blue-500"
+                    ? "text-primary"
                     : i === 6
-                      ? "text-red-500"
-                      : "text-gray-600"
+                      ? "text-danger"
+                      : "text-on-surface-secondary"
                 }`}
               >
                 {label}
@@ -242,8 +242,8 @@ export function Calendar() {
             <div
               className={`flex items-center gap-1 rounded px-1 py-0.5 text-sm shadow-lg scale-105 ${
                 activeTask.status === "done"
-                  ? "bg-white text-gray-400 line-through"
-                  : "bg-blue-100 text-blue-800"
+                  ? "bg-white text-on-surface-muted line-through"
+                  : "bg-primary-light text-primary"
               }`}
             >
               <input
