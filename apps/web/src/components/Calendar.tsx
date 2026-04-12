@@ -155,8 +155,8 @@ export function Calendar() {
   const error = queryError ? "タスクの取得に失敗しました" : mutationError;
 
   return (
-    <div className="mx-auto max-w-7xl">
-      <div className="mb-4 flex items-center justify-between">
+    <div className="mx-auto max-w-[1600px]">
+      <div className="mb-2 flex items-center justify-between">
         <h2 className="text-xl font-bold text-gray-900">
           {year}年{month}月
         </h2>
@@ -164,21 +164,21 @@ export function Calendar() {
           <button
             type="button"
             onClick={goToToday}
-            className="rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50"
+            className="rounded-md border border-gray-300 bg-white px-2 py-1 text-xs text-gray-700 hover:bg-gray-50"
           >
             今日
           </button>
           <button
             type="button"
             onClick={goToPrevMonth}
-            className="rounded-md border border-gray-300 bg-white px-2.5 py-1.5 text-sm text-gray-700 hover:bg-gray-50"
+            className="rounded-md border border-gray-300 bg-white px-2 py-1 text-xs text-gray-700 hover:bg-gray-50"
           >
             ←
           </button>
           <button
             type="button"
             onClick={goToNextMonth}
-            className="rounded-md border border-gray-300 bg-white px-2.5 py-1.5 text-sm text-gray-700 hover:bg-gray-50"
+            className="rounded-md border border-gray-300 bg-white px-2 py-1 text-xs text-gray-700 hover:bg-gray-50"
           >
             →
           </button>
@@ -204,7 +204,7 @@ export function Calendar() {
             {WEEKDAY_LABELS.map((label, i) => (
               <div
                 key={label}
-                className={`border-b border-gray-200 py-2 text-center text-sm font-medium ${
+                className={`border-b border-gray-200 py-1 text-center text-sm font-medium ${
                   i === 5
                     ? "text-blue-500"
                     : i === 6
@@ -252,7 +252,7 @@ export function Calendar() {
                 readOnly
                 className="h-3.5 w-3.5 shrink-0"
               />
-              <span className="truncate">{activeTask.title}</span>
+              <span className="break-all">{activeTask.title}</span>
             </div>
           )}
         </DragOverlay>
