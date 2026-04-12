@@ -32,10 +32,10 @@ export function DraggableTask({
         isDragging
           ? "border border-dashed border-border bg-surface text-transparent [&_input]:invisible"
           : task.status === "done"
-            ? "text-on-surface-muted line-through"
+            ? "border border-border text-on-surface-muted line-through"
             : categoryBg
               ? "text-on-surface"
-              : "bg-white text-on-surface"
+              : "border border-border bg-white text-on-surface"
       }`}
       style={
         !isDragging && task.status !== "done" && categoryBg
