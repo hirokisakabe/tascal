@@ -1,4 +1,4 @@
-.PHONY: install dev build lint format format-check typecheck test knip db-up db-down db-migrate
+.PHONY: install dev build lint format format-check typecheck test knip db-up db-down db-migrate db-seed
 
 install:
 	cd apps/api && npm install
@@ -54,3 +54,6 @@ db-down:
 
 db-migrate:
 	cd apps/api && npm run db:migrate
+
+db-seed:
+	cd apps/api && npm run db:seed

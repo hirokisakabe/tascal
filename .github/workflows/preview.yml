@@ -83,6 +83,14 @@ jobs:
           npm ci
           npx drizzle-kit migrate
 
+      - name: Seed database
+        env:
+          DATABASE_URL: ${{ steps.neon-branch.outputs.database_url }}
+          BETTER_AUTH_SECRET: ${{ secrets.BETTER_AUTH_SECRET }}
+        run: |
+          cd apps/api
+          npx tsx src/db/seed.ts
+
       - name: Compute preview URL
         id: preview-url
         run: |
