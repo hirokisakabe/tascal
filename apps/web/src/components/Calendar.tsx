@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   DndContext,
   DragOverlay,
@@ -92,6 +92,15 @@ export function Calendar() {
       },
     );
   };
+
+  useEffect(() => {
+    if (activeTask) {
+      document.body.style.cursor = "grabbing";
+      return () => {
+        document.body.style.cursor = "";
+      };
+    }
+  }, [activeTask]);
 
   const handleDragStart = (event: DragStartEvent) => {
     const task = event.active.data.current?.task as Task | undefined;

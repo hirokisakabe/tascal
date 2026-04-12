@@ -23,7 +23,7 @@ export function DraggableTask({
       {...listeners}
       {...attributes}
       onClick={(e) => e.stopPropagation()}
-      className={`flex cursor-grab items-center gap-1 rounded px-1 py-0.5 text-sm touch-none ${
+      className={`flex items-center gap-1 rounded px-1 py-0.5 text-sm touch-none ${isDragging ? "cursor-grabbing" : "cursor-grab"} ${
         task.status === "done"
           ? "text-gray-400 line-through"
           : "bg-blue-100 text-blue-800"
