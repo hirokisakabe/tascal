@@ -4,7 +4,7 @@ import { join } from "node:path";
 
 const CONFIG_PATH = join(homedir(), ".tascalrc");
 
-const DEFAULT_API_URL = "http://localhost:3000";
+const DEFAULT_API_URL = "https://tascal.dev";
 
 interface Config {
   token?: string;
