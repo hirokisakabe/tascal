@@ -16,7 +16,7 @@
     "directory": "apps/cli"
   },
   "publishConfig": {
-    "provenance": true
+    "access": "public"
   },
   "keywords": [
     "cli",
