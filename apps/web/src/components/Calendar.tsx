@@ -14,7 +14,6 @@ import { getCalendarDays, formatDateKey } from "../utils/calendar";
 import { CalendarDayCell } from "./CalendarDayCell";
 import { TaskFormModal } from "./TaskFormModal";
 import { TaskDetailModal } from "./TaskDetailModal";
-import { DayTaskListModal } from "./DayTaskListModal";
 
 const WEEKDAY_LABELS = ["月", "火", "水", "木", "金", "土", "日"];
 
@@ -35,7 +34,7 @@ export function Calendar() {
   // モーダル状態
   const [addDate, setAddDate] = useState<string | null>(null);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
-  const [showMoreDate, setShowMoreDate] = useState<string | null>(null);
+  const [expandedDate, setExpandedDate] = useState<string | null>(null);
 
   const {
     data: tasks = [],
@@ -208,10 +207,12 @@ export function Calendar() {
                   date={day.date}
                   isCurrentMonth={day.isCurrentMonth}
                   tasks={tasksByDate.get(key) ?? []}
+                  isExpanded={expandedDate === key}
                   onAddClick={setAddDate}
                   onTaskClick={setSelectedTask}
                   onToggleStatus={handleToggleStatus}
-                  onShowMore={setShowMoreDate}
+                  onShowMore={setExpandedDate}
+                  onCollapse={() => setExpandedDate(null)}
                 />
               );
             })}
@@ -247,24 +248,6 @@ export function Calendar() {
           onClose={() => setAddDate(null)}
           onCreated={() => {
             setAddDate(null);
-          }}
-        />
-      )}
-
-      {showMoreDate && (
-        <DayTaskListModal
-          open
-          dateKey={showMoreDate}
-          tasks={tasksByDate.get(showMoreDate) ?? []}
-          onClose={() => setShowMoreDate(null)}
-          onTaskClick={(task) => {
-            setShowMoreDate(null);
-            setSelectedTask(task);
-          }}
-          onToggleStatus={handleToggleStatus}
-          onAddClick={(dateKey) => {
-            setShowMoreDate(null);
-            setAddDate(dateKey);
           }}
         />
       )}
