@@ -1,9 +1,27 @@
 {
   "name": "tascal",
   "version": "0.1.0",
+  "description": "tascal CLI — カレンダータスク管理",
   "type": "module",
   "bin": {
     "tascal": "dist/src/index.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/hirokisakabe/tascal.git",
+    "directory": "apps/cli"
+  },
+  "keywords": [
+    "cli",
+    "task",
+    "calendar"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">=20"
   },
   "scripts": {
     "dev": "tsx src/index.ts",
