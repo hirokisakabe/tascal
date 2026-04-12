@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { authClient } from "../../auth-client";
 import { Calendar } from "../../components/Calendar";
 
-export const Route = createFileRoute("/_authenticated/")({
+export const Route = createFileRoute("/app/")({
   component: HomePage,
 });
 

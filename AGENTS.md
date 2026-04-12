@@ -62,9 +62,10 @@ pnpm --filter @tascal/web exec vitest run src/components/__tests__/Calendar.test
 
 - `src/routes/` — TanStack Router のファイルベースルーティング
   - `__root.tsx` — ルートレイアウト、NotFound 表示
-  - `_authenticated.tsx` — 認証ガード (セッション未取得で /login へリダイレクト)
-  - `_authenticated/index.tsx` — メインページ (カレンダー表示)
-  - `login.tsx`, `signup.tsx` — 認証ページ
+  - `index.tsx` — ランディングページ (`/`、未認証でもアクセス可能)
+  - `app.tsx` — 認証ガード layout (`/app`、セッション未取得で /login へリダイレクト)
+  - `app/index.tsx` — メインページ (カレンダー表示、`/app`)
+  - `login.tsx`, `signup.tsx` — 認証ページ (ログイン後は `/app` へリダイレクト)
 - `src/components/` — Calendar, TaskFormModal, TaskDetailModal, DraggableTask, CalendarDayCell, DayTaskListModal, ModalWrapper 等
 - `src/hooks/useTasks.ts` — React Query によるタスク CRUD フック
 - `src/api/tasks.ts` — API クライアント (fetch ベース)

@@ -26,7 +26,7 @@ function LoginPage() {
           setError(error.message ?? "ログインに失敗しました");
           return;
         }
-        void navigate({ to: "/" });
+        void navigate({ to: "/app" });
       });
   };
 
