@@ -43,12 +43,13 @@ function LandingPage() {
           </Link>
         </section>
 
-        {/* TODO: スクリーンショット画像を差し替える */}
         <section className="px-4 pb-24">
-          <div className="mx-auto max-w-4xl overflow-hidden rounded-lg border border-gray-200 bg-gray-50">
-            <div className="flex h-80 items-center justify-center text-sm text-gray-400">
-              アプリのスクリーンショット
-            </div>
+          <div className="mx-auto max-w-4xl overflow-hidden rounded-lg border border-gray-200 shadow-lg">
+            <img
+              src="/screenshot.png"
+              alt="tascal のカレンダービュー"
+              className="w-full"
+            />
           </div>
         </section>
       </main>
