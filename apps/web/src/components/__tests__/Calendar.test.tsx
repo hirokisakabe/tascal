@@ -405,10 +405,10 @@ describe("Calendar", () => {
     });
   });
 
-  it("4件以上タスクがある日セルで「+N件」をクリックするとセルが展開され全タスクが表示される", async () => {
+  it("5件以上タスクがある日セルで「+N件」をクリックするとセルが展開され全タスクが表示される", async () => {
     const now = new Date();
     const dateKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-15`;
-    const manyTasks = Array.from({ length: 5 }, (_, i) => ({
+    const manyTasks = Array.from({ length: 6 }, (_, i) => ({
       ...mockTask,
       id: `task-${i + 1}`,
       title: `タスク${i + 1}`,
@@ -431,8 +431,8 @@ describe("Calendar", () => {
     await user.click(showMoreButton);
 
     await waitFor(() => {
-      expect(screen.getByText("タスク4")).toBeInTheDocument();
       expect(screen.getByText("タスク5")).toBeInTheDocument();
+      expect(screen.getByText("タスク6")).toBeInTheDocument();
     });
 
     // 「折りたたむ」ボタンが表示される
@@ -445,7 +445,7 @@ describe("Calendar", () => {
   it("展開されたセルの「折りたたむ」をクリックするとセルが折りたたまれる", async () => {
     const now = new Date();
     const dateKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-15`;
-    const manyTasks = Array.from({ length: 5 }, (_, i) => ({
+    const manyTasks = Array.from({ length: 6 }, (_, i) => ({
       ...mockTask,
       id: `task-${i + 1}`,
       title: `タスク${i + 1}`,
@@ -471,8 +471,8 @@ describe("Calendar", () => {
     await user.click(screen.getByText("折りたたむ"));
 
     await waitFor(() => {
-      expect(screen.queryByText("タスク4")).not.toBeInTheDocument();
       expect(screen.queryByText("タスク5")).not.toBeInTheDocument();
+      expect(screen.queryByText("タスク6")).not.toBeInTheDocument();
       expect(screen.getByText("+2 件")).toBeInTheDocument();
     });
   });
@@ -480,14 +480,14 @@ describe("Calendar", () => {
   it("展開されたセルでタスクをクリックすると詳細モーダルが開く", async () => {
     const now = new Date();
     const dateKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-15`;
-    const manyTasks = Array.from({ length: 4 }, (_, i) => ({
+    const manyTasks = Array.from({ length: 5 }, (_, i) => ({
       ...mockTask,
       id: `task-${i + 1}`,
       title: `タスク${i + 1}`,
       date: dateKey,
     }));
     mockFetchTasks.mockResolvedValue(manyTasks);
-    mockUpdateTask.mockResolvedValue({ ...manyTasks[3], title: "更新タスク" });
+    mockUpdateTask.mockResolvedValue({ ...manyTasks[4], title: "更新タスク" });
 
     const user = userEvent.setup();
     renderWithQueryClient(<Calendar />);
@@ -500,11 +500,11 @@ describe("Calendar", () => {
     await user.click(screen.getByText("+1 件"));
 
     await waitFor(() => {
-      expect(screen.getByText("タスク4")).toBeInTheDocument();
+      expect(screen.getByText("タスク5")).toBeInTheDocument();
     });
 
-    // タスク4をクリック → 詳細モーダルが開く
-    await user.click(screen.getByText("タスク4"));
+    // タスク5をクリック → 詳細モーダルが開く
+    await user.click(screen.getByText("タスク5"));
 
     await waitFor(() => {
       expect(screen.getByText("タスクの詳細")).toBeInTheDocument();
