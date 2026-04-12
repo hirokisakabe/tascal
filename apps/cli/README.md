@@ -12,27 +12,27 @@ npm install -g tascal-cli
 
 ```bash
 # Log in to tascal
-tascal login
+tascal-cli login
 
 # List tasks
-tascal list
-tascal list --month 4 --year 2026
+tascal-cli list
+tascal-cli list --month 4 --year 2026
 
 # Add a task
-tascal add --title "Buy milk" --date 2026-04-12
+tascal-cli add --title "Buy milk" --date 2026-04-12
 
 # Edit a task
-tascal edit <id> --title "Buy oat milk"
+tascal-cli edit <id> --title "Buy oat milk"
 
 # Mark as done / undo
-tascal done <id>
-tascal undo <id>
+tascal-cli done <id>
+tascal-cli undo <id>
 
 # Delete a task
-tascal delete <id>
+tascal-cli delete <id>
 
 # Log out
-tascal logout
+tascal-cli logout
 ```
 
 ## Commands

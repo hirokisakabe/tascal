@@ -4,7 +4,6 @@
   "description": "tascal CLI — カレンダータスク管理",
   "type": "module",
   "bin": {
-    "tascal": "dist/src/index.js",
     "tascal-cli": "dist/src/index.js"
   },
   "files": [
