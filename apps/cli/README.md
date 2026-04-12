@@ -1,11 +1,11 @@
-# tascal
+# tascal-cli
 
 CLI for [tascal](https://github.com/hirokisakabe/tascal) — a calendar-based task management app.
 
 ## Install
 
 ```bash
-npm install -g tascal
+npm install -g tascal-cli
 ```
 
 ## Usage

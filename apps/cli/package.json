@@ -1,5 +1,5 @@
 {
-  "name": "tascal",
+  "name": "tascal-cli",
   "version": "0.1.0",
   "description": "tascal CLI — カレンダータスク管理",
   "type": "module",
