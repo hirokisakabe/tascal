@@ -12,6 +12,7 @@ vi.mock("../../api/tasks", () => ({
 
 describe("TaskFormModal", () => {
   const defaultProps = {
+    open: true,
     date: "2026-03-15",
     year: 2026,
     month: 3,

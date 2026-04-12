@@ -25,6 +25,7 @@ const mockTask = {
 
 describe("TaskDetailModal", () => {
   const defaultProps = {
+    open: true,
     task: mockTask,
     year: 2026,
     month: 3,

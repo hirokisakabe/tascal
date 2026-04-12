@@ -240,6 +240,7 @@ export function Calendar() {
 
       {addDate && (
         <TaskFormModal
+          open
           date={addDate}
           year={year}
           month={month}
@@ -252,6 +253,7 @@ export function Calendar() {
 
       {showMoreDate && (
         <DayTaskListModal
+          open
           dateKey={showMoreDate}
           tasks={tasksByDate.get(showMoreDate) ?? []}
           onClose={() => setShowMoreDate(null)}
@@ -269,6 +271,7 @@ export function Calendar() {
 
       {selectedTask && (
         <TaskDetailModal
+          open
           task={selectedTask}
           year={year}
           month={month}
