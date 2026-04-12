@@ -7,6 +7,7 @@ import type { Auth } from "./auth.js";
 import { getDb } from "./db/index.js";
 import categoriesApp from "./routes/categories.js";
 import tasksApp from "./routes/tasks.js";
+import usersApp from "./routes/users.js";
 
 type AuthVariables = {
   user: Auth["$Infer"]["Session"]["user"] | null;
@@ -60,6 +61,7 @@ app.on(["POST", "GET"], "/api/auth/**", (c) => {
 
 app.route("/api/categories", categoriesApp);
 app.route("/api/tasks", tasksApp);
+app.route("/api/users", usersApp);
 
 // SPA 静的ファイル配信（本番用）
 app.use("*", serveStatic({ root: "./public" }));
