@@ -7,12 +7,14 @@
 ### 前提条件
 
 - Node.js
+- pnpm (corepack で自動有効化)
 - Docker
 
 ### セットアップ
 
 ```bash
-make install
+corepack enable pnpm
+pnpm install
 ```
 
 `apps/api/.env.example` を参考に `apps/api/.env` を作成します。
@@ -25,9 +27,9 @@ cp apps/api/.env.example apps/api/.env
 初回のみ DB マイグレーションを実行します。
 
 ```bash
-make db-up
-make db-migrate
-make db-down
+pnpm db:up
+pnpm db:migrate
+pnpm db:down
 ```
 
 ### 開発サーバーの起動
@@ -35,18 +37,18 @@ make db-down
 DB（PostgreSQL）・API・Web をまとめて起動します。`Ctrl+C` で全て停止します。
 
 ```bash
-make dev
+pnpm dev
 ```
 
 ### その他のコマンド
 
 | コマンド | 説明 |
 |---|---|
-| `make db-up` | DB のみ起動（デタッチモード） |
-| `make db-down` | DB を停止 |
-| `make db-migrate` | DB マイグレーション実行 |
-| `make lint` | リンター実行 |
-| `make format` | フォーマッター実行 |
-| `make typecheck` | 型チェック |
-| `make test` | テスト実行 |
-| `make build` | ビルド |
+| `pnpm db:up` | DB のみ起動（デタッチモード） |
+| `pnpm db:down` | DB を停止 |
+| `pnpm db:migrate` | DB マイグレーション実行 |
+| `pnpm lint` | リンター実行 |
+| `pnpm format` | フォーマッター実行 |
+| `pnpm typecheck` | 型チェック |
+| `pnpm test` | テスト実行 |
+| `pnpm build` | ビルド |

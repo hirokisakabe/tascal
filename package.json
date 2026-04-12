@@ -1,10 +1,35 @@
 {
   "name": "tascal-monorepo",
   "private": true,
-  "workspaces": [
-    "apps/cli"
-  ],
+  "packageManager": "pnpm@10.18.3",
+  "scripts": {
+    "dev": "concurrently -k \"docker compose up db\" \"pnpm --filter @tascal/api dev\" \"pnpm --filter @tascal/web dev\"",
+    "build": "pnpm -r run build",
+    "lint": "pnpm -r run lint",
+    "format": "pnpm -r run format",
+    "format:check": "pnpm -r run format:check",
+    "typecheck": "pnpm -r run typecheck",
+    "test": "pnpm -r run test",
+    "knip": "pnpm -r run knip",
+    "db:up": "docker compose up -d db",
+    "db:down": "docker compose down",
+    "db:migrate": "pnpm --filter @tascal/api run db:migrate",
+    "db:seed": "pnpm --filter @tascal/api run db:seed"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": ["esbuild"]
+  },
   "devDependencies": {
-    "@changesets/cli": "^2.30.0"
+    "@changesets/cli": "^2.30.0",
+    "@eslint/js": "^9.25.1",
+    "concurrently": "^9.1.2",
+    "eslint": "^9.25.1",
+    "globals": "^16.0.0",
+    "knip": "^6.4.0",
+    "prettier": "^3.5.3",
+    "tsx": "^4.19.4",
+    "typescript": "^5.8.3",
+    "typescript-eslint": "^8.31.0",
+    "vitest": "^4.1.0"
   }
 }

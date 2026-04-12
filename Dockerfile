@@ -1,31 +1,38 @@
 FROM node:24-slim AS base
+RUN corepack enable pnpm
 
 # --- Web build ---
 FROM base AS web-build
-WORKDIR /app/apps/web
-COPY apps/web/package.json apps/web/package-lock.json ./
-RUN npm ci
-COPY tsconfig.json /app/tsconfig.json
-COPY apps/api/tsconfig.json /app/apps/api/tsconfig.json
-COPY apps/web/ ./
-RUN npx vite build
+WORKDIR /app
+COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
+COPY apps/web/package.json apps/web/package.json
+COPY apps/api/package.json apps/api/package.json
+COPY apps/cli/package.json apps/cli/package.json
+RUN pnpm install --frozen-lockfile
+COPY tsconfig.json ./
+COPY apps/api/tsconfig.json apps/api/tsconfig.json
+COPY apps/api/src/ apps/api/src/
+COPY apps/web/ apps/web/
+RUN pnpm --filter @tascal/web run build
 
 # --- API build ---
 FROM base AS api-build
-WORKDIR /app/apps/api
-COPY apps/api/package.json apps/api/package-lock.json ./
-COPY tsconfig.json /app/tsconfig.json
-RUN npm ci
-COPY apps/api/ ./
-RUN npm run build
+WORKDIR /app
+COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
+COPY apps/api/package.json apps/api/package.json
+COPY apps/web/package.json apps/web/package.json
+COPY apps/cli/package.json apps/cli/package.json
+RUN pnpm install --frozen-lockfile
+COPY tsconfig.json ./
+COPY apps/api/ apps/api/
+RUN pnpm --filter @tascal/api run build
+RUN pnpm deploy --filter @tascal/api --legacy --prod /app/api-deploy
 
 # --- Production ---
 FROM base AS production
 WORKDIR /app
 
-COPY apps/api/package.json apps/api/package-lock.json ./
-RUN npm ci --omit=dev
-
+COPY --from=api-build /app/api-deploy ./
 COPY --from=api-build /app/apps/api/dist ./dist
 COPY --from=web-build /app/apps/web/dist ./public
 COPY --from=api-build /app/apps/api/drizzle ./drizzle

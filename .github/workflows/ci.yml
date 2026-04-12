@@ -7,72 +7,61 @@ on:
 jobs:
   api:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: apps/api
     steps:
       - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:
           node-version-file: .node-version
-          cache: npm
-          cache-dependency-path: apps/api/package-lock.json
-      - run: npm ci
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
       - name: Lint
-        run: npm run lint
+        run: pnpm --filter @tascal/api run lint
       - name: Format check
-        run: npm run format:check
+        run: pnpm --filter @tascal/api run format:check
       - name: Type check
-        run: npm run typecheck
+        run: pnpm --filter @tascal/api run typecheck
       - name: Test
-        run: npm test
+        run: pnpm --filter @tascal/api run test
       - name: Knip
-        run: npm run knip
+        run: pnpm --filter @tascal/api run knip
 
   web:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: apps/web
     steps:
       - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:
           node-version-file: .node-version
-          cache: npm
-          cache-dependency-path: apps/web/package-lock.json
-      - run: npm ci
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
       - name: Lint
-        run: npm run lint
+        run: pnpm --filter @tascal/web run lint
       - name: Format check
-        run: npm run format:check
+        run: pnpm --filter @tascal/web run format:check
       - name: Type check
-        run: npm run typecheck
+        run: pnpm --filter @tascal/web run typecheck
       - name: Test
-        run: npm test
+        run: pnpm --filter @tascal/web run test
       - name: Knip
-        run: npm run knip
+        run: pnpm --filter @tascal/web run knip
 
   cli:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: apps/cli
     steps:
       - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:
           node-version-file: .node-version
-          cache: npm
-          cache-dependency-path: package-lock.json
-      - name: Install dependencies
-        run: npm ci
-        working-directory: .
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
       - name: Lint
-        run: npm run lint
+        run: pnpm --filter tascal-cli run lint
       - name: Format check
-        run: npm run format:check
+        run: pnpm --filter tascal-cli run format:check
       - name: Type check
-        run: npm run typecheck
+        run: pnpm --filter tascal-cli run typecheck
       - name: Knip
-        run: npm run knip
+        run: pnpm --filter tascal-cli run knip
