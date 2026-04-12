@@ -37,14 +37,27 @@ export default defineCommand({
 
     const res = await fetch(`${apiUrl}/api/auth/sign-in/email`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        Origin: new URL(apiUrl).origin,
+      },
       body: JSON.stringify({ email, password: pw }),
     });
 
     if (!res.ok) {
-      consola.error(
-        "ログインに失敗しました。メールアドレスまたはパスワードを確認してください。",
-      );
+      let detail = "";
+      try {
+        const raw = await res.text();
+        const contentType = res.headers.get("content-type") ?? "";
+        if (contentType.includes("application/json")) {
+          detail = JSON.stringify(JSON.parse(raw));
+        } else {
+          detail = raw;
+        }
+      } catch {
+        detail = "(レスポンスの読み取りに失敗)";
+      }
+      consola.error(`ログインに失敗しました (${res.status}): ${detail}`);
       process.exit(1);
     }
 
