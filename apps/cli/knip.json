@@ -1,0 +1,4 @@
+{
+  "ignoreBinaries": ["tsc", "tsx", "eslint", "knip"],
+  "ignoreDependencies": ["eslint", "tsx"]
+}

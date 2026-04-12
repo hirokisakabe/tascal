@@ -1,4 +1,10 @@
 {
-  "name": "tascal",
-  "private": true
+  "name": "tascal-monorepo",
+  "private": true,
+  "workspaces": [
+    "apps/cli"
+  ],
+  "devDependencies": {
+    "@changesets/cli": "^2.30.0"
+  }
 }
