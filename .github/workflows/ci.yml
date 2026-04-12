@@ -90,4 +90,4 @@ jobs:
           cache-dependency-path: package-lock.json
       - run: npm ci
       - name: Changeset status
-        run: npx changeset status
+        run: npx changeset status --since=origin/main
