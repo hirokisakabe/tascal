@@ -264,7 +264,7 @@ export function Calendar() {
                       ? "bg-white text-on-surface-muted line-through"
                       : bgColor
                         ? "text-on-surface"
-                        : "bg-primary-light text-primary"
+                        : "bg-white text-on-surface"
                   }`}
                   style={
                     activeTask.status !== "done" && bgColor

@@ -35,7 +35,7 @@ export function DraggableTask({
             ? "text-on-surface-muted line-through"
             : categoryBg
               ? "text-on-surface"
-              : "bg-primary-light text-primary"
+              : "bg-white text-on-surface"
       }`}
       style={
         !isDragging && task.status !== "done" && categoryBg
