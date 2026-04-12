@@ -1,39 +1,45 @@
+<div align="center">
+
 # tascal
 
-**タスク管理を、カレンダーから。**
+### タスク管理を、カレンダーから。
 
-**tascal** (task + calendar) は、カレンダービューでタスクを管理する Web アプリです。
+シンプルなカレンダー UI でタスクを俯瞰・整理できるタスク管理アプリ
 
-https://tascal.dev/
+[Web アプリ](https://tascal.dev/) | [CLI](https://www.npmjs.com/package/tascal-cli)
 
-日付ごとにタスクを視覚的に把握でき、ドラッグ&ドロップで手軽にスケジュールを調整できます。Web ブラウザに加え、CLI からもタスクを操作できます。
+</div>
 
-## 主な機能
+<br />
+
+<div align="center">
+
+![tascal — カレンダービューでタスクを管理](apps/web/public/screenshot.png)
+
+</div>
+
+<br />
+
+## はじめる
 
 ### Web アプリ
 
-- **月間カレンダービュー** — タスクをカレンダー上に一覧表示。月の切り替えや「今日に戻る」ボタンで素早くナビゲーション
-- **タスクの作成・編集・削除** — カレンダーの日付をクリックしてタスクを作成。タイトル・説明・日付を編集可能
-- **ドラッグ&ドロップ** — タスクをドラッグして別の日付に移動
-- **完了管理** — チェックボックスでタスクの完了/未完了を切り替え。完了タスクは取り消し線で表示
-- **ユーザー認証** — メールアドレスとパスワードによるアカウント管理
+[tascal.dev](https://tascal.dev/) にアクセスしてアカウントを作成するだけで、すぐに使い始められます。
 
-### CLI (`tascal-cli`)
-
-npm パッケージ [`tascal-cli`](https://www.npmjs.com/package/tascal-cli) としてインストールできます。
+### CLI
 
 ```bash
 npm install -g tascal-cli
 ```
 
-| コマンド | 説明 |
-|---|---|
-| `tascal login` | ログイン |
-| `tascal logout` | ログアウト |
-| `tascal list` | タスク一覧の表示（年月指定可） |
-| `tascal add` | タスクの作成 |
-| `tascal edit <id>` | タスクの編集 |
-| `tascal delete <id>` | タスクの削除 |
-| `tascal done <id>` | タスクを完了にする |
-| `tascal undo <id>` | タスクを未完了に戻す |
+```bash
+tascal login          # ログイン
+tascal logout         # ログアウト
+tascal list           # タスク一覧
+tascal add            # タスク作成
+tascal edit <id>      # 編集
+tascal done <id>      # 完了にする
+tascal undo <id>      # 未完了に戻す
+tascal delete <id>    # 削除
+```
 
