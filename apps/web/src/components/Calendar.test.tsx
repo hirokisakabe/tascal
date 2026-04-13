@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { screen, waitFor, within } from "@testing-library/react";
+import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Calendar } from "./Calendar";
 import { renderWithQueryClient } from "../test/helpers";
@@ -15,6 +15,10 @@ vi.mock("../api/tasks", () => ({
   createTask: (...args: unknown[]) => mockCreateTask(...args) as unknown,
   updateTask: (...args: unknown[]) => mockUpdateTask(...args) as unknown,
   deleteTask: (...args: unknown[]) => mockDeleteTask(...args) as unknown,
+}));
+
+vi.mock("sonner", () => ({
+  toast: vi.fn(),
 }));
 
 // dnd-kit モック - onDragStart/onDragEnd/onDragCancel をキャプチャして手動発火可能にする
@@ -261,11 +265,6 @@ describe("Calendar", () => {
     expect(screen.getByText("タスクの詳細")).toBeInTheDocument();
 
     await user.click(screen.getByText("削除"));
-
-    const confirmDialog = screen.getByRole("dialog", { name: "タスクの削除" });
-    await user.click(
-      within(confirmDialog).getByRole("button", { name: "削除" }),
-    );
 
     await waitFor(() => {
       expect(mockDeleteTask).toHaveBeenCalledWith(mockTask.id);

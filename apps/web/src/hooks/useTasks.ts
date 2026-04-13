@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import type { Task } from "../types/task";
 import { fetchTasks, createTask, updateTask, deleteTask } from "../api/tasks";
 
@@ -107,12 +108,42 @@ export function useDeleteTask(year: number, month: number) {
     onMutate: async (id) => {
       await queryClient.cancelQueries({ queryKey: key });
       const previous = queryClient.getQueryData<Task[]>(key);
+      const deletedTask = previous?.find((task) => task.id === id);
 
       queryClient.setQueryData<Task[]>(key, (old) =>
         (old ?? []).filter((task) => task.id !== id),
       );
 
-      return { previous };
+      return { previous, deletedTask };
+    },
+    onSuccess: (_data, _id, context) => {
+      if (context?.deletedTask) {
+        const { deletedTask } = context;
+        let undone = false;
+        toast("タスクを削除しました", {
+          action: {
+            label: "元に戻す",
+            onClick: () => {
+              if (undone) return;
+              undone = true;
+              createTask({
+                title: deletedTask.title,
+                description: deletedTask.description,
+                date: deletedTask.date,
+                status: deletedTask.status,
+                categoryId: deletedTask.categoryId,
+              })
+                .then(() => {
+                  void queryClient.invalidateQueries({ queryKey: key });
+                })
+                .catch(() => {
+                  toast.error("タスクの復元に失敗しました");
+                });
+            },
+          },
+          duration: 5000,
+        });
+      }
     },
     onError: (_err, _variables, context) => {
       if (context) {
