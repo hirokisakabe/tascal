@@ -54,3 +54,10 @@ export function isToday(date: Date): boolean {
     date.getDate() === now.getDate()
   );
 }
+
+export function isPast(date: Date): boolean {
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const target = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  return target.getTime() < today.getTime();
+}

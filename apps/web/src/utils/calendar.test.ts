@@ -1,5 +1,5 @@
-import { describe, it, expect } from "vitest";
-import { getCalendarDays } from "./calendar";
+import { describe, it, expect, vi, afterEach } from "vitest";
+import { getCalendarDays, isPast } from "./calendar";
 
 describe("getCalendarDays (月曜始まり)", () => {
   it("2026年4月: 水曜始まり → 先頭2日が前月パディング", () => {
@@ -45,7 +45,7 @@ describe("getCalendarDays (月曜始まり)", () => {
     expect(days[6].isCurrentMonth).toBe(true);
   });
 
-  it("各行が月〜日の順に並ぶ", () => {
+  it("各行が月〜日の順に並ぶ (2026年4月)", () => {
     const days = getCalendarDays(2026, 4);
 
     // 各行（7日ずつ）の最初は月曜、最後は日曜
@@ -55,5 +55,40 @@ describe("getCalendarDays (月曜始まり)", () => {
       expect(firstOfRow).toBe(1); // 月曜
       expect(lastOfRow).toBe(0); // 日曜
     }
+  });
+});
+
+describe("isPast", () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("昨日は過去日と判定される", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2026, 3, 13)); // 2026-04-13
+
+    expect(isPast(new Date(2026, 3, 12))).toBe(true);
+  });
+
+  it("今日は過去日に含まれない", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2026, 3, 13));
+
+    expect(isPast(new Date(2026, 3, 13))).toBe(false);
+  });
+
+  it("明日は過去日に含まれない", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2026, 3, 13));
+
+    expect(isPast(new Date(2026, 3, 14))).toBe(false);
+  });
+
+  it("時刻に関係なく日付単位で比較する", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2026, 3, 13, 0, 0, 0)); // 深夜0時
+
+    // 前日の23:59でも過去日
+    expect(isPast(new Date(2026, 3, 12, 23, 59, 59))).toBe(true);
   });
 });
