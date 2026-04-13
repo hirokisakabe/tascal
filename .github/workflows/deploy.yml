@@ -45,11 +45,16 @@ jobs:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: pnpm --filter @tascal/api exec drizzle-kit migrate
 
+      - uses: docker/setup-buildx-action@v3
+
       - name: Build and push Docker image
-        run: |
-          IMAGE=${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.SERVICE_NAME }}:${{ github.sha }}
-          docker build -t $IMAGE .
-          docker push $IMAGE
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.SERVICE_NAME }}:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
       # Cloud Run の環境変数（DATABASE_URL, BETTER_AUTH_SECRET, BETTER_AUTH_URL, TRUSTED_ORIGINS）は
       # Google Cloud コンソールまたは gcloud CLI で事前に設定してください
