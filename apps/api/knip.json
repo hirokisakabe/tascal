@@ -4,7 +4,8 @@
     "@eslint/js",
     "typescript-eslint",
     "globals",
-    "vitest"
+    "vitest",
+    "pino-pretty"
   ],
   "eslint": true,
   "vitest": true
