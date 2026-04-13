@@ -1,25 +1,25 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { renderWithQueryClient } from "../../test/helpers";
+import { renderWithQueryClient } from "../test/helpers";
 
 const mockUseSession = vi.fn();
 const mockSignOut = vi.fn();
 const mockFetchCategories = vi.fn();
 
-vi.mock("../../auth-client", () => ({
+vi.mock("../auth-client", () => ({
   authClient: {
     useSession: () => mockUseSession() as unknown,
     signOut: (...args: unknown[]) => mockSignOut(...args) as unknown,
   },
 }));
 
-vi.mock("../../api/categories", () => ({
+vi.mock("../api/categories", () => ({
   fetchCategories: (...args: unknown[]) =>
     mockFetchCategories(...args) as unknown,
 }));
 
-vi.mock("../../api/users", () => ({
+vi.mock("../api/users", () => ({
   deleteAccount: vi.fn(),
 }));
 
@@ -43,7 +43,7 @@ describe("SettingsPage アカウントセクション", () => {
     });
     mockFetchCategories.mockResolvedValue([]);
     // Import to trigger createFileRoute and capture the component
-    await import("../app/settings");
+    await import("./app/settings");
   });
 
   function renderSettingsPage() {

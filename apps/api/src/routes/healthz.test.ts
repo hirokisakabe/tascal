@@ -2,20 +2,20 @@ import { describe, it, expect, vi } from "vitest";
 
 const mockExecute = vi.fn();
 
-vi.mock("../../db/index.js", () => ({
+vi.mock("../db/index.js", () => ({
   getDb: () => ({
     execute: mockExecute,
   }),
 }));
 
-vi.mock("../../auth.js", () => ({
+vi.mock("../auth.js", () => ({
   getAuth: () => ({
     api: { getSession: vi.fn().mockResolvedValue(null) },
     handler: vi.fn(),
   }),
 }));
 
-const { default: app } = await import("../../app.js");
+const { default: app } = await import("../app.js");
 
 describe("GET /healthz", () => {
   it("DB 接続成功時に 200 と { status: 'ok' } を返す", async () => {

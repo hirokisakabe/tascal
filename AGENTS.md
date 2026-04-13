@@ -38,8 +38,8 @@ tascal (task + calendar) — カレンダービューがメインのタスク管
 
 個別 app でのテスト実行：
 ```bash
-pnpm --filter @tascal/api exec vitest run src/routes/__tests__/tasks.test.ts  # 単一テスト
-pnpm --filter @tascal/web exec vitest run src/components/__tests__/Calendar.test.tsx
+pnpm --filter @tascal/api exec vitest run src/routes/tasks.test.ts  # 単一テスト
+pnpm --filter @tascal/web exec vitest run src/components/Calendar.test.tsx
 ```
 
 ウォッチモード: `pnpm --filter @tascal/api run test:watch`

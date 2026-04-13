@@ -1,12 +1,12 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { DeleteAccountModal } from "../DeleteAccountModal";
-import { renderWithQueryClient } from "../../test/helpers";
+import { DeleteAccountModal } from "./DeleteAccountModal";
+import { renderWithQueryClient } from "../test/helpers";
 
 const mockDeleteAccount = vi.fn();
 
-vi.mock("../../api/users", () => ({
+vi.mock("../api/users", () => ({
   deleteAccount: (...args: unknown[]) => mockDeleteAccount(...args) as unknown,
 }));
 
