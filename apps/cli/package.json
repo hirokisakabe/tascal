@@ -28,12 +28,13 @@
   },
   "scripts": {
     "dev": "tsx src/index.ts",
-    "build": "tsc",
+    "build": "tsc -p tsconfig.build.json",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "knip": "knip"
+    "knip": "knip",
+    "test": "vitest run"
   },
   "dependencies": {
     "@clack/prompts": "^1.2.0",
@@ -41,6 +42,7 @@
     "consola": "^3.4.2"
   },
   "devDependencies": {
-    "@types/node": "^22.15.3"
+    "@types/node": "^22.15.3",
+    "vitest": "^4.1.4"
   }
 }

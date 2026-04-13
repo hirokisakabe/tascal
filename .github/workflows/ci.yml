@@ -63,5 +63,7 @@ jobs:
         run: pnpm --filter tascal-cli run format:check
       - name: Type check
         run: pnpm --filter tascal-cli run typecheck
+      - name: Test
+        run: pnpm --filter tascal-cli run test
       - name: Knip
         run: pnpm --filter tascal-cli run knip
