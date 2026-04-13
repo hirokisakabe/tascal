@@ -52,6 +52,43 @@ function LandingPage() {
             />
           </div>
         </section>
+
+        <section className="bg-white px-4 py-24">
+          <div className="mx-auto max-w-3xl text-center">
+            <h2 className="mb-4 text-3xl font-bold text-on-surface">
+              ターミナルからも、タスク管理。
+            </h2>
+            <p className="mb-10 text-lg text-on-surface-secondary">
+              CLI ツールを使えば、ターミナルから直接タスクを操作できます。
+            </p>
+
+            <div className="mx-auto max-w-xl overflow-hidden rounded-lg border border-border-light bg-gray-900 text-left shadow-lg">
+              <div className="flex items-center gap-1.5 border-b border-gray-700 px-4 py-2.5">
+                <span className="h-3 w-3 rounded-full bg-red-500" />
+                <span className="h-3 w-3 rounded-full bg-yellow-500" />
+                <span className="h-3 w-3 rounded-full bg-green-500" />
+                <span className="ml-2 text-xs text-gray-400">Terminal</span>
+              </div>
+              <div className="space-y-3 p-5 font-mono text-sm leading-relaxed text-gray-300">
+                <p>
+                  <span className="text-green-400">$</span> npm install -g
+                  tascal-cli
+                </p>
+                <p>
+                  <span className="text-green-400">$</span> tascal add --title
+                  &quot;レビュー対応&quot; --date 2026-04-14
+                </p>
+                <p>
+                  <span className="text-green-400">$</span> tascal list
+                </p>
+                <p>
+                  <span className="text-green-400">$</span> tascal done
+                  &lt;task-id&gt;
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
       </main>
 
       <footer className="border-t border-border-light px-4 py-6 text-center text-sm text-on-surface-secondary">
