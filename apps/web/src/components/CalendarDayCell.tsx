@@ -1,7 +1,7 @@
 import { useDroppable } from "@dnd-kit/core";
 import type { Task } from "../types/task";
 import type { Category } from "../types/category";
-import { isToday, formatDateKey } from "../utils/calendar";
+import { isToday, isPast, formatDateKey } from "../utils/calendar";
 import { DraggableTask } from "./DraggableTask";
 
 const MAX_VISIBLE_TASKS = 4;
@@ -32,6 +32,7 @@ export function CalendarDayCell({
   onCollapse,
 }: CalendarDayCellProps) {
   const today = isToday(date);
+  const past = isCurrentMonth && isPast(date);
   const dateKey = formatDateKey(date);
   const visibleTasks = isExpanded ? tasks : tasks.slice(0, MAX_VISIBLE_TASKS);
   const remainingCount = tasks.length - MAX_VISIBLE_TASKS;
@@ -59,9 +60,11 @@ export function CalendarDayCell({
           className={`inline-flex h-7 w-7 items-center justify-center rounded-full text-sm ${
             today
               ? "bg-primary font-bold text-white"
-              : isCurrentMonth
-                ? "text-on-surface"
-                : "text-on-surface-muted"
+              : !isCurrentMonth
+                ? "text-on-surface-muted"
+                : past
+                  ? "text-on-surface-muted"
+                  : "text-on-surface"
           }`}
         >
           {date.getDate()}
