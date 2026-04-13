@@ -30,8 +30,17 @@ vi.mock("@tanstack/react-router", () => ({
     capturedComponent = opts.component;
     return { options: opts };
   },
-  Link: ({ children, ...props }: { children: React.ReactNode; to: string }) => (
-    <a {...props}>{children}</a>
+  Link: ({
+    children,
+    to,
+    ...props
+  }: {
+    children: React.ReactNode;
+    to: string;
+  }) => (
+    <a href={to} {...props}>
+      {children}
+    </a>
   ),
 }));
 
@@ -50,6 +59,14 @@ describe("SettingsPage アカウントセクション", () => {
     const Component = capturedComponent!;
     renderWithQueryClient(<Component />);
   }
+
+  it("タイトル「tascal」が /app へのリンクになっている", () => {
+    renderSettingsPage();
+
+    const link = screen.getByRole("link", { name: "tascal" });
+    expect(link).toBeInTheDocument();
+    expect(link).toHaveAttribute("href", "/app");
+  });
 
   it("ログアウトボタンが表示される", () => {
     renderSettingsPage();
