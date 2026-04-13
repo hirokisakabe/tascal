@@ -98,6 +98,7 @@ Vite dev server が `/api` を `http://localhost:3000` にプロキシ。
 - `BETTER_AUTH_URL` — 認証ベース URL
 - `TRUSTED_ORIGINS` — better-auth 信頼オリジン
 - `PORT` — API ポート (デフォルト 3000)
+- `LOG_LEVEL` — ログレベル (`debug` | `info` | `warn` | `error`、デフォルト: 開発時 `debug`、本番 `info`)
 
 ## CI
 

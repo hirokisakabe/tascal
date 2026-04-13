@@ -15,6 +15,15 @@ vi.mock("../auth.js", () => ({
   }),
 }));
 
+vi.mock("../logger.js", () => ({
+  default: {
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+    debug: vi.fn(),
+  },
+}));
+
 const { default: app } = await import("../app.js");
 
 describe("GET /healthz", () => {
