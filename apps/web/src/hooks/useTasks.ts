@@ -51,6 +51,7 @@ export function useCreateTask(year: number, month: number) {
       if (context) {
         queryClient.setQueryData(key, context.previous);
       }
+      toast.error("タスクの作成に失敗しました");
     },
     onSettled: () => {
       void queryClient.invalidateQueries({ queryKey: key });
@@ -92,6 +93,7 @@ export function useUpdateTask(year: number, month: number) {
       if (context) {
         queryClient.setQueryData(key, context.previous);
       }
+      toast.error("タスクの更新に失敗しました");
     },
     onSettled: () => {
       void queryClient.invalidateQueries({ queryKey: key });
@@ -149,6 +151,7 @@ export function useDeleteTask(year: number, month: number) {
       if (context) {
         queryClient.setQueryData(key, context.previous);
       }
+      toast.error("タスクの削除に失敗しました");
     },
     onSettled: () => {
       void queryClient.invalidateQueries({ queryKey: key });
