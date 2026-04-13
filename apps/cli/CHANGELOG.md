@@ -1,5 +1,11 @@
 # tascal-cli
 
+## 0.2.0
+
+### Minor Changes
+
+- 9f86d1f: CLI にカテゴリ管理コマンドとタスクコマンドのカテゴリ対応を追加
+
 ## 0.1.3
 
 ### Patch Changes
