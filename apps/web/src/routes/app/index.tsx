@@ -13,7 +13,11 @@ function HomePage() {
     <div className="min-h-screen bg-surface">
       <header className="border-b border-border-light bg-white px-4 py-1.5">
         <div className="mx-auto flex max-w-[1600px] items-center justify-between">
-          <h1 className="text-lg font-bold text-on-surface">tascal</h1>
+          <h1 className="text-lg font-bold text-on-surface">
+            <Link to="/app" className="no-underline text-inherit">
+              tascal
+            </Link>
+          </h1>
           <div className="flex items-center gap-4">
             <span className="text-sm text-on-surface-secondary">
               {session?.user?.name}
