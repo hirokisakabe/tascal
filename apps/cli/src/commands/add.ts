@@ -28,6 +28,10 @@ export default defineCommand({
       type: "string",
       description: "タスクの説明",
     },
+    category: {
+      type: "string",
+      description: "カテゴリ ID",
+    },
   },
   async run({ args }) {
     const ctx = await requireAuth();
@@ -39,6 +43,10 @@ export default defineCommand({
 
     if (args.description) {
       body.description = args.description;
+    }
+
+    if (args.category) {
+      body.categoryId = args.category;
     }
 
     const res = await apiRequest(ctx, "POST", "/api/tasks", body);

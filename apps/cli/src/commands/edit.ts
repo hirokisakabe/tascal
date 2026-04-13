@@ -31,6 +31,10 @@ export default defineCommand({
       type: "string",
       description: "タスクの説明",
     },
+    category: {
+      type: "string",
+      description: "カテゴリ ID",
+    },
   },
   async run({ args }) {
     const ctx = await requireAuth();
@@ -39,10 +43,11 @@ export default defineCommand({
     if (args.title) body.title = args.title;
     if (args.date) body.date = args.date;
     if (args.description !== undefined) body.description = args.description;
+    if (args.category) body.categoryId = args.category;
 
     if (Object.keys(body).length === 0) {
       consola.error(
-        "更新する項目を指定してください (--title, --date, --description)。",
+        "更新する項目を指定してください (--title, --date, --description, --category)。",
       );
       process.exit(1);
     }
