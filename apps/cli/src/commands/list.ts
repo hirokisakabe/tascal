@@ -8,6 +8,12 @@ interface Task {
   description: string | null;
   date: string;
   status: "todo" | "done";
+  categoryId: string | null;
+}
+
+interface Category {
+  id: string;
+  name: string;
 }
 
 export default defineCommand({
@@ -32,17 +38,21 @@ export default defineCommand({
     const year = args.year ? Number(args.year) : now.getFullYear();
     const month = args.month ? Number(args.month) : now.getMonth() + 1;
 
-    const res = await apiRequest(
-      ctx,
-      "GET",
-      `/api/tasks?year=${year}&month=${month}`,
-    );
+    const [tasksRes, categoriesRes] = await Promise.all([
+      apiRequest(ctx, "GET", `/api/tasks?year=${year}&month=${month}`),
+      apiRequest(ctx, "GET", "/api/categories"),
+    ]);
 
-    if (!res.ok) {
-      await handleApiError(res, "タスクの取得に失敗しました。");
+    if (!tasksRes.ok) {
+      await handleApiError(tasksRes, "タスクの取得に失敗しました。");
     }
 
-    const tasks = (await res.json()) as Task[];
+    const tasks = (await tasksRes.json()) as Task[];
+    let categories: Category[] = [];
+    if (categoriesRes.ok) {
+      categories = (await categoriesRes.json()) as Category[];
+    }
+    const categoryMap = new Map(categories.map((c) => [c.id, c.name]));
 
     if (tasks.length === 0) {
       consola.info(`${year}年${month}月のタスクはありません。`);
@@ -57,9 +67,14 @@ export default defineCommand({
 
     for (const task of sorted) {
       const status = task.status === "done" ? "✔" : "○";
-      const desc = task.description ? `  ${task.description}` : "";
-      console.log(`  ${status} [${task.date}] ${task.title} (${task.id})`);
-      if (desc) {
+      const categoryName = task.categoryId
+        ? categoryMap.get(task.categoryId)
+        : null;
+      const categoryLabel = categoryName ? ` [${categoryName}]` : "";
+      console.log(
+        `  ${status} [${task.date}] ${task.title}${categoryLabel} (${task.id})`,
+      );
+      if (task.description) {
         console.log(`    ${task.description}`);
       }
     }

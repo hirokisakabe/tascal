@@ -77,7 +77,8 @@ pnpm --filter @tascal/web exec vitest run src/components/Calendar.test.tsx
 ### CLI (apps/cli)
 
 - `src/index.ts` — エントリポイント。citty による CLI 定義
-- `src/commands/` — サブコマンド (login, logout, list, add, edit, delete, done, undo)
+- `src/commands/` — サブコマンド (login, logout, list, add, edit, delete, done, undo, category)
+- `src/commands/category/` — カテゴリ管理サブコマンド (list, add, edit, delete)
 - `src/api.ts` — API クライアント (Bearer トークン認証)
 - `src/config.ts` — 設定管理 (`~/.tascalrc` に JSON 保存)
 

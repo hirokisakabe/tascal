@@ -15,6 +15,8 @@ const main = defineCommand({
     delete: () => import("./commands/delete.js").then((m) => m.default),
     done: () => import("./commands/done.js").then((m) => m.default),
     undo: () => import("./commands/undo.js").then((m) => m.default),
+    category: () =>
+      import("./commands/category/index.js").then((m) => m.default),
   },
 });
 
