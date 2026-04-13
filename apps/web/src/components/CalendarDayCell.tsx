@@ -1,4 +1,3 @@
-import { useEffect, useRef } from "react";
 import { useDroppable } from "@dnd-kit/core";
 import type { Task } from "../types/task";
 import type { Category } from "../types/category";
@@ -36,29 +35,11 @@ export function CalendarDayCell({
   const dateKey = formatDateKey(date);
   const visibleTasks = isExpanded ? tasks : tasks.slice(0, MAX_VISIBLE_TASKS);
   const remainingCount = tasks.length - MAX_VISIBLE_TASKS;
-  const cellRef = useRef<HTMLDivElement>(null);
-
   const { setNodeRef, isOver } = useDroppable({ id: dateKey });
-
-  useEffect(() => {
-    if (!isExpanded) return;
-    const handleClickOutside = (e: MouseEvent) => {
-      if (cellRef.current && !cellRef.current.contains(e.target as Node)) {
-        onCollapse();
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [isExpanded, onCollapse]);
-
-  const setRefs = (node: HTMLDivElement | null) => {
-    setNodeRef(node);
-    (cellRef as React.MutableRefObject<HTMLDivElement | null>).current = node;
-  };
 
   return (
     <div
-      ref={setRefs}
+      ref={setNodeRef}
       role="button"
       tabIndex={0}
       onClick={() => onAddClick(dateKey)}
