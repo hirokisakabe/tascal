@@ -53,7 +53,7 @@ export function CalendarDayCell({
       aria-label={`${dateKey}にタスクを追加`}
       className={`group relative min-h-40 cursor-pointer border-[0.5px] border-border-light p-1.5 ${
         !isCurrentMonth ? "bg-surface" : "bg-white"
-      } ${isOver ? "bg-primary-lighter ring-2 ring-primary-muted ring-inset" : isExpanded ? "z-10 shadow-lg ring-2 ring-primary-muted" : ""}`}
+      } ${isOver ? "bg-primary-lighter ring-2 ring-primary-muted ring-inset" : isExpanded ? "z-10 shadow-lg" : ""}`}
     >
       <div className="mb-1 flex items-center">
         <span
