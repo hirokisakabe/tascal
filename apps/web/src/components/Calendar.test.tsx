@@ -17,9 +17,13 @@ vi.mock("../api/tasks", () => ({
   deleteTask: (...args: unknown[]) => mockDeleteTask(...args) as unknown,
 }));
 
-vi.mock("sonner", () => ({
-  toast: vi.fn(),
-}));
+vi.mock("sonner", () => {
+  const toast = vi.fn() as ReturnType<typeof vi.fn> & {
+    error: ReturnType<typeof vi.fn>;
+  };
+  toast.error = vi.fn();
+  return { toast };
+});
 
 // dnd-kit モック - onDragStart/onDragEnd/onDragCancel をキャプチャして手動発火可能にする
 let capturedOnDragStart: ((event: unknown) => void) | null = null;

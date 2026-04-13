@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { toast } from "sonner";
 import { TaskDetailModal } from "./TaskDetailModal";
 import { renderWithQueryClient } from "../test/helpers";
 
@@ -13,9 +14,13 @@ vi.mock("../api/tasks", () => ({
   createTask: vi.fn(),
 }));
 
-vi.mock("sonner", () => ({
-  toast: vi.fn(),
-}));
+vi.mock("sonner", () => {
+  const toast = vi.fn() as ReturnType<typeof vi.fn> & {
+    error: ReturnType<typeof vi.fn>;
+  };
+  toast.error = vi.fn();
+  return { toast };
+});
 
 const mockTask = {
   id: "task-1",
@@ -113,6 +118,7 @@ describe("TaskDetailModal", () => {
         screen.getByText("タスクの更新に失敗しました"),
       ).toBeInTheDocument();
     });
+    expect(toast.error).toHaveBeenCalledWith("タスクの更新に失敗しました");
     expect(defaultProps.onUpdated).not.toHaveBeenCalled();
   });
 
@@ -129,6 +135,7 @@ describe("TaskDetailModal", () => {
         screen.getByText("タスクの削除に失敗しました"),
       ).toBeInTheDocument();
     });
+    expect(toast.error).toHaveBeenCalledWith("タスクの削除に失敗しました");
     expect(defaultProps.onUpdated).not.toHaveBeenCalled();
   });
 
