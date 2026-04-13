@@ -14,7 +14,7 @@ tascal (task + calendar) — カレンダービューがメインのタスク管
 - **CLI**: citty (CLI フレームワーク) + consola (ロギング)、npm パッケージ `tascal-cli` として公開
 - **DB**: PostgreSQL 17 (Docker Compose) + Drizzle ORM
 - **認証**: better-auth (メール/パスワード + Bearer トークン)
-- **テスト**: Vitest (API: app.request() + DB モック、Web: React Testing Library + jsdom)
+- **テスト**: Vitest (API: app.request() + DB モック、Web: React Testing Library + jsdom、CLI: fs/fetch モック)
 - **Node.js**: v24 (.node-version)
 
 ## コマンド
@@ -30,7 +30,7 @@ tascal (task + calendar) — カレンダービューがメインのタスク管
 | `pnpm format` | Prettier 自動修正 |
 | `pnpm format:check` | Prettier チェックのみ |
 | `pnpm typecheck` | TypeScript 型チェック |
-| `pnpm test` | テスト実行 (API + Web) |
+| `pnpm test` | テスト実行 (API + Web + CLI) |
 | `pnpm knip` | 未使用コード・依存の検出 |
 | `pnpm db:up` / `pnpm db:down` | PostgreSQL の起動/停止 |
 | `pnpm db:migrate` | Drizzle マイグレーション適用 |
@@ -101,12 +101,13 @@ Vite dev server が `/api` を `http://localhost:3000` にプロキシ。
 
 ## CI
 
-GitHub Actions (`.github/workflows/ci.yml`) が PR で api, web, cli の 3 ジョブを実行。各ジョブで lint, format-check, typecheck, knip を実行し、api と web ではさらに test も実行。
+GitHub Actions (`.github/workflows/ci.yml`) が PR で api, web, cli の 3 ジョブを実行。各ジョブで lint, format-check, typecheck, test, knip を実行。
 
 ## テスト方針
 
 - API: `app.request()` + DB 層モックによる単体テスト
 - Web: React Testing Library による結合テスト (テスティングトロフィーに従い、単体テストより結合テストを優先)
+- CLI: `fs/promises` + `fetch` モックによる単体テスト
 
 ## デプロイ
 
