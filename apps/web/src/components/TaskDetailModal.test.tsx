@@ -1,13 +1,13 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { TaskDetailModal } from "../TaskDetailModal";
-import { renderWithQueryClient } from "../../test/helpers";
+import { TaskDetailModal } from "./TaskDetailModal";
+import { renderWithQueryClient } from "../test/helpers";
 
 const mockUpdateTask = vi.fn();
 const mockDeleteTask = vi.fn();
 
-vi.mock("../../api/tasks", () => ({
+vi.mock("../api/tasks", () => ({
   updateTask: (...args: unknown[]) => mockUpdateTask(...args) as unknown,
   deleteTask: (...args: unknown[]) => mockDeleteTask(...args) as unknown,
 }));

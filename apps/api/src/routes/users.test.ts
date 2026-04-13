@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { Hono } from "hono";
-import type { Auth } from "../../auth.js";
+import type { Auth } from "../auth.js";
 
 type AuthVariables = {
   user: Auth["$Infer"]["Session"]["user"] | null;
@@ -19,7 +19,7 @@ const mockUser = {
 
 const mockDelete = vi.fn();
 
-vi.mock("../../db/index.js", () => ({
+vi.mock("../db/index.js", () => ({
   getDb: () => ({
     delete: () => ({
       where: () => ({
@@ -29,13 +29,13 @@ vi.mock("../../db/index.js", () => ({
   }),
 }));
 
-vi.mock("../../db/schema.js", async () => {
-  const actual = await vi.importActual("../../db/schema.js");
+vi.mock("../db/schema.js", async () => {
+  const actual = await vi.importActual("../db/schema.js");
   return actual;
 });
 
 async function createTestApp(user: AuthVariables["user"] = mockUser) {
-  const usersApp = (await import("../users.js")).default;
+  const usersApp = (await import("./users.js")).default;
 
   const app = new Hono<{ Variables: AuthVariables }>();
   app.use("*", async (c, next) => {

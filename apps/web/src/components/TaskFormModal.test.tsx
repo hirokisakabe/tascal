@@ -1,12 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { TaskFormModal } from "../TaskFormModal";
-import { renderWithQueryClient } from "../../test/helpers";
+import { TaskFormModal } from "./TaskFormModal";
+import { renderWithQueryClient } from "../test/helpers";
 
 const mockCreateTask = vi.fn();
 
-vi.mock("../../api/tasks", () => ({
+vi.mock("../api/tasks", () => ({
   createTask: (...args: unknown[]) => mockCreateTask(...args) as unknown,
 }));
 

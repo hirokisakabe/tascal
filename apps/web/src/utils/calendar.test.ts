@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { getCalendarDays } from "../calendar";
+import { getCalendarDays } from "./calendar";
 
 describe("getCalendarDays (月曜始まり)", () => {
   it("2026年4月: 水曜始まり → 先頭2日が前月パディング", () => {

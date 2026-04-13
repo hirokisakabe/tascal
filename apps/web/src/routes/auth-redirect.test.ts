@@ -3,7 +3,7 @@ import { isRedirect } from "@tanstack/react-router";
 
 const mockGetSession = vi.fn();
 
-vi.mock("../../auth-client", () => ({
+vi.mock("../auth-client", () => ({
   authClient: {
     getSession: (...args: unknown[]) => mockGetSession(...args) as unknown,
   },
@@ -20,7 +20,7 @@ describe("/login beforeLoad", () => {
       data: { user: { id: "1" }, session: {} },
     });
 
-    const { Route } = await import("../login");
+    const { Route } = await import("./login");
     const beforeLoad = Route.options.beforeLoad!;
 
     try {
@@ -35,7 +35,7 @@ describe("/login beforeLoad", () => {
   it("未ログインの場合リダイレクトしない", async () => {
     mockGetSession.mockResolvedValue({ data: null });
 
-    const { Route } = await import("../login");
+    const { Route } = await import("./login");
     const beforeLoad = Route.options.beforeLoad!;
 
     await expect(
@@ -55,7 +55,7 @@ describe("/signup beforeLoad", () => {
       data: { user: { id: "1" }, session: {} },
     });
 
-    const { Route } = await import("../signup");
+    const { Route } = await import("./signup");
     const beforeLoad = Route.options.beforeLoad!;
 
     try {
@@ -70,7 +70,7 @@ describe("/signup beforeLoad", () => {
   it("未ログインの場合リダイレクトしない", async () => {
     mockGetSession.mockResolvedValue({ data: null });
 
-    const { Route } = await import("../signup");
+    const { Route } = await import("./signup");
     const beforeLoad = Route.options.beforeLoad!;
 
     await expect(

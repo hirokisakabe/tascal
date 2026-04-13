@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { Calendar } from "../Calendar";
-import { renderWithQueryClient } from "../../test/helpers";
+import { Calendar } from "./Calendar";
+import { renderWithQueryClient } from "../test/helpers";
 
 // API モック
 const mockFetchTasks = vi.fn();
@@ -10,7 +10,7 @@ const mockCreateTask = vi.fn();
 const mockUpdateTask = vi.fn();
 const mockDeleteTask = vi.fn();
 
-vi.mock("../../api/tasks", () => ({
+vi.mock("../api/tasks", () => ({
   fetchTasks: (...args: unknown[]) => mockFetchTasks(...args) as unknown,
   createTask: (...args: unknown[]) => mockCreateTask(...args) as unknown,
   updateTask: (...args: unknown[]) => mockUpdateTask(...args) as unknown,
