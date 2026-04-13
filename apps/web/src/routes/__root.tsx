@@ -1,4 +1,5 @@
 import { createRootRoute, Link, Outlet } from "@tanstack/react-router";
+import { Toaster } from "sonner";
 
 function NotFoundPage() {
   return (
@@ -20,6 +21,11 @@ function NotFoundPage() {
 }
 
 export const Route = createRootRoute({
-  component: () => <Outlet />,
+  component: () => (
+    <>
+      <Outlet />
+      <Toaster position="bottom-left" />
+    </>
+  ),
   notFoundComponent: NotFoundPage,
 });

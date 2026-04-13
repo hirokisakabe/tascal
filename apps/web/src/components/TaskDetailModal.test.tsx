@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { screen, waitFor, within } from "@testing-library/react";
+import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { TaskDetailModal } from "./TaskDetailModal";
 import { renderWithQueryClient } from "../test/helpers";
@@ -10,6 +10,11 @@ const mockDeleteTask = vi.fn();
 vi.mock("../api/tasks", () => ({
   updateTask: (...args: unknown[]) => mockUpdateTask(...args) as unknown,
   deleteTask: (...args: unknown[]) => mockDeleteTask(...args) as unknown,
+  createTask: vi.fn(),
+}));
+
+vi.mock("sonner", () => ({
+  toast: vi.fn(),
 }));
 
 const mockTask = {
@@ -72,7 +77,7 @@ describe("TaskDetailModal", () => {
     });
   });
 
-  it("削除ボタンで確認ダイアログが表示され、確認後に削除できる", async () => {
+  it("削除ボタンで確認ダイアログなしに即座に削除される", async () => {
     mockDeleteTask.mockResolvedValue(undefined);
 
     const user = userEvent.setup();
@@ -80,41 +85,12 @@ describe("TaskDetailModal", () => {
 
     await user.click(screen.getByText("削除"));
 
-    expect(screen.getByText("タスクの削除")).toBeInTheDocument();
-    expect(
-      screen.getByText("このタスクを削除しますか？この操作は取り消せません。"),
-    ).toBeInTheDocument();
-
-    const confirmDialog = screen.getByRole("dialog", { name: "タスクの削除" });
-    await user.click(
-      within(confirmDialog).getByRole("button", { name: "削除" }),
-    );
-
     await waitFor(() => {
       expect(mockDeleteTask).toHaveBeenCalledWith("task-1");
     });
     await waitFor(() => {
       expect(defaultProps.onUpdated).toHaveBeenCalled();
     });
-  });
-
-  it("削除確認ダイアログでキャンセルすると削除されない", async () => {
-    const user = userEvent.setup();
-    renderWithQueryClient(<TaskDetailModal {...defaultProps} />);
-
-    await user.click(screen.getByText("削除"));
-
-    expect(screen.getByText("タスクの削除")).toBeInTheDocument();
-
-    const confirmDialog = screen.getByRole("dialog", { name: "タスクの削除" });
-    await user.click(
-      within(confirmDialog).getByRole("button", { name: "キャンセル" }),
-    );
-
-    await waitFor(() => {
-      expect(screen.queryByText("タスクの削除")).not.toBeInTheDocument();
-    });
-    expect(mockDeleteTask).not.toHaveBeenCalled();
   });
 
   it("キャンセルで onClose が呼ばれる", async () => {
@@ -147,11 +123,6 @@ describe("TaskDetailModal", () => {
     renderWithQueryClient(<TaskDetailModal {...defaultProps} />);
 
     await user.click(screen.getByText("削除"));
-
-    const confirmDialog = screen.getByRole("dialog", { name: "タスクの削除" });
-    await user.click(
-      within(confirmDialog).getByRole("button", { name: "削除" }),
-    );
 
     await waitFor(() => {
       expect(
