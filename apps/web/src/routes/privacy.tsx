@@ -125,7 +125,15 @@ function PrivacyPage() {
                 8. お問い合わせ
               </h2>
               <p>
-                本ポリシーに関するお問い合わせは、本サービスのGitHubリポジトリのIssueにてお願いいたします。
+                本ポリシーに関するお問い合わせは、以下のメールアドレスまでお願いいたします。
+              </p>
+              <p className="mt-2">
+                <a
+                  href="mailto:hiroki.sakabe@icloud.com"
+                  className="text-primary hover:text-primary-dark hover:underline"
+                >
+                  hiroki.sakabe@icloud.com
+                </a>
               </p>
             </section>
 
