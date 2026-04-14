@@ -91,8 +91,26 @@ function LandingPage() {
         </section>
       </main>
 
-      <footer className="border-t border-border-light px-4 py-6 text-center text-sm text-on-surface-secondary">
-        &copy; 2026 tascal
+      <footer className="border-t border-border-light px-4 py-6">
+        <div className="mx-auto flex max-w-7xl flex-col items-center gap-2">
+          <div className="flex gap-4 text-sm">
+            <Link
+              to="/terms"
+              className="text-on-surface-secondary hover:text-on-surface hover:underline"
+            >
+              利用規約
+            </Link>
+            <Link
+              to="/privacy"
+              className="text-on-surface-secondary hover:text-on-surface hover:underline"
+            >
+              プライバシーポリシー
+            </Link>
+          </div>
+          <p className="text-sm text-on-surface-secondary">
+            &copy; 2026 tascal
+          </p>
+        </div>
       </footer>
     </div>
   );
