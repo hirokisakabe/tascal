@@ -1,7 +1,6 @@
-import { Hono, type Env } from "hono";
+import { Hono } from "hono";
 import { z } from "zod";
 import { zValidator } from "@hono/zod-validator";
-import type { Hook } from "@hono/zod-validator";
 import { eq, and, gte, lt, asc } from "drizzle-orm";
 import { getDb } from "../db/index.js";
 import { categories, tasks } from "../db/schema.js";
@@ -40,35 +39,17 @@ const paramIdSchema = z.object({
   id: z.string().uuid("不正なタスクIDです"),
 });
 
-// バリデーションエラー時に既存形式 { error, details } で返す共通 hook
-function validationHook(errorMessage: string): Hook<unknown, Env, string> {
-  return (result, c) => {
-    if (!result.success) {
-      return c.json({ error: errorMessage, details: result.error.issues }, 400);
+const app = new Hono<{ Variables: AuthVariables }>()
+  // 認証ミドルウェア
+  .use("*", async (c, next) => {
+    const user = c.get("user");
+    if (!user) {
+      return c.json({ error: "認証が必要です" }, 401);
     }
-  };
-}
-
-const app = new Hono<{ Variables: AuthVariables }>();
-
-// 認証ミドルウェア
-app.use("*", async (c, next) => {
-  const user = c.get("user");
-  if (!user) {
-    return c.json({ error: "認証が必要です" }, 401);
-  }
-  await next();
-});
-
-// GET /api/tasks?year=YYYY&month=MM
-app.get(
-  "/",
-  zValidator(
-    "query",
-    listQuerySchema,
-    validationHook("year と month のクエリパラメータが必要です"),
-  ),
-  async (c) => {
+    await next();
+  })
+  // GET /api/tasks?year=YYYY&month=MM
+  .get("/", zValidator("query", listQuerySchema), async (c) => {
     const user = c.get("user")!;
     const { year, month } = c.req.valid("query");
 
@@ -90,14 +71,9 @@ app.get(
       .orderBy(asc(tasks.status), asc(tasks.createdAt));
 
     return c.json(result);
-  },
-);
-
-// POST /api/tasks
-app.post(
-  "/",
-  zValidator("json", createTaskSchema, validationHook("バリデーションエラー")),
-  async (c) => {
+  })
+  // POST /api/tasks
+  .post("/", zValidator("json", createTaskSchema), async (c) => {
     const user = c.get("user")!;
     const data = c.req.valid("json");
     const categoryId = data.categoryId ?? null;
@@ -127,56 +103,50 @@ app.post(
       .returning();
 
     return c.json(task, 201);
-  },
-);
+  })
+  // PATCH /api/tasks/:id
+  .patch(
+    "/:id",
+    zValidator("param", paramIdSchema),
+    zValidator("json", updateTaskSchema),
+    async (c) => {
+      const user = c.get("user")!;
+      const { id } = c.req.valid("param");
+      const data = c.req.valid("json");
 
-// PATCH /api/tasks/:id
-app.patch(
-  "/:id",
-  zValidator("param", paramIdSchema, validationHook("不正なタスクIDです")),
-  zValidator("json", updateTaskSchema, validationHook("バリデーションエラー")),
-  async (c) => {
-    const user = c.get("user")!;
-    const { id } = c.req.valid("param");
-    const data = c.req.valid("json");
-
-    if (data.categoryId) {
-      const [cat] = await getDb()
-        .select()
-        .from(categories)
-        .where(
-          and(
-            eq(categories.id, data.categoryId),
-            eq(categories.userId, user.id),
-          ),
-        );
-      if (!cat) {
-        return c.json({ error: "カテゴリが見つかりません" }, 400);
+      if (data.categoryId) {
+        const [cat] = await getDb()
+          .select()
+          .from(categories)
+          .where(
+            and(
+              eq(categories.id, data.categoryId),
+              eq(categories.userId, user.id),
+            ),
+          );
+        if (!cat) {
+          return c.json({ error: "カテゴリが見つかりません" }, 400);
+        }
       }
-    }
 
-    const [updated] = await getDb()
-      .update(tasks)
-      .set({
-        ...data,
-        updatedAt: new Date().toISOString(),
-      })
-      .where(and(eq(tasks.id, id), eq(tasks.userId, user.id)))
-      .returning();
+      const [updated] = await getDb()
+        .update(tasks)
+        .set({
+          ...data,
+          updatedAt: new Date().toISOString(),
+        })
+        .where(and(eq(tasks.id, id), eq(tasks.userId, user.id)))
+        .returning();
 
-    if (!updated) {
-      return c.json({ error: "タスクが見つかりません" }, 404);
-    }
+      if (!updated) {
+        return c.json({ error: "タスクが見つかりません" }, 404);
+      }
 
-    return c.json(updated);
-  },
-);
-
-// DELETE /api/tasks/:id
-app.delete(
-  "/:id",
-  zValidator("param", paramIdSchema, validationHook("不正なタスクIDです")),
-  async (c) => {
+      return c.json(updated);
+    },
+  )
+  // DELETE /api/tasks/:id
+  .delete("/:id", zValidator("param", paramIdSchema), async (c) => {
     const user = c.get("user")!;
     const { id } = c.req.valid("param");
 
@@ -190,7 +160,6 @@ app.delete(
     }
 
     return c.json({ message: "タスクを削除しました" });
-  },
-);
+  });
 
 export default app;

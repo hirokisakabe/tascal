@@ -5,17 +5,15 @@ vi.mock("consola", () => ({
 }));
 
 vi.mock("../../api.js", () => ({
-  requireAuth: vi.fn(),
-  apiRequest: vi.fn(),
+  requireAuthClient: vi.fn(),
   handleApiError: vi.fn(),
 }));
 
 import { consola } from "consola";
-import { requireAuth, apiRequest, handleApiError } from "../../api.js";
+import { requireAuthClient, handleApiError } from "../../api.js";
 import command from "./list.js";
 
-const mockedRequireAuth = vi.mocked(requireAuth);
-const mockedApiRequest = vi.mocked(apiRequest);
+const mockedRequireAuthClient = vi.mocked(requireAuthClient);
 const mockedHandleApiError = vi.mocked(handleApiError);
 const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
 
@@ -28,20 +26,24 @@ afterAll(() => {
   consoleSpy.mockRestore();
 });
 
-const ctx = { apiUrl: "http://localhost:3000", token: "test-token" };
-
 describe("category list", () => {
   it("カテゴリ一覧を表示する", async () => {
-    mockedRequireAuth.mockResolvedValue(ctx);
-    mockedApiRequest.mockResolvedValue(
-      new Response(
-        JSON.stringify([
-          { id: "cat-1", name: "仕事", color: "blue" },
-          { id: "cat-2", name: "個人", color: "green" },
-        ]),
-        { status: 200 },
-      ),
-    );
+    const mockClient = {
+      api: {
+        categories: {
+          $get: vi.fn().mockResolvedValue(
+            new Response(
+              JSON.stringify([
+                { id: "cat-1", name: "仕事", color: "blue" },
+                { id: "cat-2", name: "個人", color: "green" },
+              ]),
+              { status: 200 },
+            ),
+          ),
+        },
+      },
+    };
+    mockedRequireAuthClient.mockResolvedValue(mockClient as never);
 
     await command.run!({ args: { _: [] }, rawArgs: [], cmd: command });
 
@@ -51,10 +53,18 @@ describe("category list", () => {
   });
 
   it("カテゴリがない場合、メッセージを表示する", async () => {
-    mockedRequireAuth.mockResolvedValue(ctx);
-    mockedApiRequest.mockResolvedValue(
-      new Response(JSON.stringify([]), { status: 200 }),
-    );
+    const mockClient = {
+      api: {
+        categories: {
+          $get: vi
+            .fn()
+            .mockResolvedValue(
+              new Response(JSON.stringify([]), { status: 200 }),
+            ),
+        },
+      },
+    };
+    mockedRequireAuthClient.mockResolvedValue(mockClient as never);
 
     await command.run!({ args: { _: [] }, rawArgs: [], cmd: command });
 
@@ -64,13 +74,19 @@ describe("category list", () => {
   });
 
   it("API エラー時にエラーハンドリングする", async () => {
-    mockedRequireAuth.mockResolvedValue(ctx);
-    mockedApiRequest.mockResolvedValue(
-      new Response(JSON.stringify({ error: "error" }), {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      }),
-    );
+    const mockClient = {
+      api: {
+        categories: {
+          $get: vi.fn().mockResolvedValue(
+            new Response(JSON.stringify({ error: "error" }), {
+              status: 500,
+              headers: { "Content-Type": "application/json" },
+            }),
+          ),
+        },
+      },
+    };
+    mockedRequireAuthClient.mockResolvedValue(mockClient as never);
     mockedHandleApiError.mockRejectedValue(new Error("exit"));
 
     await expect(

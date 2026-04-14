@@ -1,12 +1,6 @@
 import { defineCommand } from "citty";
 import { consola } from "consola";
-import { requireAuth, apiRequest, handleApiError } from "../../api.js";
-
-interface Category {
-  id: string;
-  name: string;
-  color: string;
-}
+import { requireAuthClient, handleApiError } from "../../api.js";
 
 export default defineCommand({
   meta: {
@@ -14,15 +8,15 @@ export default defineCommand({
     description: "カテゴリ一覧を表示する",
   },
   async run() {
-    const ctx = await requireAuth();
+    const client = await requireAuthClient();
 
-    const res = await apiRequest(ctx, "GET", "/api/categories");
+    const res = await client.api.categories.$get();
 
     if (!res.ok) {
       await handleApiError(res, "カテゴリの取得に失敗しました。");
     }
 
-    const categories = (await res.json()) as Category[];
+    const categories = await res.json();
 
     if (categories.length === 0) {
       consola.info("カテゴリはありません。");

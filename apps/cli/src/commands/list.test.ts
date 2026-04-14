@@ -5,17 +5,15 @@ vi.mock("consola", () => ({
 }));
 
 vi.mock("../api.js", () => ({
-  requireAuth: vi.fn(),
-  apiRequest: vi.fn(),
+  requireAuthClient: vi.fn(),
   handleApiError: vi.fn(),
 }));
 
 import { consola } from "consola";
-import { requireAuth, apiRequest, handleApiError } from "../api.js";
+import { requireAuthClient, handleApiError } from "../api.js";
 import command from "./list.js";
 
-const mockedRequireAuth = vi.mocked(requireAuth);
-const mockedApiRequest = vi.mocked(apiRequest);
+const mockedRequireAuthClient = vi.mocked(requireAuthClient);
 const mockedHandleApiError = vi.mocked(handleApiError);
 const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
 
@@ -28,43 +26,51 @@ afterAll(() => {
   consoleSpy.mockRestore();
 });
 
-const ctx = { apiUrl: "http://localhost:3000", token: "test-token" };
+function createMockClient(
+  tasksResponse: Response,
+  categoriesResponse: Response,
+) {
+  return {
+    api: {
+      tasks: {
+        $get: vi.fn().mockResolvedValue(tasksResponse),
+      },
+      categories: {
+        $get: vi.fn().mockResolvedValue(categoriesResponse),
+      },
+    },
+  };
+}
 
 describe("list", () => {
   it("タスク一覧にカテゴリ名を表示する", async () => {
-    mockedRequireAuth.mockResolvedValue(ctx);
-    mockedApiRequest.mockImplementation((_ctx, _method, path) => {
-      if (path.startsWith("/api/tasks")) {
-        return Promise.resolve(
-          new Response(
-            JSON.stringify([
-              {
-                id: "task-1",
-                title: "タスク1",
-                description: null,
-                date: "2026-04-13",
-                status: "todo",
-                categoryId: "cat-1",
-              },
-              {
-                id: "task-2",
-                title: "タスク2",
-                description: null,
-                date: "2026-04-14",
-                status: "done",
-                categoryId: null,
-              },
-            ]),
-            { status: 200 },
-          ),
-        );
-      }
-      return Promise.resolve(
-        new Response(JSON.stringify([{ id: "cat-1", name: "仕事" }]), {
-          status: 200,
-        }),
-      );
-    });
+    const mockClient = createMockClient(
+      new Response(
+        JSON.stringify([
+          {
+            id: "task-1",
+            title: "タスク1",
+            description: null,
+            date: "2026-04-13",
+            status: "todo",
+            categoryId: "cat-1",
+          },
+          {
+            id: "task-2",
+            title: "タスク2",
+            description: null,
+            date: "2026-04-14",
+            status: "done",
+            categoryId: null,
+          },
+        ]),
+        { status: 200 },
+      ),
+      new Response(JSON.stringify([{ id: "cat-1", name: "仕事" }]), {
+        status: 200,
+      }),
+    );
+    mockedRequireAuthClient.mockResolvedValue(mockClient as never);
 
     await command.run!({
       args: { _: [], year: "2026", month: "4" },
@@ -82,27 +88,23 @@ describe("list", () => {
   });
 
   it("カテゴリなしのタスクにはカテゴリラベルを表示しない", async () => {
-    mockedRequireAuth.mockResolvedValue(ctx);
-    mockedApiRequest.mockImplementation((_ctx, _method, path) => {
-      if (path.startsWith("/api/tasks")) {
-        return Promise.resolve(
-          new Response(
-            JSON.stringify([
-              {
-                id: "task-1",
-                title: "タスク1",
-                description: null,
-                date: "2026-04-13",
-                status: "todo",
-                categoryId: null,
-              },
-            ]),
-            { status: 200 },
-          ),
-        );
-      }
-      return Promise.resolve(new Response(JSON.stringify([]), { status: 200 }));
-    });
+    const mockClient = createMockClient(
+      new Response(
+        JSON.stringify([
+          {
+            id: "task-1",
+            title: "タスク1",
+            description: null,
+            date: "2026-04-13",
+            status: "todo",
+            categoryId: null,
+          },
+        ]),
+        { status: 200 },
+      ),
+      new Response(JSON.stringify([]), { status: 200 }),
+    );
+    mockedRequireAuthClient.mockResolvedValue(mockClient as never);
 
     await command.run!({
       args: { _: [], year: "2026", month: "4" },
@@ -120,15 +122,11 @@ describe("list", () => {
   });
 
   it("タスクがない場合、メッセージを表示する", async () => {
-    mockedRequireAuth.mockResolvedValue(ctx);
-    mockedApiRequest.mockImplementation((_ctx, _method, path) => {
-      if (path.startsWith("/api/tasks")) {
-        return Promise.resolve(
-          new Response(JSON.stringify([]), { status: 200 }),
-        );
-      }
-      return Promise.resolve(new Response(JSON.stringify([]), { status: 200 }));
-    });
+    const mockClient = createMockClient(
+      new Response(JSON.stringify([]), { status: 200 }),
+      new Response(JSON.stringify([]), { status: 200 }),
+    );
+    mockedRequireAuthClient.mockResolvedValue(mockClient as never);
 
     await command.run!({
       args: { _: [], year: "2026", month: "4" },
@@ -142,18 +140,14 @@ describe("list", () => {
   });
 
   it("タスク API エラー時にエラーハンドリングする", async () => {
-    mockedRequireAuth.mockResolvedValue(ctx);
-    mockedApiRequest.mockImplementation((_ctx, _method, path) => {
-      if (path.startsWith("/api/tasks")) {
-        return Promise.resolve(
-          new Response(JSON.stringify({ error: "error" }), {
-            status: 500,
-            headers: { "Content-Type": "application/json" },
-          }),
-        );
-      }
-      return Promise.resolve(new Response(JSON.stringify([]), { status: 200 }));
-    });
+    const mockClient = createMockClient(
+      new Response(JSON.stringify({ error: "error" }), {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
+      }),
+      new Response(JSON.stringify([]), { status: 200 }),
+    );
+    mockedRequireAuthClient.mockResolvedValue(mockClient as never);
     mockedHandleApiError.mockRejectedValue(new Error("exit"));
 
     await expect(

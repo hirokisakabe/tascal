@@ -1,15 +1,23 @@
-import type { Task } from "../types/task";
+import type { InferResponseType } from "hono/client";
+import { client } from "./client";
+
+type Task = InferResponseType<typeof client.api.tasks.$get, 200>[number];
+
+export type { Task };
 
 export async function fetchTasks(
   year: number,
   month: number,
   signal?: AbortSignal,
 ): Promise<Task[]> {
-  const res = await fetch(`/api/tasks?year=${year}&month=${month}`, { signal });
+  const res = await client.api.tasks.$get(
+    { query: { year: String(year), month: String(month) } },
+    { init: { signal } },
+  );
   if (!res.ok) {
     throw new Error("タスクの取得に失敗しました");
   }
-  return res.json() as Promise<Task[]>;
+  return res.json();
 }
 
 export async function createTask(data: {
@@ -19,15 +27,11 @@ export async function createTask(data: {
   status?: "todo" | "done";
   categoryId?: string | null;
 }): Promise<Task> {
-  const res = await fetch("/api/tasks", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data),
-  });
+  const res = await client.api.tasks.$post({ json: data });
   if (!res.ok) {
     throw new Error("タスクの作成に失敗しました");
   }
-  return res.json() as Promise<Task>;
+  return res.json();
 }
 
 export async function updateTask(
@@ -40,21 +44,18 @@ export async function updateTask(
     categoryId?: string | null;
   },
 ): Promise<Task> {
-  const res = await fetch(`/api/tasks/${id}`, {
-    method: "PATCH",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data),
+  const res = await client.api.tasks[":id"].$patch({
+    param: { id },
+    json: data,
   });
   if (!res.ok) {
     throw new Error("タスクの更新に失敗しました");
   }
-  return res.json() as Promise<Task>;
+  return res.json();
 }
 
 export async function deleteTask(id: string): Promise<void> {
-  const res = await fetch(`/api/tasks/${id}`, {
-    method: "DELETE",
-  });
+  const res = await client.api.tasks[":id"].$delete({ param: { id } });
   if (!res.ok) {
     throw new Error("タスクの削除に失敗しました");
   }

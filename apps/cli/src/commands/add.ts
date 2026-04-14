@@ -1,12 +1,6 @@
 import { defineCommand } from "citty";
 import { consola } from "consola";
-import { requireAuth, apiRequest, handleApiError } from "../api.js";
-
-interface Task {
-  id: string;
-  title: string;
-  date: string;
-}
+import { requireAuthClient, handleApiError } from "../api.js";
 
 export default defineCommand({
   meta: {
@@ -34,28 +28,33 @@ export default defineCommand({
     },
   },
   async run({ args }) {
-    const ctx = await requireAuth();
+    const client = await requireAuthClient();
 
-    const body: Record<string, string> = {
+    const json: {
+      title: string;
+      date: string;
+      description?: string;
+      categoryId?: string;
+    } = {
       title: args.title,
       date: args.date,
     };
 
     if (args.description) {
-      body.description = args.description;
+      json.description = args.description;
     }
 
     if (args.category) {
-      body.categoryId = args.category;
+      json.categoryId = args.category;
     }
 
-    const res = await apiRequest(ctx, "POST", "/api/tasks", body);
+    const res = await client.api.tasks.$post({ json });
 
     if (!res.ok) {
       await handleApiError(res, "タスクの作成に失敗しました。");
     }
 
-    const task = (await res.json()) as Task;
+    const task = (await res.json()) as { id: string; title: string };
     consola.success(`タスクを作成しました: ${task.title} (${task.id})`);
   },
 });

@@ -5,33 +5,32 @@ vi.mock("consola", () => ({
 }));
 
 vi.mock("../../api.js", () => ({
-  requireAuth: vi.fn(),
-  apiRequest: vi.fn(),
+  requireAuthClient: vi.fn(),
   handleApiError: vi.fn(),
 }));
 
 import { consola } from "consola";
-import { requireAuth, apiRequest, handleApiError } from "../../api.js";
+import { requireAuthClient, handleApiError } from "../../api.js";
 import command from "./delete.js";
 
-const mockedRequireAuth = vi.mocked(requireAuth);
-const mockedApiRequest = vi.mocked(apiRequest);
+const mockedRequireAuthClient = vi.mocked(requireAuthClient);
 const mockedHandleApiError = vi.mocked(handleApiError);
 
 beforeEach(() => {
   vi.resetAllMocks();
 });
 
-const ctx = { apiUrl: "http://localhost:3000", token: "test-token" };
-
 describe("category delete", () => {
   it("カテゴリを削除する", async () => {
-    mockedRequireAuth.mockResolvedValue(ctx);
-    mockedApiRequest.mockResolvedValue(
+    const mockDelete = vi.fn().mockResolvedValue(
       new Response(JSON.stringify({ message: "カテゴリを削除しました" }), {
         status: 200,
       }),
     );
+    const mockClient = {
+      api: { categories: { ":id": { $delete: mockDelete } } },
+    };
+    mockedRequireAuthClient.mockResolvedValue(mockClient as never);
 
     await command.run!({
       args: { _: [], id: "cat-1" },
@@ -39,22 +38,21 @@ describe("category delete", () => {
       cmd: command,
     });
 
-    expect(mockedApiRequest).toHaveBeenCalledWith(
-      ctx,
-      "DELETE",
-      "/api/categories/cat-1",
-    );
+    expect(mockDelete).toHaveBeenCalledWith({ param: { id: "cat-1" } });
     expect(consola.success).toHaveBeenCalledWith("カテゴリを削除しました。");
   });
 
   it("API エラー時にエラーハンドリングする", async () => {
-    mockedRequireAuth.mockResolvedValue(ctx);
-    mockedApiRequest.mockResolvedValue(
+    const mockDelete = vi.fn().mockResolvedValue(
       new Response(JSON.stringify({ error: "error" }), {
         status: 404,
         headers: { "Content-Type": "application/json" },
       }),
     );
+    const mockClient = {
+      api: { categories: { ":id": { $delete: mockDelete } } },
+    };
+    mockedRequireAuthClient.mockResolvedValue(mockClient as never);
     mockedHandleApiError.mockRejectedValue(new Error("exit"));
 
     await expect(

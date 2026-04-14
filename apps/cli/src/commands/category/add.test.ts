@@ -5,34 +5,33 @@ vi.mock("consola", () => ({
 }));
 
 vi.mock("../../api.js", () => ({
-  requireAuth: vi.fn(),
-  apiRequest: vi.fn(),
+  requireAuthClient: vi.fn(),
   handleApiError: vi.fn(),
 }));
 
 import { consola } from "consola";
-import { requireAuth, apiRequest, handleApiError } from "../../api.js";
+import { requireAuthClient, handleApiError } from "../../api.js";
 import command from "./add.js";
 
-const mockedRequireAuth = vi.mocked(requireAuth);
-const mockedApiRequest = vi.mocked(apiRequest);
+const mockedRequireAuthClient = vi.mocked(requireAuthClient);
 const mockedHandleApiError = vi.mocked(handleApiError);
 
 beforeEach(() => {
   vi.resetAllMocks();
 });
 
-const ctx = { apiUrl: "http://localhost:3000", token: "test-token" };
-
 describe("category add", () => {
   it("カテゴリを作成する", async () => {
-    mockedRequireAuth.mockResolvedValue(ctx);
-    mockedApiRequest.mockResolvedValue(
-      new Response(
-        JSON.stringify({ id: "cat-1", name: "仕事", color: "blue" }),
-        { status: 201 },
-      ),
-    );
+    const mockPost = vi
+      .fn()
+      .mockResolvedValue(
+        new Response(
+          JSON.stringify({ id: "cat-1", name: "仕事", color: "blue" }),
+          { status: 201 },
+        ),
+      );
+    const mockClient = { api: { categories: { $post: mockPost } } };
+    mockedRequireAuthClient.mockResolvedValue(mockClient as never);
 
     await command.run!({
       args: { _: [], name: "仕事", color: "blue" },
@@ -40,28 +39,26 @@ describe("category add", () => {
       cmd: command,
     });
 
-    expect(mockedApiRequest).toHaveBeenCalledWith(
-      ctx,
-      "POST",
-      "/api/categories",
-      {
+    expect(mockPost).toHaveBeenCalledWith({
+      json: {
         name: "仕事",
         color: "blue",
       },
-    );
+    });
     expect(consola.success).toHaveBeenCalledWith(
       expect.stringContaining("仕事"),
     );
   });
 
   it("API エラー時にエラーハンドリングする", async () => {
-    mockedRequireAuth.mockResolvedValue(ctx);
-    mockedApiRequest.mockResolvedValue(
+    const mockPost = vi.fn().mockResolvedValue(
       new Response(JSON.stringify({ error: "error" }), {
         status: 400,
         headers: { "Content-Type": "application/json" },
       }),
     );
+    const mockClient = { api: { categories: { $post: mockPost } } };
+    mockedRequireAuthClient.mockResolvedValue(mockClient as never);
     mockedHandleApiError.mockRejectedValue(new Error("exit"));
 
     await expect(

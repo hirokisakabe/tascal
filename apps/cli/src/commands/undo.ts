@@ -1,11 +1,6 @@
 import { defineCommand } from "citty";
 import { consola } from "consola";
-import { requireAuth, apiRequest, handleApiError } from "../api.js";
-
-interface Task {
-  id: string;
-  title: string;
-}
+import { requireAuthClient, handleApiError } from "../api.js";
 
 export default defineCommand({
   meta: {
@@ -20,17 +15,18 @@ export default defineCommand({
     },
   },
   async run({ args }) {
-    const ctx = await requireAuth();
+    const client = await requireAuthClient();
 
-    const res = await apiRequest(ctx, "PATCH", `/api/tasks/${args.id}`, {
-      status: "todo",
+    const res = await client.api.tasks[":id"].$patch({
+      param: { id: args.id },
+      json: { status: "todo" },
     });
 
     if (!res.ok) {
       await handleApiError(res, "タスクの更新に失敗しました。");
     }
 
-    const task = (await res.json()) as Task;
+    const task = (await res.json()) as { id: string; title: string };
     consola.success(`タスクを未完了に戻しました: ${task.title}`);
   },
 });
