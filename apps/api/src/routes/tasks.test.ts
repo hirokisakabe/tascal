@@ -38,7 +38,9 @@ vi.mock("../db/index.js", () => ({
   getDb: () => ({
     select: () => ({
       from: () => ({
-        where: mockSelect,
+        where: () => ({
+          orderBy: mockSelect,
+        }),
       }),
     }),
     insert: () => ({

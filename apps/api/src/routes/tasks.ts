@@ -2,7 +2,7 @@ import { Hono, type Env } from "hono";
 import { z } from "zod";
 import { zValidator } from "@hono/zod-validator";
 import type { Hook } from "@hono/zod-validator";
-import { eq, and, gte, lt } from "drizzle-orm";
+import { eq, and, gte, lt, asc } from "drizzle-orm";
 import { getDb } from "../db/index.js";
 import { categories, tasks } from "../db/schema.js";
 import type { Auth } from "../auth.js";
@@ -86,7 +86,8 @@ app.get(
           gte(tasks.date, startDate),
           lt(tasks.date, endDate),
         ),
-      );
+      )
+      .orderBy(asc(tasks.status), asc(tasks.createdAt));
 
     return c.json(result);
   },
