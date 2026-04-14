@@ -5,17 +5,15 @@ vi.mock("consola", () => ({
 }));
 
 vi.mock("../../api.js", () => ({
-  requireAuth: vi.fn(),
-  apiRequest: vi.fn(),
+  requireAuthClient: vi.fn(),
   handleApiError: vi.fn(),
 }));
 
 import { consola } from "consola";
-import { requireAuth, apiRequest, handleApiError } from "../../api.js";
+import { requireAuthClient, handleApiError } from "../../api.js";
 import command from "./edit.js";
 
-const mockedRequireAuth = vi.mocked(requireAuth);
-const mockedApiRequest = vi.mocked(apiRequest);
+const mockedRequireAuthClient = vi.mocked(requireAuthClient);
 const mockedHandleApiError = vi.mocked(handleApiError);
 const mockedProcessExit = vi
   .spyOn(process, "exit")
@@ -30,17 +28,20 @@ afterAll(() => {
   mockedProcessExit.mockRestore();
 });
 
-const ctx = { apiUrl: "http://localhost:3000", token: "test-token" };
-
 describe("category edit", () => {
   it("カテゴリを更新する", async () => {
-    mockedRequireAuth.mockResolvedValue(ctx);
-    mockedApiRequest.mockResolvedValue(
-      new Response(
-        JSON.stringify({ id: "cat-1", name: "更新後", color: "red" }),
-        { status: 200 },
-      ),
-    );
+    const mockPatch = vi
+      .fn()
+      .mockResolvedValue(
+        new Response(
+          JSON.stringify({ id: "cat-1", name: "更新後", color: "red" }),
+          { status: 200 },
+        ),
+      );
+    const mockClient = {
+      api: { categories: { ":id": { $patch: mockPatch } } },
+    };
+    mockedRequireAuthClient.mockResolvedValue(mockClient as never);
 
     await command.run!({
       args: { _: [], id: "cat-1", name: "更新後", color: "red" },
@@ -48,24 +49,30 @@ describe("category edit", () => {
       cmd: command,
     });
 
-    expect(mockedApiRequest).toHaveBeenCalledWith(
-      ctx,
-      "PATCH",
-      "/api/categories/cat-1",
-      { name: "更新後", color: "red" },
-    );
+    expect(mockPatch).toHaveBeenCalledWith({
+      param: { id: "cat-1" },
+      json: { name: "更新後", color: "red" },
+    });
     expect(consola.success).toHaveBeenCalledWith(
       expect.stringContaining("更新後"),
     );
   });
 
   it("更新項目が指定されていない場合、エラーを表示する", async () => {
-    mockedRequireAuth.mockResolvedValue(ctx);
-    mockedApiRequest.mockResolvedValue(
-      new Response(JSON.stringify({ id: "cat-1", name: "n", color: "red" }), {
-        status: 200,
-      }),
-    );
+    const mockClient = {
+      api: {
+        categories: {
+          ":id": {
+            $patch: vi
+              .fn()
+              .mockResolvedValue(
+                new Response(JSON.stringify({}), { status: 200 }),
+              ),
+          },
+        },
+      },
+    };
+    mockedRequireAuthClient.mockResolvedValue(mockClient as never);
 
     await command.run!({
       args: { _: [], id: "cat-1", name: "", color: "" },
@@ -80,13 +87,16 @@ describe("category edit", () => {
   });
 
   it("API エラー時にエラーハンドリングする", async () => {
-    mockedRequireAuth.mockResolvedValue(ctx);
-    mockedApiRequest.mockResolvedValue(
+    const mockPatch = vi.fn().mockResolvedValue(
       new Response(JSON.stringify({ error: "error" }), {
         status: 404,
         headers: { "Content-Type": "application/json" },
       }),
     );
+    const mockClient = {
+      api: { categories: { ":id": { $patch: mockPatch } } },
+    };
+    mockedRequireAuthClient.mockResolvedValue(mockClient as never);
     mockedHandleApiError.mockRejectedValue(new Error("exit"));
 
     await expect(

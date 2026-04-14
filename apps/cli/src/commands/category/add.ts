@@ -1,12 +1,6 @@
 import { defineCommand } from "citty";
 import { consola } from "consola";
-import { requireAuth, apiRequest, handleApiError } from "../../api.js";
-
-interface Category {
-  id: string;
-  name: string;
-  color: string;
-}
+import { requireAuthClient, handleApiError } from "../../api.js";
 
 export default defineCommand({
   meta: {
@@ -26,18 +20,28 @@ export default defineCommand({
     },
   },
   async run({ args }) {
-    const ctx = await requireAuth();
+    const client = await requireAuthClient();
 
-    const res = await apiRequest(ctx, "POST", "/api/categories", {
-      name: args.name,
-      color: args.color,
+    const res = await client.api.categories.$post({
+      json: {
+        name: args.name,
+        color: args.color as
+          | "red"
+          | "orange"
+          | "yellow"
+          | "green"
+          | "teal"
+          | "blue"
+          | "purple"
+          | "pink",
+      },
     });
 
     if (!res.ok) {
       await handleApiError(res, "カテゴリの作成に失敗しました。");
     }
 
-    const category = (await res.json()) as Category;
+    const category = (await res.json()) as { id: string; name: string };
     consola.success(
       `カテゴリを作成しました: ${category.name} (${category.id})`,
     );

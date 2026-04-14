@@ -39,9 +39,11 @@
   "dependencies": {
     "@clack/prompts": "^1.2.0",
     "citty": "^0.1.6",
-    "consola": "^3.4.2"
+    "consola": "^3.4.2",
+    "hono": "^4.12.12"
   },
   "devDependencies": {
+    "@tascal/api": "workspace:*",
     "@types/node": "^22.15.3",
     "vitest": "^4.1.4"
   }

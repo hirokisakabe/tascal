@@ -5,28 +5,23 @@ vi.mock("consola", () => ({
 }));
 
 vi.mock("../api.js", () => ({
-  requireAuth: vi.fn(),
-  apiRequest: vi.fn(),
+  requireAuthClient: vi.fn(),
   handleApiError: vi.fn(),
 }));
 
 import { consola } from "consola";
-import { requireAuth, apiRequest } from "../api.js";
+import { requireAuthClient } from "../api.js";
 import command from "./add.js";
 
-const mockedRequireAuth = vi.mocked(requireAuth);
-const mockedApiRequest = vi.mocked(apiRequest);
+const mockedRequireAuthClient = vi.mocked(requireAuthClient);
 
 beforeEach(() => {
   vi.resetAllMocks();
 });
 
-const ctx = { apiUrl: "http://localhost:3000", token: "test-token" };
-
 describe("add", () => {
   it("カテゴリ付きでタスクを作成する", async () => {
-    mockedRequireAuth.mockResolvedValue(ctx);
-    mockedApiRequest.mockResolvedValue(
+    const mockPost = vi.fn().mockResolvedValue(
       new Response(
         JSON.stringify({
           id: "task-1",
@@ -36,6 +31,8 @@ describe("add", () => {
         { status: 201 },
       ),
     );
+    const mockClient = { api: { tasks: { $post: mockPost } } };
+    mockedRequireAuthClient.mockResolvedValue(mockClient as never);
 
     await command.run!({
       args: {
@@ -49,10 +46,12 @@ describe("add", () => {
       cmd: command,
     });
 
-    expect(mockedApiRequest).toHaveBeenCalledWith(ctx, "POST", "/api/tasks", {
-      title: "テスト",
-      date: "2026-04-13",
-      categoryId: "cat-1",
+    expect(mockPost).toHaveBeenCalledWith({
+      json: {
+        title: "テスト",
+        date: "2026-04-13",
+        categoryId: "cat-1",
+      },
     });
     expect(consola.success).toHaveBeenCalledWith(
       expect.stringContaining("テスト"),
@@ -60,8 +59,7 @@ describe("add", () => {
   });
 
   it("カテゴリなしでタスクを作成する", async () => {
-    mockedRequireAuth.mockResolvedValue(ctx);
-    mockedApiRequest.mockResolvedValue(
+    const mockPost = vi.fn().mockResolvedValue(
       new Response(
         JSON.stringify({
           id: "task-1",
@@ -71,6 +69,8 @@ describe("add", () => {
         { status: 201 },
       ),
     );
+    const mockClient = { api: { tasks: { $post: mockPost } } };
+    mockedRequireAuthClient.mockResolvedValue(mockClient as never);
 
     await command.run!({
       args: {
@@ -84,9 +84,11 @@ describe("add", () => {
       cmd: command,
     });
 
-    expect(mockedApiRequest).toHaveBeenCalledWith(ctx, "POST", "/api/tasks", {
-      title: "テスト",
-      date: "2026-04-13",
+    expect(mockPost).toHaveBeenCalledWith({
+      json: {
+        title: "テスト",
+        date: "2026-04-13",
+      },
     });
   });
 });

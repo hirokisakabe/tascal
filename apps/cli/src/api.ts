@@ -1,12 +1,11 @@
+import { hc } from "hono/client";
+import type { AppType } from "@tascal/api/src/app.js";
 import { consola } from "consola";
 import { readConfig, getApiUrl } from "./config.js";
 
-interface ApiContext {
-  apiUrl: string;
-  token: string;
-}
+type ApiClient = ReturnType<typeof hc<AppType>>;
 
-export async function requireAuth(): Promise<ApiContext> {
+export async function requireAuthClient(): Promise<ApiClient> {
   const config = await readConfig();
   const token = config.token;
 
@@ -15,37 +14,23 @@ export async function requireAuth(): Promise<ApiContext> {
     process.exit(1);
   }
 
-  return { apiUrl: getApiUrl(config), token };
-}
+  const apiUrl = getApiUrl(config);
 
-export async function apiRequest(
-  ctx: ApiContext,
-  method: string,
-  path: string,
-  body?: unknown,
-): Promise<Response> {
-  const headers: Record<string, string> = {
-    Authorization: `Bearer ${ctx.token}`,
-  };
-
-  if (body !== undefined) {
-    headers["Content-Type"] = "application/json";
-  }
-
-  const res = await fetch(`${ctx.apiUrl}${path}`, {
-    method,
-    headers,
-    body: body !== undefined ? JSON.stringify(body) : undefined,
+  return hc<AppType>(apiUrl, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    fetch: async (input: RequestInfo | URL, init?: RequestInit) => {
+      const res = await fetch(input, init);
+      if (res.status === 401) {
+        consola.error(
+          "認証エラー: セッションが無効です。`tascal login` で再ログインしてください。",
+        );
+        process.exit(1);
+      }
+      return res;
+    },
   });
-
-  if (res.status === 401) {
-    consola.error(
-      "認証エラー: セッションが無効です。`tascal login` で再ログインしてください。",
-    );
-    process.exit(1);
-  }
-
-  return res;
 }
 
 export async function handleApiError(

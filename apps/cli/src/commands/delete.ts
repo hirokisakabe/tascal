@@ -1,6 +1,6 @@
 import { defineCommand } from "citty";
 import { consola } from "consola";
-import { requireAuth, apiRequest, handleApiError } from "../api.js";
+import { requireAuthClient, handleApiError } from "../api.js";
 
 export default defineCommand({
   meta: {
@@ -15,9 +15,11 @@ export default defineCommand({
     },
   },
   async run({ args }) {
-    const ctx = await requireAuth();
+    const client = await requireAuthClient();
 
-    const res = await apiRequest(ctx, "DELETE", `/api/tasks/${args.id}`);
+    const res = await client.api.tasks[":id"].$delete({
+      param: { id: args.id },
+    });
 
     if (!res.ok) {
       await handleApiError(res, "タスクの削除に失敗しました。");

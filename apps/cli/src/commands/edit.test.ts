@@ -5,17 +5,15 @@ vi.mock("consola", () => ({
 }));
 
 vi.mock("../api.js", () => ({
-  requireAuth: vi.fn(),
-  apiRequest: vi.fn(),
+  requireAuthClient: vi.fn(),
   handleApiError: vi.fn(),
 }));
 
 import { consola } from "consola";
-import { requireAuth, apiRequest } from "../api.js";
+import { requireAuthClient } from "../api.js";
 import command from "./edit.js";
 
-const mockedRequireAuth = vi.mocked(requireAuth);
-const mockedApiRequest = vi.mocked(apiRequest);
+const mockedRequireAuthClient = vi.mocked(requireAuthClient);
 const mockedProcessExit = vi
   .spyOn(process, "exit")
   .mockImplementation(() => undefined as never);
@@ -29,8 +27,6 @@ afterAll(() => {
   mockedProcessExit.mockRestore();
 });
 
-const ctx = { apiUrl: "http://localhost:3000", token: "test-token" };
-
 // citty の ParsedArgs 型が全フィールド必須のため、テスト用にキャスト
 const run = command.run! as (ctx: {
   args: Record<string, unknown>;
@@ -40,8 +36,7 @@ const run = command.run! as (ctx: {
 
 describe("edit", () => {
   it("カテゴリ付きでタスクを更新する", async () => {
-    mockedRequireAuth.mockResolvedValue(ctx);
-    mockedApiRequest.mockResolvedValue(
+    const mockPatch = vi.fn().mockResolvedValue(
       new Response(
         JSON.stringify({
           id: "task-1",
@@ -51,6 +46,8 @@ describe("edit", () => {
         { status: 200 },
       ),
     );
+    const mockClient = { api: { tasks: { ":id": { $patch: mockPatch } } } };
+    mockedRequireAuthClient.mockResolvedValue(mockClient as never);
 
     await run({
       args: { _: [], id: "task-1", category: "cat-1" },
@@ -58,24 +55,23 @@ describe("edit", () => {
       cmd: command,
     });
 
-    expect(mockedApiRequest).toHaveBeenCalledWith(
-      ctx,
-      "PATCH",
-      "/api/tasks/task-1",
-      { categoryId: "cat-1" },
-    );
+    expect(mockPatch).toHaveBeenCalledWith({
+      param: { id: "task-1" },
+      json: { categoryId: "cat-1" },
+    });
     expect(consola.success).toHaveBeenCalledWith(
       expect.stringContaining("テスト"),
     );
   });
 
   it("更新項目が指定されていない場合、エラーメッセージに --category を含む", async () => {
-    mockedRequireAuth.mockResolvedValue(ctx);
-    mockedApiRequest.mockResolvedValue(
-      new Response(JSON.stringify({ id: "task-1", title: "t", date: "d" }), {
-        status: 200,
-      }),
-    );
+    const mockPatch = vi
+      .fn()
+      .mockResolvedValue(new Response(JSON.stringify({}), { status: 200 }));
+    const mockClient = {
+      api: { tasks: { ":id": { $patch: mockPatch } } },
+    };
+    mockedRequireAuthClient.mockResolvedValue(mockClient as never);
 
     await run({
       args: { _: [], id: "task-1" },

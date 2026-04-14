@@ -115,9 +115,15 @@ app.on(["POST", "GET"], "/api/auth/**", (c) => {
   return getAuth().handler(c.req.raw);
 });
 
-app.route("/api/categories", categoriesApp);
-app.route("/api/tasks", tasksApp);
-app.route("/api/users", usersApp);
+// RPC 型推論のためチェイン形式でルートをマウント
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const routes = app
+  .route("/api/categories", categoriesApp)
+  .route("/api/tasks", tasksApp)
+  .route("/api/users", usersApp);
+
+/** @public Web・CLI の hc<AppType> で参照 */
+export type AppType = typeof routes;
 
 // SPA 静的ファイル配信（本番用）
 app.use("*", serveStatic({ root: "./public" }));
