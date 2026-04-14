@@ -23,6 +23,19 @@ vi.mock("@tanstack/react-router", () => ({
   },
   redirect: vi.fn(),
   useNavigate: () => mockNavigate,
+  Link: ({
+    children,
+    to,
+    ...props
+  }: {
+    children: React.ReactNode;
+    to: string;
+    [key: string]: unknown;
+  }) => (
+    <a href={to} {...props}>
+      {children}
+    </a>
+  ),
 }));
 
 describe("SignupPage", () => {
@@ -118,6 +131,18 @@ describe("SignupPage", () => {
         screen.getByText("サインアップに失敗しました"),
       ).toBeInTheDocument();
     });
+  });
+
+  it("利用規約とプライバシーポリシーへのリンクが表示される", () => {
+    renderSignupPage();
+
+    const termsLink = screen.getByRole("link", { name: "利用規約" });
+    expect(termsLink).toHaveAttribute("href", "/terms");
+
+    const privacyLink = screen.getByRole("link", {
+      name: "プライバシーポリシー",
+    });
+    expect(privacyLink).toHaveAttribute("href", "/privacy");
   });
 
   it("ログインページへのナビゲーションリンクが動作する", async () => {

@@ -1,4 +1,9 @@
-import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
+import {
+  createFileRoute,
+  Link,
+  redirect,
+  useNavigate,
+} from "@tanstack/react-router";
 import { useState } from "react";
 import { authClient } from "../auth-client";
 
@@ -99,6 +104,23 @@ function SignupPage() {
               {error}
             </p>
           )}
+          <p className="text-xs leading-relaxed text-on-surface-secondary">
+            サインアップすることで、
+            <Link
+              to="/terms"
+              className="text-primary hover:text-primary-dark hover:underline"
+            >
+              利用規約
+            </Link>
+            および
+            <Link
+              to="/privacy"
+              className="text-primary hover:text-primary-dark hover:underline"
+            >
+              プライバシーポリシー
+            </Link>
+            に同意したものとみなされます。
+          </p>
           <button
             type="submit"
             className="w-full rounded-md bg-primary px-4 py-2 text-sm text-white hover:bg-primary-dark"
