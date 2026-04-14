@@ -261,16 +261,14 @@ export function Calendar() {
                 <div
                   className={`flex items-center gap-1 rounded px-1 py-0.5 text-sm shadow-lg scale-105 ${
                     activeTask.status === "done"
-                      ? "bg-white text-on-surface-muted line-through"
+                      ? bgColor
+                        ? "text-on-surface/60 line-through"
+                        : "bg-white text-on-surface-muted line-through"
                       : bgColor
                         ? "text-on-surface"
                         : "bg-white text-on-surface"
                   }`}
-                  style={
-                    activeTask.status !== "done" && bgColor
-                      ? { backgroundColor: bgColor }
-                      : undefined
-                  }
+                  style={bgColor ? { backgroundColor: bgColor } : undefined}
                 >
                   <input
                     type="checkbox"
