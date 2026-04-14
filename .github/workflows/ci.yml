@@ -36,6 +36,8 @@ jobs:
           node-version-file: .node-version
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - name: Build API (type declarations)
+        run: pnpm --filter @tascal/api run build
       - name: Lint
         run: pnpm --filter @tascal/web run lint
       - name: Format check
@@ -57,6 +59,8 @@ jobs:
           node-version-file: .node-version
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - name: Build API (type declarations)
+        run: pnpm --filter @tascal/api run build
       - name: Lint
         run: pnpm --filter tascal-cli run lint
       - name: Format check
