@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { z } from "zod";
 import { zValidator } from "@hono/zod-validator";
-import { eq, and, gte, lt, asc } from "drizzle-orm";
+import { eq, and, gte, lt, asc, isNull } from "drizzle-orm";
 import { getDb } from "../db/index.js";
 import { categories, tasks } from "../db/schema.js";
 import type { Auth } from "../auth.js";
@@ -14,7 +14,11 @@ type AuthVariables = {
 const createTaskSchema = z.object({
   title: z.string().min(1).max(255),
   description: z.string().nullable().optional(),
-  date: z.string().date("日付はYYYY-MM-DD形式の実在する日付で指定してください"),
+  date: z
+    .string()
+    .date("日付はYYYY-MM-DD形式の実在する日付で指定してください")
+    .nullable()
+    .optional(),
   status: z.enum(["todo", "done"]).optional(),
   categoryId: z.string().uuid().nullable().optional(),
 });
@@ -25,6 +29,7 @@ const updateTaskSchema = z.object({
   date: z
     .string()
     .date("日付はYYYY-MM-DD形式の実在する日付で指定してください")
+    .nullable()
     .optional(),
   status: z.enum(["todo", "done"]).optional(),
   categoryId: z.string().uuid().nullable().optional(),
@@ -72,6 +77,18 @@ const app = new Hono<{ Variables: AuthVariables }>()
 
     return c.json(result);
   })
+  // GET /api/tasks/unscheduled
+  .get("/unscheduled", async (c) => {
+    const user = c.get("user")!;
+
+    const result = await getDb()
+      .select()
+      .from(tasks)
+      .where(and(eq(tasks.userId, user.id), isNull(tasks.date)))
+      .orderBy(asc(tasks.status), asc(tasks.createdAt));
+
+    return c.json(result);
+  })
   // POST /api/tasks
   .post("/", zValidator("json", createTaskSchema), async (c) => {
     const user = c.get("user")!;
@@ -95,7 +112,7 @@ const app = new Hono<{ Variables: AuthVariables }>()
       .values({
         title: data.title,
         description: data.description ?? null,
-        date: data.date,
+        date: data.date ?? null,
         status: data.status ?? "todo",
         categoryId,
         userId: user.id,

@@ -1,16 +1,31 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import type { Task } from "../types/task";
-import { fetchTasks, createTask, updateTask, deleteTask } from "../api/tasks";
+import {
+  fetchTasks,
+  fetchUnscheduledTasks,
+  createTask,
+  updateTask,
+  deleteTask,
+} from "../api/tasks";
 
 function tasksQueryKey(year: number, month: number) {
   return ["tasks", year, month] as const;
 }
 
+const unscheduledTasksQueryKey = ["tasks", "unscheduled"] as const;
+
 export function useTasks(year: number, month: number) {
   return useQuery({
     queryKey: tasksQueryKey(year, month),
     queryFn: ({ signal }) => fetchTasks(year, month, signal),
+  });
+}
+
+export function useUnscheduledTasks() {
+  return useQuery({
+    queryKey: unscheduledTasksQueryKey,
+    queryFn: ({ signal }) => fetchUnscheduledTasks(signal),
   });
 }
 
@@ -22,21 +37,22 @@ export function useCreateTask(year: number, month: number) {
     mutationFn: (data: {
       title: string;
       description?: string | null;
-      date: string;
+      date?: string | null;
       status?: "todo" | "done";
       categoryId?: string | null;
     }) => createTask(data),
     onMutate: async (newTask) => {
-      await queryClient.cancelQueries({ queryKey: key });
-      const previous = queryClient.getQueryData<Task[]>(key);
+      const targetKey = newTask.date ? key : unscheduledTasksQueryKey;
+      await queryClient.cancelQueries({ queryKey: targetKey });
+      const previous = queryClient.getQueryData<Task[]>(targetKey);
 
-      queryClient.setQueryData<Task[]>(key, (old) => [
+      queryClient.setQueryData<Task[]>(targetKey, (old) => [
         ...(old ?? []),
         {
           id: `temp-${Date.now()}`,
           title: newTask.title,
           description: newTask.description ?? null,
-          date: newTask.date,
+          date: newTask.date ?? null,
           status: newTask.status ?? "todo",
           categoryId: newTask.categoryId ?? null,
           userId: "",
@@ -45,16 +61,19 @@ export function useCreateTask(year: number, month: number) {
         },
       ]);
 
-      return { previous };
+      return { previous, targetKey };
     },
     onError: (_err, _variables, context) => {
       if (context) {
-        queryClient.setQueryData(key, context.previous);
+        queryClient.setQueryData(context.targetKey, context.previous);
       }
       toast.error("タスクの作成に失敗しました");
     },
     onSettled: () => {
       void queryClient.invalidateQueries({ queryKey: key });
+      void queryClient.invalidateQueries({
+        queryKey: unscheduledTasksQueryKey,
+      });
     },
   });
 }
@@ -72,7 +91,7 @@ export function useUpdateTask(year: number, month: number) {
       data: {
         title?: string;
         description?: string | null;
-        date?: string;
+        date?: string | null;
         status?: "todo" | "done";
         categoryId?: string | null;
       };
@@ -97,6 +116,9 @@ export function useUpdateTask(year: number, month: number) {
     },
     onSettled: () => {
       void queryClient.invalidateQueries({ queryKey: key });
+      void queryClient.invalidateQueries({
+        queryKey: unscheduledTasksQueryKey,
+      });
     },
   });
 }
@@ -155,6 +177,9 @@ export function useDeleteTask(year: number, month: number) {
     },
     onSettled: () => {
       void queryClient.invalidateQueries({ queryKey: key });
+      void queryClient.invalidateQueries({
+        queryKey: unscheduledTasksQueryKey,
+      });
     },
   });
 }

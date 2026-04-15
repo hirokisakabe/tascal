@@ -91,7 +91,7 @@ export const tasks = pgTable("tasks", {
   id: uuid("id").primaryKey().defaultRandom(),
   title: varchar("title", { length: 255 }).notNull(),
   description: text("description"),
-  date: date("date").notNull(),
+  date: date("date"),
   status: taskStatusEnum("status").notNull().default("todo"),
   categoryId: uuid("category_id").references(() => categories.id, {
     onDelete: "set null",

@@ -15,6 +15,13 @@
       "when": 1776029805844,
       "tag": "0001_material_northstar",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1776130000000,
+      "tag": "0002_nullable_task_date",
+      "breakpoints": true
     }
   ]
 }

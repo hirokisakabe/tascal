@@ -15,8 +15,7 @@ export default defineCommand({
     },
     date: {
       type: "string",
-      description: "日付 (YYYY-MM-DD)",
-      required: true,
+      description: "日付 (YYYY-MM-DD)。省略時は未スケジュールタスクとして作成",
     },
     description: {
       type: "string",
@@ -32,13 +31,16 @@ export default defineCommand({
 
     const json: {
       title: string;
-      date: string;
+      date?: string;
       description?: string;
       categoryId?: string;
     } = {
       title: args.title,
-      date: args.date,
     };
+
+    if (args.date) {
+      json.date = args.date;
+    }
 
     if (args.description) {
       json.description = args.description;

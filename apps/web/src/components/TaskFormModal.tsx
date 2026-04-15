@@ -5,7 +5,7 @@ import { ModalWrapper } from "./ModalWrapper";
 
 type TaskFormModalProps = {
   open: boolean;
-  date: string;
+  date: string | null;
   year: number;
   month: number;
   onClose: () => void;
@@ -37,7 +37,7 @@ export function TaskFormModal({
       {
         title: title.trim(),
         description: description.trim() || null,
-        date,
+        date: date ?? undefined,
         categoryId: categoryId || null,
       },
       {
@@ -49,7 +49,7 @@ export function TaskFormModal({
   return (
     <ModalWrapper open={open} onClose={onClose}>
       <h3 className="mb-4 text-lg font-bold text-on-surface">
-        タスクを追加（{date}）
+        {date ? `タスクを追加（${date}）` : "未スケジュールタスクを追加"}
       </h3>
       {error && (
         <div className="mb-3 rounded-md bg-danger-light px-3 py-2 text-sm text-danger">

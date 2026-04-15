@@ -23,7 +23,7 @@ export function TaskDetailModal({
 }: TaskDetailModalProps) {
   const [title, setTitle] = useState(task.title);
   const [description, setDescription] = useState(task.description ?? "");
-  const [date, setDate] = useState(task.date);
+  const [date, setDate] = useState(task.date ?? "");
   const [categoryId, setCategoryId] = useState<string>(task.categoryId ?? "");
   const [error, setError] = useState<string | null>(null);
 
@@ -52,7 +52,7 @@ export function TaskDetailModal({
         data: {
           title: title.trim(),
           description: description.trim() || null,
-          date,
+          date: date || null,
           categoryId: categoryId || null,
         },
       },
@@ -124,7 +124,6 @@ export function TaskDetailModal({
             value={date}
             onChange={(e) => setDate(e.target.value)}
             className="w-full rounded-md border border-border px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-            required
           />
         </div>
         {categories.length > 0 && (

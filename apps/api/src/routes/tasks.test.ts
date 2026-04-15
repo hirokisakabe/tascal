@@ -28,6 +28,17 @@ const mockTask = {
   updatedAt: new Date("2026-03-01"),
 };
 
+const mockUnscheduledTask = {
+  id: "770e8400-e29b-41d4-a716-446655440001",
+  title: "未スケジュールタスク",
+  description: null,
+  date: null,
+  status: "todo" as const,
+  userId: mockUser.id,
+  createdAt: new Date("2026-03-01"),
+  updatedAt: new Date("2026-03-01"),
+};
+
 // DB モック
 const mockSelect = vi.fn();
 const mockInsert = vi.fn();
@@ -318,5 +329,81 @@ describe("DELETE /api/tasks/:id", () => {
       jsonRequest("DELETE", "/api/tasks/invalid-uuid"),
     );
     expect(res.status).toBe(400);
+  });
+});
+
+describe("GET /api/tasks/unscheduled", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("未スケジュールタスク一覧を取得できる", async () => {
+    mockSelect.mockResolvedValue([mockUnscheduledTask]);
+    const app = await createTestApp();
+
+    const res = await app.request(jsonRequest("GET", "/api/tasks/unscheduled"));
+    expect(res.status).toBe(200);
+
+    const json = (await res.json()) as (typeof mockUnscheduledTask)[];
+    expect(json).toHaveLength(1);
+    expect(json[0].title).toBe("未スケジュールタスク");
+    expect(json[0].date).toBeNull();
+  });
+});
+
+describe("POST /api/tasks (未スケジュール)", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("date なしでタスクを作成できる", async () => {
+    mockInsert.mockResolvedValue([mockUnscheduledTask]);
+    const app = await createTestApp();
+
+    const res = await app.request(
+      jsonRequest("POST", "/api/tasks", {
+        title: "未スケジュールタスク",
+      }),
+    );
+    expect(res.status).toBe(201);
+
+    const json = (await res.json()) as { title: string; date: string | null };
+    expect(json.title).toBe("未スケジュールタスク");
+    expect(json.date).toBeNull();
+  });
+
+  it("date を null で指定してタスクを作成できる", async () => {
+    mockInsert.mockResolvedValue([mockUnscheduledTask]);
+    const app = await createTestApp();
+
+    const res = await app.request(
+      jsonRequest("POST", "/api/tasks", {
+        title: "未スケジュールタスク",
+        date: null,
+      }),
+    );
+    expect(res.status).toBe(201);
+  });
+});
+
+describe("PATCH /api/tasks/:id (未スケジュール)", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("date を null に更新して未スケジュールに戻せる", async () => {
+    const updatedTask = { ...mockTask, date: null };
+    mockUpdate.mockResolvedValue([updatedTask]);
+    const app = await createTestApp();
+
+    const res = await app.request(
+      jsonRequest("PATCH", `/api/tasks/${mockTask.id}`, {
+        date: null,
+      }),
+    );
+    expect(res.status).toBe(200);
+
+    const json = (await res.json()) as { date: string | null };
+    expect(json.date).toBeNull();
   });
 });
