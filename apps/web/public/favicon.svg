@@ -1,12 +1,12 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
   <!-- Calendar body -->
-  <rect x="2" y="6" width="28" height="24" rx="4" fill="#4a4181"/>
+  <rect x="2" y="6" width="28" height="24" rx="2" fill="#4a4181"/>
   <!-- Calendar top bar -->
-  <rect x="2" y="6" width="28" height="7" rx="4" fill="#3d366d"/>
+  <rect x="2" y="6" width="28" height="7" rx="2" fill="#5b52a0"/>
   <!-- Calendar pins -->
-  <rect x="9" y="3" width="3" height="7" rx="1.5" fill="#fff"/>
-  <rect x="20" y="3" width="3" height="7" rx="1.5" fill="#fff"/>
-  <!-- Small white plus in bottom-right (slight rounding) -->
+  <rect x="7" y="4" width="3" height="5" rx="1.5" fill="#fff"/>
+  <rect x="22" y="4" width="3" height="5" rx="1.5" fill="#fff"/>
+  <!-- Small white plus in bottom-right -->
   <rect x="22.75" y="19.5" width="2.5" height="7" rx="0.6" fill="#fff"/>
   <rect x="20.5" y="21.75" width="7" height="2.5" rx="0.6" fill="#fff"/>
 </svg>

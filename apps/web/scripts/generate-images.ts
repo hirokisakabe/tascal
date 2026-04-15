@@ -20,10 +20,10 @@ async function generateOgpImage() {
   <rect width="1200" height="630" fill="url(#bg)"/>
   <!-- Calendar icon (scaled up, centered horizontally at x=520) -->
   <g transform="translate(520, 120) scale(5)">
-    <rect x="2" y="6" width="28" height="24" rx="4" fill="rgba(255,255,255,0.85)"/>
-    <rect x="2" y="6" width="28" height="7" rx="4" fill="rgba(255,255,255,0.95)"/>
-    <rect x="9" y="3" width="3" height="7" rx="1.5" fill="#fff"/>
-    <rect x="20" y="3" width="3" height="7" rx="1.5" fill="#fff"/>
+    <rect x="2" y="6" width="28" height="24" rx="2" fill="#4a4181"/>
+    <rect x="2" y="6" width="28" height="7" rx="2" fill="#5b52a0"/>
+    <rect x="7" y="4" width="3" height="5" rx="1.5" fill="#fff"/>
+    <rect x="22" y="4" width="3" height="5" rx="1.5" fill="#fff"/>
     <rect x="22.75" y="19.5" width="2.5" height="7" rx="0.6" fill="#fff"/>
     <rect x="20.5" y="21.75" width="7" height="2.5" rx="0.6" fill="#fff"/>
   </g>
