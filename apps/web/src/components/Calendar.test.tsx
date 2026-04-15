@@ -551,9 +551,23 @@ describe("Calendar", () => {
     });
   });
 
-  it("未スケジュールタスクサイドバーが表示される", async () => {
+  it("トグルボタンで未スケジュールタスクサイドバーを表示できる", async () => {
     mockFetchUnscheduledTasks.mockResolvedValue([mockUnscheduledTask]);
+
+    const user = userEvent.setup();
     renderWithQueryClient(<Calendar />);
+
+    // 初期状態ではサイドバーは非表示
+    await waitFor(() => {
+      expect(
+        screen.queryByText("未スケジュールタスク"),
+      ).not.toBeInTheDocument();
+    });
+
+    // トグルボタンをクリックして表示
+    await user.click(
+      screen.getByRole("button", { name: "未スケジュールタスク" }),
+    );
 
     await waitFor(() => {
       expect(screen.getByText("未スケジュール")).toBeInTheDocument();
@@ -561,7 +575,7 @@ describe("Calendar", () => {
     });
   });
 
-  it("未スケジュールタスクの件数バッジが表示される", async () => {
+  it("未スケジュールタスクがある場合、トグルボタンに件数バッジが表示される", async () => {
     mockFetchUnscheduledTasks.mockResolvedValue([
       mockUnscheduledTask,
       { ...mockUnscheduledTask, id: "unscheduled-task-2", title: "タスク2" },
@@ -569,9 +583,10 @@ describe("Calendar", () => {
     renderWithQueryClient(<Calendar />);
 
     await waitFor(() => {
-      const toggle = screen.getByText("未スケジュール");
-      const wrapper = toggle.closest("span");
-      const badge = wrapper?.querySelector(".rounded-full");
+      const toggleButton = screen.getByRole("button", {
+        name: "未スケジュールタスク",
+      });
+      const badge = toggleButton.querySelector(".rounded-full");
       expect(badge?.textContent).toBe("2");
     });
   });
@@ -582,24 +597,24 @@ describe("Calendar", () => {
     const user = userEvent.setup();
     renderWithQueryClient(<Calendar />);
 
+    const toggleButton = screen.getByRole("button", {
+      name: "未スケジュールタスク",
+    });
+
+    // 開く
+    await user.click(toggleButton);
+
     await waitFor(() => {
       expect(screen.getByText("未スケジュールタスク")).toBeInTheDocument();
     });
 
-    // トグルボタンをクリックして閉じる
-    await user.click(screen.getByText("未スケジュール"));
+    // 閉じる
+    await user.click(toggleButton);
 
     await waitFor(() => {
       expect(
         screen.queryByText("未スケジュールタスク"),
       ).not.toBeInTheDocument();
-    });
-
-    // 再度クリックして開く
-    await user.click(screen.getByText("未スケジュール"));
-
-    await waitFor(() => {
-      expect(screen.getByText("未スケジュールタスク")).toBeInTheDocument();
     });
   });
 
@@ -632,8 +647,13 @@ describe("Calendar", () => {
     const user = userEvent.setup();
     renderWithQueryClient(<Calendar />);
 
+    // サイドバーを開く
+    await user.click(
+      screen.getByRole("button", { name: "未スケジュールタスク" }),
+    );
+
     await waitFor(() => {
-      expect(screen.getByText("未スケジュール")).toBeInTheDocument();
+      expect(screen.getByText("+ タスクを追加")).toBeInTheDocument();
     });
 
     await user.click(screen.getByText("+ タスクを追加"));
