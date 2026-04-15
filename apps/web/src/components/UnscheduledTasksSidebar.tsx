@@ -28,11 +28,11 @@ export function UnscheduledTasksSidebar({
 
   return (
     <div
-      className="shrink-0 overflow-hidden transition-[width] duration-300 ease-in-out"
+      className="shrink-0 self-stretch overflow-hidden transition-[width] duration-300 ease-in-out"
       style={{ width: isOpen ? "16rem" : "0px" }}
     >
       <div className="flex h-full w-64 flex-col overflow-hidden rounded-lg border border-border-light bg-white">
-        <div className="border-b border-border-light px-3 py-2 text-sm font-medium text-on-surface">
+        <div className="border-b border-border-light px-3 py-1 text-sm font-medium text-on-surface">
           未スケジュール
           <span className="ml-2 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-on-surface-muted/20 px-1.5 text-xs font-medium text-on-surface-secondary">
             {tasks.length}

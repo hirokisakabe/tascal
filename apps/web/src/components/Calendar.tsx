@@ -266,7 +266,7 @@ export function Calendar() {
           </div>
         )}
 
-        <div className="flex gap-4">
+        <div className="flex items-stretch gap-4">
           <UnscheduledTasksSidebar
             tasks={unscheduledTasks}
             categoryMap={categoryMap}
