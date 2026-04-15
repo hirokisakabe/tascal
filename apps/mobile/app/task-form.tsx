@@ -28,9 +28,20 @@ export default function TaskFormScreen() {
   const colorScheme = useColorScheme() ?? "light";
   const isEditing = !!taskId;
 
+  // デフォルト日付: 表示中の月が当月なら今日、それ以外なら月初
+  const defaultDate = (() => {
+    const now = new Date();
+    const y = Number(year);
+    const m = Number(month);
+    if (y === now.getFullYear() && m === now.getMonth() + 1) {
+      return `${y}-${String(m).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+    }
+    return `${y}-${String(m).padStart(2, "0")}-01`;
+  })();
+
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [date, setDate] = useState("");
+  const [date, setDate] = useState(isEditing ? "" : defaultDate);
   const [isLoadingTask, setIsLoadingTask] = useState(isEditing);
   const [isSaving, setIsSaving] = useState(false);
   const [originalTask, setOriginalTask] = useState<Task | null>(null);
@@ -144,7 +155,7 @@ export default function TaskFormScreen() {
             <ThemedText style={styles.cancelText}>キャンセル</ThemedText>
           </Pressable>
           <ThemedText type="defaultSemiBold">
-            {isEditing ? "タスク編集" : "タスク作成"}
+            {isEditing ? "タスクの詳細" : `タスクを追加`}
           </ThemedText>
           <Pressable onPress={handleSave} disabled={isSaving} hitSlop={8}>
             <ThemedText

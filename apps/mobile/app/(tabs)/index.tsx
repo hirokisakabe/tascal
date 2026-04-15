@@ -2,8 +2,8 @@ import { useCallback, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
-  FlatList,
   Pressable,
+  SectionList,
   StyleSheet,
   View,
 } from "react-native";
@@ -15,11 +15,61 @@ import { ThemedView } from "@/components/themed-view";
 import { useAuth } from "@/contexts/auth-context";
 import { Colors } from "@/constants/theme";
 import { useColorScheme } from "@/hooks/use-color-scheme";
-import { fetchTasks, updateTask } from "@/api/tasks";
+import { fetchTasks, fetchUnscheduledTasks, updateTask } from "@/api/tasks";
 import type { Task } from "@/types/task";
+
+type Section = {
+  title: string;
+  data: Task[];
+};
 
 function formatMonth(year: number, month: number): string {
   return `${year}年${month}月`;
+}
+
+function formatDateLabel(dateStr: string): string {
+  const d = new Date(dateStr + "T00:00:00");
+  const month = d.getMonth() + 1;
+  const day = d.getDate();
+  const weekdays = ["日", "月", "火", "水", "木", "金", "土"];
+  const weekday = weekdays[d.getDay()];
+  return `${month}/${day}（${weekday}）`;
+}
+
+function isToday(dateStr: string): boolean {
+  const today = new Date();
+  const y = today.getFullYear();
+  const m = String(today.getMonth() + 1).padStart(2, "0");
+  const d = String(today.getDate()).padStart(2, "0");
+  return dateStr === `${y}-${m}-${d}`;
+}
+
+function buildSections(
+  scheduledTasks: Task[],
+  unscheduledTasks: Task[],
+): Section[] {
+  const dateMap = new Map<string, Task[]>();
+  for (const task of scheduledTasks) {
+    if (!task.date) continue;
+    const existing = dateMap.get(task.date) ?? [];
+    existing.push(task);
+    dateMap.set(task.date, existing);
+  }
+
+  const sortedDates = [...dateMap.keys()].sort();
+  const sections: Section[] = sortedDates.map((date) => ({
+    title: formatDateLabel(date),
+    data: dateMap.get(date)!,
+  }));
+
+  if (unscheduledTasks.length > 0) {
+    sections.push({
+      title: `未スケジュール（${unscheduledTasks.length}件）`,
+      data: unscheduledTasks,
+    });
+  }
+
+  return sections;
 }
 
 export default function HomeScreen() {
@@ -29,15 +79,20 @@ export default function HomeScreen() {
   const now = new Date();
   const [year, setYear] = useState(now.getFullYear());
   const [month, setMonth] = useState(now.getMonth() + 1);
-  const [tasks, setTasks] = useState<Task[]>([]);
+  const [scheduledTasks, setScheduledTasks] = useState<Task[]>([]);
+  const [unscheduledTasks, setUnscheduledTasks] = useState<Task[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const isFirstLoad = useRef(true);
 
   const loadTasks = useCallback(async () => {
     try {
-      const data = await fetchTasks(year, month);
-      setTasks(data);
+      const [scheduled, unscheduled] = await Promise.all([
+        fetchTasks(year, month),
+        fetchUnscheduledTasks(),
+      ]);
+      setScheduledTasks(scheduled);
+      setUnscheduledTasks(unscheduled);
     } catch {
       Alert.alert("エラー", "タスクの取得に失敗しました");
     }
@@ -79,11 +134,23 @@ export default function HomeScreen() {
     }
   };
 
+  const handleToday = () => {
+    const today = new Date();
+    setYear(today.getFullYear());
+    setMonth(today.getMonth() + 1);
+  };
+
+  const isTodayMonth =
+    year === now.getFullYear() && month === now.getMonth() + 1;
+
   const handleToggleStatus = async (task: Task) => {
     const newStatus = task.status === "todo" ? "done" : "todo";
+    const updateList = task.date ? setScheduledTasks : setUnscheduledTasks;
     try {
       const updated = await updateTask(task.id, { status: newStatus });
-      setTasks((prev) => prev.map((t) => (t.id === updated.id ? updated : t)));
+      updateList((prev) =>
+        prev.map((t) => (t.id === updated.id ? updated : t)),
+      );
     } catch {
       Alert.alert("エラー", "ステータスの更新に失敗しました");
     }
@@ -99,6 +166,8 @@ export default function HomeScreen() {
       },
     ]);
   };
+
+  const sections = buildSections(scheduledTasks, unscheduledTasks);
 
   const renderTask = ({ item }: { item: Task }) => (
     <Pressable
@@ -144,16 +213,41 @@ export default function HomeScreen() {
         >
           {item.title}
         </ThemedText>
-        {item.date && (
-          <ThemedText
-            style={[styles.taskDate, { color: Colors[colorScheme].icon }]}
-          >
-            {item.date}
-          </ThemedText>
-        )}
       </View>
     </Pressable>
   );
+
+  const renderSectionHeader = ({ section }: { section: Section }) => {
+    const dateStr = scheduledTasks.find(
+      (t) => t.date && formatDateLabel(t.date) === section.title,
+    )?.date;
+    const today = dateStr ? isToday(dateStr) : false;
+
+    return (
+      <View
+        style={[
+          styles.sectionHeader,
+          {
+            backgroundColor:
+              colorScheme === "dark" ? Colors.dark.background : "#f5f4f0",
+          },
+        ]}
+      >
+        <ThemedText
+          style={[
+            styles.sectionHeaderText,
+            today && {
+              color: Colors[colorScheme].tint,
+              fontWeight: "bold",
+            },
+          ]}
+        >
+          {section.title}
+          {today && " — 今日"}
+        </ThemedText>
+      </View>
+    );
+  };
 
   return (
     <ThemedView style={styles.container}>
@@ -178,6 +272,25 @@ export default function HomeScreen() {
         <Pressable onPress={handleNextMonth} hitSlop={8}>
           <ThemedText style={styles.navArrow}>▶</ThemedText>
         </Pressable>
+        {!isTodayMonth && (
+          <Pressable
+            style={[
+              styles.todayButton,
+              { borderColor: Colors[colorScheme].tint },
+            ]}
+            onPress={handleToday}
+            hitSlop={4}
+          >
+            <ThemedText
+              style={[
+                styles.todayButtonText,
+                { color: Colors[colorScheme].tint },
+              ]}
+            >
+              今日
+            </ThemedText>
+          </Pressable>
+        )}
       </View>
 
       {isLoading ? (
@@ -185,14 +298,16 @@ export default function HomeScreen() {
           <ActivityIndicator size="large" />
         </View>
       ) : (
-        <FlatList
-          data={tasks}
+        <SectionList
+          sections={sections}
           keyExtractor={(item) => item.id}
           renderItem={renderTask}
+          renderSectionHeader={renderSectionHeader}
           refreshing={isRefreshing}
           onRefresh={handleRefresh}
+          stickySectionHeadersEnabled
           contentContainerStyle={
-            tasks.length === 0 ? styles.centered : undefined
+            sections.length === 0 ? styles.centered : undefined
           }
           ListEmptyComponent={
             <ThemedText style={{ color: Colors[colorScheme].icon }}>
@@ -254,16 +369,34 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
-    gap: 24,
+    gap: 16,
     paddingVertical: 12,
   },
   navArrow: {
     fontSize: 18,
   },
+  todayButton: {
+    borderWidth: 1,
+    borderRadius: 6,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+  },
+  todayButtonText: {
+    fontSize: 13,
+    fontWeight: "600",
+  },
   centered: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+  },
+  sectionHeader: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+  },
+  sectionHeaderText: {
+    fontSize: 14,
+    fontWeight: "600",
   },
   taskRow: {
     flexDirection: "row",
@@ -298,10 +431,6 @@ const styles = StyleSheet.create({
   taskTitleDone: {
     textDecorationLine: "line-through",
     opacity: 0.5,
-  },
-  taskDate: {
-    fontSize: 13,
-    marginTop: 2,
   },
   fab: {
     position: "absolute",
