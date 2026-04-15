@@ -267,15 +267,14 @@ export function Calendar() {
         )}
 
         <div className="flex gap-4">
-          {showSidebar && (
-            <UnscheduledTasksSidebar
-              tasks={unscheduledTasks}
-              categoryMap={categoryMap}
-              onTaskClick={setSelectedTask}
-              onToggleStatus={handleToggleStatus}
-              onAddClick={() => setAddUnscheduled(true)}
-            />
-          )}
+          <UnscheduledTasksSidebar
+            tasks={unscheduledTasks}
+            categoryMap={categoryMap}
+            isOpen={showSidebar}
+            onTaskClick={setSelectedTask}
+            onToggleStatus={handleToggleStatus}
+            onAddClick={() => setAddUnscheduled(true)}
+          />
           <div
             className={`min-w-0 flex-1 overflow-hidden rounded-lg border border-border-light ${isLoading ? "opacity-50" : ""}`}
           >

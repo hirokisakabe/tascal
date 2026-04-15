@@ -551,28 +551,35 @@ describe("Calendar", () => {
     });
   });
 
-  it("トグルボタンで未スケジュールタスクサイドバーを表示できる", async () => {
+  it("トグルボタンで未スケジュールタスクサイドバーを開閉できる", async () => {
     mockFetchUnscheduledTasks.mockResolvedValue([mockUnscheduledTask]);
 
     const user = userEvent.setup();
     renderWithQueryClient(<Calendar />);
 
-    // 初期状態ではサイドバーは非表示
     await waitFor(() => {
-      expect(
-        screen.queryByText("未スケジュールタスク"),
-      ).not.toBeInTheDocument();
+      expect(screen.getByText("未スケジュールタスク")).toBeInTheDocument();
     });
 
-    // トグルボタンをクリックして表示
+    // 初期状態ではサイドバーは閉じている（width: 0px）
+    const sidebarWrapper = screen
+      .getByText("未スケジュール")
+      .closest("[style]") as HTMLElement;
+    expect(sidebarWrapper.style.width).toBe("0px");
+
+    // トグルボタンをクリックして開く
     await user.click(
       screen.getByRole("button", { name: "未スケジュールタスク" }),
     );
 
-    await waitFor(() => {
-      expect(screen.getByText("未スケジュール")).toBeInTheDocument();
-      expect(screen.getByText("未スケジュールタスク")).toBeInTheDocument();
-    });
+    expect(sidebarWrapper.style.width).toBe("16rem");
+
+    // 再度クリックして閉じる
+    await user.click(
+      screen.getByRole("button", { name: "未スケジュールタスク" }),
+    );
+
+    expect(sidebarWrapper.style.width).toBe("0px");
   });
 
   it("未スケジュールタスクがある場合、トグルボタンに件数バッジが表示される", async () => {
@@ -588,33 +595,6 @@ describe("Calendar", () => {
       });
       const badge = toggleButton.querySelector(".rounded-full");
       expect(badge?.textContent).toBe("2");
-    });
-  });
-
-  it("サイドバーのトグルで開閉できる", async () => {
-    mockFetchUnscheduledTasks.mockResolvedValue([mockUnscheduledTask]);
-
-    const user = userEvent.setup();
-    renderWithQueryClient(<Calendar />);
-
-    const toggleButton = screen.getByRole("button", {
-      name: "未スケジュールタスク",
-    });
-
-    // 開く
-    await user.click(toggleButton);
-
-    await waitFor(() => {
-      expect(screen.getByText("未スケジュールタスク")).toBeInTheDocument();
-    });
-
-    // 閉じる
-    await user.click(toggleButton);
-
-    await waitFor(() => {
-      expect(
-        screen.queryByText("未スケジュールタスク"),
-      ).not.toBeInTheDocument();
     });
   });
 
