@@ -86,11 +86,15 @@ pnpm --filter @tascal/web exec vitest run src/components/Calendar.test.tsx
 ### Mobile (apps/mobile)
 
 - `app/` — expo-router のファイルベースルーティング
-  - `_layout.tsx` — ルートレイアウト (Stack ナビゲーション、ダーク/ライトテーマ対応)
-  - `(tabs)/` — タブナビゲーション (Home, Explore)
-  - `modal.tsx` — モーダル画面
-- `components/` — ThemedText, ThemedView, ParallaxScrollView 等の共通コンポーネント
-- `constants/theme.ts` — テーマカラー定義
+  - `_layout.tsx` — ルートレイアウト (AuthProvider、AuthGate、ダーク/ライトテーマ対応)
+  - `login.tsx` — ログイン画面
+  - `(tabs)/index.tsx` — タスク一覧画面 (月別表示、ステータストグル)
+  - `task-form.tsx` — タスク作成・編集画面
+- `api/tasks.ts` — タスク API クライアント (fetch ベース、Bearer トークン認証)
+- `types/task.ts` — Task 型定義
+- `contexts/auth-context.tsx` — 認証コンテキスト (expo-secure-store でトークン管理)
+- `components/` — ThemedText, ThemedView 等の共通コンポーネント
+- `constants/theme.ts` — テーマカラー定義、`constants/api.ts` — API ベース URL
 - `hooks/` — useColorScheme, useThemeColor
 
 ### DB スキーマ
