@@ -49,9 +49,12 @@ export default defineCommand({
 
     consola.info(`${year}年${month}月のタスク (${tasks.length}件):\n`);
 
-    const sorted = [...tasks].sort(
-      (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
-    );
+    const sorted = [...tasks].sort((a, b) => {
+      if (!a.date && !b.date) return 0;
+      if (!a.date) return 1;
+      if (!b.date) return -1;
+      return new Date(a.date).getTime() - new Date(b.date).getTime();
+    });
 
     for (const task of sorted) {
       const status = task.status === "done" ? "✔" : "○";
@@ -59,8 +62,9 @@ export default defineCommand({
         ? categoryMap.get(task.categoryId)
         : null;
       const categoryLabel = categoryName ? ` [${categoryName}]` : "";
+      const dateLabel = task.date ?? "未定";
       console.log(
-        `  ${status} [${task.date}] ${task.title}${categoryLabel} (${task.id})`,
+        `  ${status} [${dateLabel}] ${task.title}${categoryLabel} (${task.id})`,
       );
       if (task.description) {
         console.log(`    ${task.description}`);

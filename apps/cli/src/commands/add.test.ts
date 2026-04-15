@@ -91,4 +91,40 @@ describe("add", () => {
       },
     });
   });
+
+  it("date 省略で未スケジュールタスクを作成する", async () => {
+    const mockPost = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          id: "task-1",
+          title: "未スケジュール",
+          date: null,
+        }),
+        { status: 201 },
+      ),
+    );
+    const mockClient = { api: { tasks: { $post: mockPost } } };
+    mockedRequireAuthClient.mockResolvedValue(mockClient as never);
+
+    await command.run!({
+      args: {
+        _: [],
+        title: "未スケジュール",
+        date: undefined as unknown as string,
+        description: "",
+        category: "",
+      },
+      rawArgs: [],
+      cmd: command,
+    });
+
+    expect(mockPost).toHaveBeenCalledWith({
+      json: {
+        title: "未スケジュール",
+      },
+    });
+    expect(consola.success).toHaveBeenCalledWith(
+      expect.stringContaining("未スケジュール"),
+    );
+  });
 });

@@ -6,12 +6,15 @@ import { renderWithQueryClient } from "../test/helpers";
 
 // API モック
 const mockFetchTasks = vi.fn();
+const mockFetchUnscheduledTasks = vi.fn();
 const mockCreateTask = vi.fn();
 const mockUpdateTask = vi.fn();
 const mockDeleteTask = vi.fn();
 
 vi.mock("../api/tasks", () => ({
   fetchTasks: (...args: unknown[]) => mockFetchTasks(...args) as unknown,
+  fetchUnscheduledTasks: (...args: unknown[]) =>
+    mockFetchUnscheduledTasks(...args) as unknown,
   createTask: (...args: unknown[]) => mockCreateTask(...args) as unknown,
   updateTask: (...args: unknown[]) => mockUpdateTask(...args) as unknown,
   deleteTask: (...args: unknown[]) => mockDeleteTask(...args) as unknown,
@@ -76,10 +79,23 @@ const mockTask = {
   updatedAt: "2026-01-01T00:00:00.000Z",
 };
 
+const mockUnscheduledTask = {
+  id: "unscheduled-task-1",
+  title: "未スケジュールタスク",
+  description: null,
+  date: null,
+  status: "todo" as const,
+  userId: "user-1",
+  categoryId: null,
+  createdAt: "2026-01-01T00:00:00.000Z",
+  updatedAt: "2026-01-01T00:00:00.000Z",
+};
+
 describe("Calendar", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockFetchTasks.mockResolvedValue([]);
+    mockFetchUnscheduledTasks.mockResolvedValue([]);
   });
 
   it("年月ヘッダーと曜日ラベルが表示される", async () => {
@@ -204,7 +220,7 @@ describe("Calendar", () => {
     );
 
     // モーダルが表示される
-    expect(screen.getByText(/タスクを追加/)).toBeInTheDocument();
+    expect(screen.getByText(/タスクを追加（/)).toBeInTheDocument();
 
     // タイトルを入力して送信
     const titleInput = screen.getByLabelText(/タイトル/);
@@ -290,12 +306,12 @@ describe("Calendar", () => {
     await user.click(
       screen.getByRole("button", { name: `${dateKey}にタスクを追加` }),
     );
-    expect(screen.getByText(/タスクを追加/)).toBeInTheDocument();
+    expect(screen.getByText(/タスクを追加（/)).toBeInTheDocument();
 
     await user.click(screen.getByText("キャンセル"));
 
     await waitFor(() => {
-      expect(screen.queryByText(/タスクを追加/)).not.toBeInTheDocument();
+      expect(screen.queryByText(/タスクを追加（/)).not.toBeInTheDocument();
     });
   });
 
@@ -532,6 +548,100 @@ describe("Calendar", () => {
       expect(mockUpdateTask).toHaveBeenCalledWith(mockTask.id, {
         status: "done",
       });
+    });
+  });
+
+  it("トグルボタンで未スケジュールタスクサイドバーを開閉できる", async () => {
+    mockFetchUnscheduledTasks.mockResolvedValue([mockUnscheduledTask]);
+
+    const user = userEvent.setup();
+    renderWithQueryClient(<Calendar />);
+
+    await waitFor(() => {
+      expect(screen.getByText("未スケジュールタスク")).toBeInTheDocument();
+    });
+
+    // 初期状態ではサイドバーは閉じている（width: 0px）
+    const sidebarWrapper = screen
+      .getByText("未スケジュール")
+      .closest("[style]") as HTMLElement;
+    expect(sidebarWrapper.style.width).toBe("0px");
+
+    // トグルボタンをクリックして開く
+    await user.click(
+      screen.getByRole("button", { name: "未スケジュールタスク" }),
+    );
+
+    expect(sidebarWrapper.style.width).toBe("16rem");
+
+    // 再度クリックして閉じる
+    await user.click(
+      screen.getByRole("button", { name: "未スケジュールタスク" }),
+    );
+
+    expect(sidebarWrapper.style.width).toBe("0px");
+  });
+
+  it("未スケジュールタスクがある場合、トグルボタンに件数バッジが表示される", async () => {
+    mockFetchUnscheduledTasks.mockResolvedValue([
+      mockUnscheduledTask,
+      { ...mockUnscheduledTask, id: "unscheduled-task-2", title: "タスク2" },
+    ]);
+    renderWithQueryClient(<Calendar />);
+
+    await waitFor(() => {
+      const toggleButton = screen.getByRole("button", {
+        name: "未スケジュールタスク",
+      });
+      const badge = toggleButton.querySelector(".rounded-full");
+      expect(badge?.textContent).toBe("2");
+    });
+  });
+
+  it("カレンダー上のタスクをサイドバーにドロップして未スケジュールに戻せる", async () => {
+    mockFetchTasks.mockResolvedValue([mockTask]);
+    mockUpdateTask.mockResolvedValue({ ...mockTask, date: null });
+
+    renderWithQueryClient(<Calendar />);
+
+    await waitFor(() => {
+      expect(screen.getByText("テストタスク")).toBeInTheDocument();
+    });
+
+    capturedOnDragEnd!({
+      active: { id: mockTask.id, data: { current: { task: mockTask } } },
+      over: { id: "unscheduled" },
+    });
+
+    await waitFor(() => {
+      expect(mockUpdateTask).toHaveBeenCalledWith(mockTask.id, {
+        date: null,
+      });
+    });
+  });
+
+  it("サイドバーの「+タスクを追加」から未スケジュールタスクを作成できる", async () => {
+    mockFetchUnscheduledTasks.mockResolvedValue([]);
+    mockCreateTask.mockResolvedValue(mockUnscheduledTask);
+
+    const user = userEvent.setup();
+    renderWithQueryClient(<Calendar />);
+
+    // サイドバーを開く
+    await user.click(
+      screen.getByRole("button", { name: "未スケジュールタスク" }),
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText("+ タスクを追加")).toBeInTheDocument();
+    });
+
+    await user.click(screen.getByText("+ タスクを追加"));
+
+    await waitFor(() => {
+      expect(
+        screen.getByText("未スケジュールタスクを追加"),
+      ).toBeInTheDocument();
     });
   });
 });

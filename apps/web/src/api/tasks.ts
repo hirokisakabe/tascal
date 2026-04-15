@@ -20,10 +20,20 @@ export async function fetchTasks(
   return res.json();
 }
 
+export async function fetchUnscheduledTasks(
+  signal?: AbortSignal,
+): Promise<Task[]> {
+  const res = await client.api.tasks.unscheduled.$get({}, { init: { signal } });
+  if (!res.ok) {
+    throw new Error("未スケジュールタスクの取得に失敗しました");
+  }
+  return res.json();
+}
+
 export async function createTask(data: {
   title: string;
   description?: string | null;
-  date: string;
+  date?: string | null;
   status?: "todo" | "done";
   categoryId?: string | null;
 }): Promise<Task> {
@@ -39,7 +49,7 @@ export async function updateTask(
   data: {
     title?: string;
     description?: string | null;
-    date?: string;
+    date?: string | null;
     status?: "todo" | "done";
     categoryId?: string | null;
   },
