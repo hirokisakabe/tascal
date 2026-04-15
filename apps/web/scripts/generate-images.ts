@@ -24,8 +24,8 @@ async function generateOgpImage() {
     <rect x="2" y="6" width="28" height="7" rx="4" fill="rgba(255,255,255,0.95)"/>
     <rect x="9" y="3" width="3" height="7" rx="1.5" fill="#fff"/>
     <rect x="20" y="3" width="3" height="7" rx="1.5" fill="#fff"/>
-    <rect x="22.75" y="19.5" width="2.5" height="7" rx="0.6" fill="#4a4181"/>
-    <rect x="20.5" y="21.75" width="7" height="2.5" rx="0.6" fill="#4a4181"/>
+    <rect x="22.75" y="19.5" width="2.5" height="7" rx="0.6" fill="#fff"/>
+    <rect x="20.5" y="21.75" width="7" height="2.5" rx="0.6" fill="#fff"/>
   </g>
   <!-- App name -->
   <text x="600" y="430" text-anchor="middle" font-family="system-ui,sans-serif" font-size="72" font-weight="700" fill="#ffffff" letter-spacing="-1">tascal</text>
