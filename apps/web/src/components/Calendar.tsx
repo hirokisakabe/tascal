@@ -205,66 +205,72 @@ export function Calendar() {
       onDragCancel={handleDragCancel}
     >
       <div className="mx-auto max-w-[1600px]">
-        <div className="mb-2 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <button
-              type="button"
-              onClick={() => setShowSidebar(!showSidebar)}
-              className="relative rounded-md border border-border bg-white p-1.5 text-on-surface-secondary hover:bg-surface-hover"
-              aria-label="未スケジュールタスク"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-                className="h-4 w-4"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M6 4.75A.75.75 0 0 1 6.75 4h10.5a.75.75 0 0 1 0 1.5H6.75A.75.75 0 0 1 6 4.75ZM6 10a.75.75 0 0 1 .75-.75h10.5a.75.75 0 0 1 0 1.5H6.75A.75.75 0 0 1 6 10Zm0 5.25a.75.75 0 0 1 .75-.75h10.5a.75.75 0 0 1 0 1.5H6.75a.75.75 0 0 1-.75-.75ZM1.99 4.75a1 1 0 0 1 1-1H3a1 1 0 0 1 1 1v.01a1 1 0 0 1-1 1h-.01a1 1 0 0 1-1-1v-.01ZM1.99 15.25a1 1 0 0 1 1-1H3a1 1 0 0 1 1 1v.01a1 1 0 0 1-1 1h-.01a1 1 0 0 1-1-1v-.01ZM1.99 10a1 1 0 0 1 1-1H3a1 1 0 0 1 1 1v.01a1 1 0 0 1-1 1h-.01a1 1 0 0 1-1-1V10Z"
-                  clipRule="evenodd"
-                />
-              </svg>
-              {unscheduledTasks.length > 0 && (
-                <span className="absolute -top-1.5 -right-1.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-white">
-                  {unscheduledTasks.length}
-                </span>
-              )}
-            </button>
-            <h2 className="text-xl font-bold text-on-surface">
-              {year}年{month}月
-            </h2>
-          </div>
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={goToToday}
-              className="rounded-md border border-border bg-white px-2 py-1 text-xs text-on-surface-secondary hover:bg-surface-hover"
-            >
-              今日
-            </button>
-            <button
-              type="button"
-              onClick={goToPrevMonth}
-              className="rounded-md border border-border bg-white px-2 py-1 text-xs text-on-surface-secondary hover:bg-surface-hover"
-            >
-              ←
-            </button>
-            <button
-              type="button"
-              onClick={goToNextMonth}
-              className="rounded-md border border-border bg-white px-2 py-1 text-xs text-on-surface-secondary hover:bg-surface-hover"
-            >
-              →
-            </button>
-          </div>
-        </div>
-
         {error && (
           <div className="mb-4 rounded-md bg-danger-light px-4 py-3 text-sm text-danger">
             {error}
           </div>
         )}
+
+        <div className="mb-2 flex items-center gap-4">
+          <div
+            className="shrink-0 overflow-hidden transition-[width] duration-300 ease-in-out"
+            style={{ width: showSidebar ? "16rem" : "0px" }}
+          />
+          <div className="flex min-w-0 flex-1 items-center justify-between">
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => setShowSidebar(!showSidebar)}
+                className="relative rounded-md border border-border bg-white p-1.5 text-on-surface-secondary hover:bg-surface-hover"
+                aria-label="未スケジュールタスク"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                  className="h-4 w-4"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M6 4.75A.75.75 0 0 1 6.75 4h10.5a.75.75 0 0 1 0 1.5H6.75A.75.75 0 0 1 6 4.75ZM6 10a.75.75 0 0 1 .75-.75h10.5a.75.75 0 0 1 0 1.5H6.75A.75.75 0 0 1 6 10Zm0 5.25a.75.75 0 0 1 .75-.75h10.5a.75.75 0 0 1 0 1.5H6.75a.75.75 0 0 1-.75-.75ZM1.99 4.75a1 1 0 0 1 1-1H3a1 1 0 0 1 1 1v.01a1 1 0 0 1-1 1h-.01a1 1 0 0 1-1-1v-.01ZM1.99 15.25a1 1 0 0 1 1-1H3a1 1 0 0 1 1 1v.01a1 1 0 0 1-1 1h-.01a1 1 0 0 1-1-1v-.01ZM1.99 10a1 1 0 0 1 1-1H3a1 1 0 0 1 1 1v.01a1 1 0 0 1-1 1h-.01a1 1 0 0 1-1-1V10Z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+                {unscheduledTasks.length > 0 && (
+                  <span className="absolute -top-1.5 -right-1.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-white">
+                    {unscheduledTasks.length}
+                  </span>
+                )}
+              </button>
+              <h2 className="text-xl font-bold text-on-surface">
+                {year}年{month}月
+              </h2>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={goToToday}
+                className="rounded-md border border-border bg-white px-2 py-1 text-xs text-on-surface-secondary hover:bg-surface-hover"
+              >
+                今日
+              </button>
+              <button
+                type="button"
+                onClick={goToPrevMonth}
+                className="rounded-md border border-border bg-white px-2 py-1 text-xs text-on-surface-secondary hover:bg-surface-hover"
+              >
+                ←
+              </button>
+              <button
+                type="button"
+                onClick={goToNextMonth}
+                className="rounded-md border border-border bg-white px-2 py-1 text-xs text-on-surface-secondary hover:bg-surface-hover"
+              >
+                →
+              </button>
+            </div>
+          </div>
+        </div>
 
         <div className="flex items-stretch gap-4">
           <UnscheduledTasksSidebar
