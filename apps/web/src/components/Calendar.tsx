@@ -207,9 +207,6 @@ export function Calendar() {
       <div className="mx-auto max-w-[1600px]">
         <div className="mb-2 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <h2 className="text-xl font-bold text-on-surface">
-              {year}年{month}月
-            </h2>
             <button
               type="button"
               onClick={() => setShowSidebar(!showSidebar)}
@@ -234,6 +231,9 @@ export function Calendar() {
                 </span>
               )}
             </button>
+            <h2 className="text-xl font-bold text-on-surface">
+              {year}年{month}月
+            </h2>
           </div>
           <div className="flex items-center gap-2">
             <button
