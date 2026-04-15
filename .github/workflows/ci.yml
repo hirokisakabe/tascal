@@ -49,6 +49,23 @@ jobs:
       - name: Knip
         run: pnpm --filter @tascal/web run knip
 
+  mobile:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Lint
+        run: pnpm --filter @tascal/mobile run lint
+      - name: Format check
+        run: pnpm --filter @tascal/mobile run format:check
+      - name: Type check
+        run: pnpm --filter @tascal/mobile run typecheck
+
   cli:
     runs-on: ubuntu-latest
     steps:
