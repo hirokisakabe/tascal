@@ -8,12 +8,13 @@ tascal (task + calendar) — カレンダービューがメインのタスク管
 
 ## 技術スタック
 
-- **モノレポ**: `apps/api` (バックエンド) + `apps/web` (フロントエンド) + `apps/cli` (CLI)、pnpm workspaces で依存管理を統一
+- **モノレポ**: `apps/api` (バックエンド) + `apps/web` (フロントエンド) + `apps/cli` (CLI) + `apps/mobile` (iOS)、pnpm workspaces で依存管理を統一
 - **API**: Hono + Node.js + TypeScript、Zod バリデーション
 - **Web**: React 19 + Vite + TanStack Router (ファイルベースルーティング) + TanStack React Query + dnd-kit + Tailwind CSS v4 + Headless UI
 - **CLI**: citty (CLI フレームワーク) + consola (ロギング)、npm パッケージ `tascal-cli` として公開
 - **DB**: PostgreSQL 17 (Docker Compose) + Drizzle ORM
 - **認証**: better-auth (メール/パスワード + Bearer トークン)
+- **Mobile**: Expo SDK 54 + expo-router + React Native、Expo Go で開発
 - **テスト**: Vitest (API: app.request() + DB モック、Web: React Testing Library + jsdom、CLI: fs/fetch モック)
 - **Node.js**: v24 (.node-version)
 
@@ -82,6 +83,16 @@ pnpm --filter @tascal/web exec vitest run src/components/Calendar.test.tsx
 - `src/api.ts` — API クライアント (Bearer トークン認証)
 - `src/config.ts` — 設定管理 (`~/.tascalrc` に JSON 保存)
 
+### Mobile (apps/mobile)
+
+- `app/` — expo-router のファイルベースルーティング
+  - `_layout.tsx` — ルートレイアウト (Stack ナビゲーション、ダーク/ライトテーマ対応)
+  - `(tabs)/` — タブナビゲーション (Home, Explore)
+  - `modal.tsx` — モーダル画面
+- `components/` — ThemedText, ThemedView, ParallaxScrollView 等の共通コンポーネント
+- `constants/theme.ts` — テーマカラー定義
+- `hooks/` — useColorScheme, useThemeColor
+
 ### DB スキーマ
 
 tasks テーブルの主要カラム: `id`, `userId`, `title`, `description`, `date` (DATE型), `status` ('todo' | 'done'), `createdAt`, `updatedAt`
@@ -103,7 +114,7 @@ Vite dev server が `/api` を `http://localhost:3000` にプロキシ。
 
 ## CI
 
-GitHub Actions (`.github/workflows/ci.yml`) が PR で api, web, cli の 3 ジョブを実行。各ジョブで lint, format-check, typecheck, test, knip を実行。
+GitHub Actions (`.github/workflows/ci.yml`) が PR で api, web, cli, mobile の 4 ジョブを実行。各ジョブで lint, format-check, typecheck 等を実行（test, knip は mobile 以外）。
 
 ## テスト方針
 
