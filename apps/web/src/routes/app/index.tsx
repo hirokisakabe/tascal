@@ -44,10 +44,10 @@ function HomePage() {
           </div>
         </div>
       </header>
-      <main className="p-4">
+      <main className="px-4 pt-4 pb-8">
         <Calendar />
       </main>
-      <footer className="border-t border-border-light px-4 py-6">
+      <footer className="border-t border-border-light bg-white px-4 py-6">
         <div className="mx-auto flex max-w-[1600px] flex-col items-center gap-2">
           <div className="flex gap-4 text-sm">
             <Link
