@@ -45,6 +45,17 @@ describe("getCalendarDays (月曜始まり)", () => {
     expect(days[6].isCurrentMonth).toBe(true);
   });
 
+  it("常に42セル（6行）を返す", () => {
+    // 5週で収まる月（2026年6月: 月曜始まり, 30日）
+    expect(getCalendarDays(2026, 6)).toHaveLength(42);
+
+    // 6週必要な月（2026年8月: 土曜始まり, 31日）
+    expect(getCalendarDays(2026, 8)).toHaveLength(42);
+
+    // パディングなし + 28日（2027年2月: 月曜始まり）
+    expect(getCalendarDays(2027, 2)).toHaveLength(42);
+  });
+
   it("各行が月〜日の順に並ぶ (2026年4月)", () => {
     const days = getCalendarDays(2026, 4);
 

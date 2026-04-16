@@ -26,9 +26,8 @@ export function getCalendarDays(year: number, month: number): CalendarDay[] {
     });
   }
 
-  // 翌月のパディング (6行 = 42セルまで埋める)
-  const totalCells = days.length <= 35 ? 35 : 42;
-  const remaining = totalCells - days.length;
+  // 翌月のパディング (常に6行 = 42セルで統一)
+  const remaining = 42 - days.length;
   for (let i = 1; i <= remaining; i++) {
     days.push({
       date: new Date(year, month, i),
