@@ -190,6 +190,37 @@ describe("Calendar", () => {
     });
   });
 
+  it("5週で収まる月でも常に42セル（6行）描画される", async () => {
+    const user = userEvent.setup();
+    renderWithQueryClient(<Calendar />);
+
+    const now = new Date();
+    await waitFor(() => {
+      expect(
+        screen.getByText(`${now.getFullYear()}年${now.getMonth() + 1}月`),
+      ).toBeInTheDocument();
+    });
+
+    // 2027年2月（月曜始まり・28日 = 5週で収まる月）までナビゲーション
+    const target = new Date(2027, 1, 1);
+    const currentTotal = now.getFullYear() * 12 + (now.getMonth() + 1);
+    const targetTotal = target.getFullYear() * 12 + (target.getMonth() + 1);
+    const diff = targetTotal - currentTotal;
+    const button = diff > 0 ? "→" : "←";
+    for (let i = 0; i < Math.abs(diff); i++) {
+      await user.click(screen.getByText(button));
+    }
+
+    await waitFor(() => {
+      expect(screen.getByText("2027年2月")).toBeInTheDocument();
+    });
+
+    const dayCells = screen.getAllByRole("button", {
+      name: /にタスクを追加$/,
+    });
+    expect(dayCells).toHaveLength(42);
+  });
+
   it("タスク取得失敗時にエラーメッセージを表示する", async () => {
     mockFetchTasks.mockRejectedValue(new Error("API error"));
     renderWithQueryClient(<Calendar />);
