@@ -27,8 +27,11 @@ export function DraggableTask({
       ref={setNodeRef}
       {...listeners}
       {...attributes}
-      onClick={(e) => e.stopPropagation()}
-      className={`flex items-center gap-1 rounded px-1 py-0 text-xs leading-tight h-[2rem] touch-none ${isDragging ? "cursor-grabbing" : "cursor-grab"} ${
+      onClick={(e) => {
+        e.stopPropagation();
+        onTaskClick(task);
+      }}
+      className={`flex items-center gap-1 rounded px-1 py-0 text-xs leading-tight h-[2rem] touch-none ${isDragging ? "cursor-grabbing" : "cursor-pointer"} ${
         isDragging
           ? "border border-dashed border-border bg-surface text-transparent [&_input]:invisible"
           : task.status === "done"
@@ -51,12 +54,7 @@ export function DraggableTask({
         onPointerDown={(e) => e.stopPropagation()}
         className="h-3.5 w-3.5 shrink-0 cursor-pointer"
       />
-      <span
-        className="cursor-pointer break-all line-clamp-2"
-        onClick={() => onTaskClick(task)}
-      >
-        {task.title}
-      </span>
+      <span className="break-all line-clamp-2">{task.title}</span>
     </div>
   );
 }
