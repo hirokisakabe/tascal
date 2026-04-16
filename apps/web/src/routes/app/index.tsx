@@ -80,7 +80,7 @@ function HomePage() {
             </a>
           </div>
           <p className="text-sm text-on-surface-secondary">
-            &copy; 2026 tascal
+            &copy; 2026 Hiroki SAKABE
           </p>
         </div>
       </footer>
