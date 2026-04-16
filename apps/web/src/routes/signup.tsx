@@ -24,10 +24,12 @@ function SignupPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [isPending, setIsPending] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setIsPending(true);
 
     void authClient.signUp
       .email({
@@ -38,9 +40,14 @@ function SignupPage() {
       .then(({ error }) => {
         if (error) {
           setError(error.message ?? "サインアップに失敗しました");
+          setIsPending(false);
           return;
         }
         void navigate({ to: "/app" });
+      })
+      .catch(() => {
+        setError("サインアップに失敗しました");
+        setIsPending(false);
       });
   };
 
@@ -123,9 +130,10 @@ function SignupPage() {
           </p>
           <button
             type="submit"
-            className="w-full rounded-md bg-primary px-4 py-2 text-sm text-white hover:bg-primary-dark"
+            disabled={isPending}
+            className="w-full rounded-md bg-primary px-4 py-2 text-sm text-white hover:bg-primary-dark disabled:opacity-50"
           >
-            サインアップ
+            {isPending ? "サインアップ中..." : "サインアップ"}
           </button>
         </form>
         <p className="mt-4 text-center text-sm text-on-surface-secondary">

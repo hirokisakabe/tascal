@@ -76,6 +76,26 @@ describe("SettingsPage アカウントセクション", () => {
     ).toBeInTheDocument();
   });
 
+  it("ログアウトボタンクリック中は disabled になり「ログアウト中...」と表示される", async () => {
+    let resolveSignOut!: (value: void) => void;
+    mockSignOut.mockReturnValue(
+      new Promise((resolve) => {
+        resolveSignOut = resolve;
+      }),
+    );
+    const user = userEvent.setup();
+    renderSettingsPage();
+
+    await user.click(screen.getByRole("button", { name: "ログアウト" }));
+
+    await waitFor(() => {
+      const button = screen.getByRole("button", { name: "ログアウト中..." });
+      expect(button).toBeDisabled();
+    });
+
+    resolveSignOut();
+  });
+
   it("アカウント削除ボタンが表示される", () => {
     renderSettingsPage();
 
