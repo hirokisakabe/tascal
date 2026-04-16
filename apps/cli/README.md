@@ -1,6 +1,6 @@
 # tascal-cli
 
-[tascal](https://github.com/hirokisakabe/tascal) の CLI ツール — カレンダーベースのタスク管理アプリ。
+[tascal](https://github.com/hirokisakabe/tascal) の CLI ツール — シンプルなカレンダー UI でタスクを俯瞰・整理できるタスク管理アプリ。
 
 ## インストール
 
