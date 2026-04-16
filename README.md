@@ -14,7 +14,7 @@
 
 <div align="center">
 
-![tascal — カレンダービューでタスクを管理](apps/web/public/screenshot.png)
+![tascal — シンプルなカレンダー UI でタスクを俯瞰・整理できるタスク管理アプリ](apps/web/public/screenshot.png)
 
 </div>
 

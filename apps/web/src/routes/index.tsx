@@ -33,7 +33,7 @@ function LandingPage() {
             タスク管理を、カレンダーから。
           </h1>
           <p className="mx-auto mb-8 max-w-xl text-lg text-on-surface-secondary">
-            カレンダービューでタスクを直感的に管理。ドラッグ&ドロップで手軽にスケジュールを調整できます。
+            シンプルなカレンダー UI でタスクを俯瞰・整理できるタスク管理アプリ
           </p>
           <Link
             to="/signup"
