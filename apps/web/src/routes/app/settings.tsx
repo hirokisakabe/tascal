@@ -115,7 +115,7 @@ function SettingsPage() {
       </header>
 
       <main className="mx-auto max-w-2xl p-4">
-        <h2 className="mb-4 text-xl font-bold text-on-surface">カテゴリ管理</h2>
+        <h2 className="mb-4 text-xl font-bold text-on-surface">カテゴリ</h2>
 
         {error && (
           <div className="mb-4 rounded-md bg-danger-light px-3 py-2 text-sm text-danger">
