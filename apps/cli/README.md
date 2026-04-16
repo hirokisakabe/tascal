@@ -1,62 +1,62 @@
 # tascal-cli
 
-CLI for [tascal](https://github.com/hirokisakabe/tascal) — a calendar-based task management app.
+[tascal](https://github.com/hirokisakabe/tascal) の CLI ツール — シンプルなカレンダー UI でタスクを俯瞰・整理できるタスク管理アプリ。
 
-## Install
+## インストール
 
 ```bash
 npm install -g tascal-cli
 ```
 
-## Usage
+## 使い方
 
 ```bash
-# Log in to tascal
+# tascal にログイン
 tascal-cli login
 
-# List tasks
+# タスク一覧を表示
 tascal-cli list
 tascal-cli list --month 4 --year 2026
 
-# Add a task
-tascal-cli add --title "Buy milk" --date 2026-04-12
-tascal-cli add --title "Meeting" --date 2026-04-13 --category <category-id>
+# タスクを追加
+tascal-cli add --title "牛乳を買う" --date 2026-04-12
+tascal-cli add --title "ミーティング" --date 2026-04-13 --category <category-id>
 
-# Edit a task
-tascal-cli edit <id> --title "Buy oat milk"
+# タスクを編集
+tascal-cli edit <id> --title "オーツミルクを買う"
 tascal-cli edit <id> --category <category-id>
 
-# Mark as done / undo
+# 完了 / 未完了にする
 tascal-cli done <id>
 tascal-cli undo <id>
 
-# Delete a task
+# タスクを削除
 tascal-cli delete <id>
 
-# Manage categories
+# カテゴリを管理
 tascal-cli category list
-tascal-cli category add --name "Work" --color blue
-tascal-cli category edit <id> --name "Personal" --color green
+tascal-cli category add --name "仕事" --color blue
+tascal-cli category edit <id> --name "プライベート" --color green
 tascal-cli category delete <id>
 
-# Log out
+# ログアウト
 tascal-cli logout
 ```
 
-## Commands
+## コマンド
 
-| Command    | Description                              |
+| コマンド   | 説明                                     |
 | ---------- | ---------------------------------------- |
-| `login`    | Authenticate with your tascal account    |
-| `logout`   | Remove stored credentials                |
-| `list`     | List tasks for a given month             |
-| `add`      | Create a new task                        |
-| `edit`     | Update an existing task                  |
-| `done`     | Mark a task as done                      |
-| `undo`     | Mark a task as not done                  |
-| `delete`   | Delete a task                            |
-| `category` | Manage categories (list/add/edit/delete) |
+| `login`    | tascal アカウントで認証する              |
+| `logout`   | 保存された認証情報を削除する             |
+| `list`     | 指定した月のタスク一覧を表示する         |
+| `add`      | 新しいタスクを作成する                   |
+| `edit`     | 既存のタスクを更新する                   |
+| `done`     | タスクを完了にする                       |
+| `undo`     | タスクを未完了に戻す                     |
+| `delete`   | タスクを削除する                         |
+| `category` | カテゴリを管理する (一覧/追加/編集/削除) |
 
-## License
+## ライセンス
 
 MIT
