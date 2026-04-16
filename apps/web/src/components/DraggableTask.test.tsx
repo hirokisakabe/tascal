@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { DraggableTask } from "./DraggableTask";
 import type { Task } from "../types/task";
 import type { Category } from "../types/category";
@@ -70,6 +71,44 @@ describe("DraggableTask", () => {
       backgroundColor: CATEGORY_COLORS.blue.bg,
     });
     expect(el).toHaveClass("line-through");
+  });
+
+  it("タスク行クリックで onTaskClick が呼ばれる", async () => {
+    const onTaskClick = vi.fn();
+    const user = userEvent.setup();
+    render(
+      <DraggableTask
+        task={baseTask}
+        category={category}
+        onTaskClick={onTaskClick}
+        onToggleStatus={noop}
+      />,
+    );
+
+    const row = screen.getByText("テストタスク").closest("div[class]")!;
+    await user.click(row);
+
+    expect(onTaskClick).toHaveBeenCalledWith(baseTask);
+  });
+
+  it("チェックボックスクリックで onTaskClick は呼ばれない", async () => {
+    const onTaskClick = vi.fn();
+    const onToggleStatus = vi.fn();
+    const user = userEvent.setup();
+    render(
+      <DraggableTask
+        task={baseTask}
+        category={category}
+        onTaskClick={onTaskClick}
+        onToggleStatus={onToggleStatus}
+      />,
+    );
+
+    const checkbox = screen.getByRole("checkbox");
+    await user.click(checkbox);
+
+    expect(onToggleStatus).toHaveBeenCalledWith(baseTask);
+    expect(onTaskClick).not.toHaveBeenCalled();
   });
 
   it("カテゴリ未設定の done タスクは白背景", () => {
