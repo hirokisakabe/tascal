@@ -17,7 +17,9 @@
     "db:seed": "pnpm --filter @tascal/api run db:seed"
   },
   "pnpm": {
-    "onlyBuiltDependencies": ["esbuild"]
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ]
   },
   "devDependencies": {
     "@changesets/cli": "^2.30.0",
@@ -28,8 +30,8 @@
     "knip": "^6.4.0",
     "prettier": "^3.5.3",
     "tsx": "^4.19.4",
-    "typescript": "^5.8.3",
-    "typescript-eslint": "^8.31.0",
+    "typescript": "^6.0.2",
+    "typescript-eslint": "^8.58.2",
     "vitest": "^4.1.0"
   }
 }
