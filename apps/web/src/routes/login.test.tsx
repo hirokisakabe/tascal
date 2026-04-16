@@ -113,6 +113,31 @@ describe("LoginPage", () => {
     });
   });
 
+  it("API 呼び出し中はボタンが disabled になり「ログイン中...」と表示される", async () => {
+    let resolveSignIn!: (value: { error: null }) => void;
+    mockSignInEmail.mockReturnValue(
+      new Promise((resolve) => {
+        resolveSignIn = resolve;
+      }),
+    );
+    const user = userEvent.setup();
+    renderLoginPage();
+
+    await user.type(
+      screen.getByLabelText("メールアドレス"),
+      "test@example.com",
+    );
+    await user.type(screen.getByLabelText("パスワード"), "password123");
+    await user.click(screen.getByRole("button", { name: "ログイン" }));
+
+    await waitFor(() => {
+      const button = screen.getByRole("button", { name: "ログイン中..." });
+      expect(button).toBeDisabled();
+    });
+
+    resolveSignIn({ error: null });
+  });
+
   it("サインアップページへのナビゲーションリンクが動作する", async () => {
     const user = userEvent.setup();
     renderLoginPage();

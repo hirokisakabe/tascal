@@ -18,10 +18,12 @@ function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [isPending, setIsPending] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setIsPending(true);
 
     void authClient.signIn
       .email({
@@ -31,9 +33,14 @@ function LoginPage() {
       .then(({ error }) => {
         if (error) {
           setError(error.message ?? "ログインに失敗しました");
+          setIsPending(false);
           return;
         }
         void navigate({ to: "/app" });
+      })
+      .catch(() => {
+        setError("ログインに失敗しました");
+        setIsPending(false);
       });
   };
 
@@ -83,9 +90,10 @@ function LoginPage() {
           )}
           <button
             type="submit"
-            className="w-full rounded-md bg-primary px-4 py-2 text-sm text-white hover:bg-primary-dark"
+            disabled={isPending}
+            className="w-full rounded-md bg-primary px-4 py-2 text-sm text-white hover:bg-primary-dark disabled:opacity-50"
           >
-            ログイン
+            {isPending ? "ログイン中..." : "ログイン"}
           </button>
         </form>
         <p className="mt-4 text-center text-sm text-on-surface-secondary">

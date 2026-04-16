@@ -40,6 +40,7 @@ function SettingsPage() {
   );
   const [showDeleteAccountModal, setShowDeleteAccountModal] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isSigningOut, setIsSigningOut] = useState(false);
 
   const handleCreate = (data: { name: string; color: CategoryColor }) => {
     setError(null);
@@ -71,9 +72,15 @@ function SettingsPage() {
   };
 
   const handleSignOut = () => {
-    void authClient.signOut().then(() => {
-      window.location.href = "/login";
-    });
+    setIsSigningOut(true);
+    void authClient
+      .signOut()
+      .then(() => {
+        window.location.href = "/login";
+      })
+      .catch(() => {
+        setIsSigningOut(false);
+      });
   };
 
   return (
@@ -215,9 +222,10 @@ function SettingsPage() {
           <button
             type="button"
             onClick={handleSignOut}
-            className="rounded-md border border-border bg-white px-4 py-2 text-sm text-on-surface-secondary hover:bg-surface-hover"
+            disabled={isSigningOut}
+            className="rounded-md border border-border bg-white px-4 py-2 text-sm text-on-surface-secondary hover:bg-surface-hover disabled:opacity-50"
           >
-            ログアウト
+            {isSigningOut ? "ログアウト中..." : "ログアウト"}
           </button>
           <div>
             <button

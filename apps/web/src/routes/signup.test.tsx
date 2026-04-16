@@ -133,6 +133,32 @@ describe("SignupPage", () => {
     });
   });
 
+  it("API 呼び出し中はボタンが disabled になり「サインアップ中...」と表示される", async () => {
+    let resolveSignUp!: (value: { error: null }) => void;
+    mockSignUpEmail.mockReturnValue(
+      new Promise((resolve) => {
+        resolveSignUp = resolve;
+      }),
+    );
+    const user = userEvent.setup();
+    renderSignupPage();
+
+    await user.type(screen.getByLabelText("名前"), "テストユーザー");
+    await user.type(
+      screen.getByLabelText("メールアドレス"),
+      "test@example.com",
+    );
+    await user.type(screen.getByLabelText("パスワード"), "password123");
+    await user.click(screen.getByRole("button", { name: "サインアップ" }));
+
+    await waitFor(() => {
+      const button = screen.getByRole("button", { name: "サインアップ中..." });
+      expect(button).toBeDisabled();
+    });
+
+    resolveSignUp({ error: null });
+  });
+
   it("利用規約とプライバシーポリシーへのリンクが表示される", () => {
     renderSignupPage();
 
