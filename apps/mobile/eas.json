@@ -13,12 +13,12 @@
     "preview": {
       "distribution": "internal",
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://tascal-api.example.com"
+        "EXPO_PUBLIC_API_URL": "https://tascal-aphbwdv5ia-an.a.run.app"
       }
     },
     "production": {
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://tascal-api.example.com"
+        "EXPO_PUBLIC_API_URL": "https://tascal-aphbwdv5ia-an.a.run.app"
       }
     }
   }
