@@ -85,11 +85,9 @@ export function MobileDayBottomSheet({
                   : null;
                 const bgColor = cat ? CATEGORY_COLORS[cat.color].bg : undefined;
                 return (
-                  <button
+                  <div
                     key={task.id}
-                    type="button"
-                    onClick={() => onTaskClick(task)}
-                    className={`flex w-full items-center gap-3 rounded-lg p-3 text-left ${
+                    className={`flex items-center gap-3 rounded-lg p-3 ${
                       task.status === "done"
                         ? "bg-surface text-on-surface-muted"
                         : bgColor
@@ -106,15 +104,16 @@ export function MobileDayBottomSheet({
                       type="checkbox"
                       checked={task.status === "done"}
                       onChange={() => onToggleStatus(task)}
-                      onClick={(e) => e.stopPropagation()}
                       className="h-4 w-4 shrink-0 cursor-pointer"
                     />
-                    <span
-                      className={`flex-1 text-sm ${task.status === "done" ? "line-through" : ""}`}
+                    <button
+                      type="button"
+                      onClick={() => onTaskClick(task)}
+                      className={`flex-1 text-left text-sm ${task.status === "done" ? "line-through" : ""}`}
                     >
                       {task.title}
-                    </span>
-                  </button>
+                    </button>
+                  </div>
                 );
               })}
             </div>

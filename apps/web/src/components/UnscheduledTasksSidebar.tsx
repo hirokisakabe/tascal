@@ -1,6 +1,7 @@
 import { useDroppable } from "@dnd-kit/core";
 import type { Task } from "../types/task";
 import type { Category } from "../types/category";
+import { useMediaQuery } from "../hooks/useMediaQuery";
 import { DraggableTask } from "./DraggableTask";
 
 type UnscheduledTasksSidebarProps = {
@@ -26,9 +27,10 @@ export function UnscheduledTasksSidebar({
   onToggleStatus,
   onAddClick,
 }: UnscheduledTasksSidebarProps) {
+  const isMobile = useMediaQuery("(max-width: 639px)");
   const { setNodeRef, isOver } = useDroppable({ id: DROPPABLE_ID });
 
-  const innerContent = (
+  const droppableContent = (
     <div className="flex h-full w-64 flex-col overflow-hidden rounded-lg border border-border-light bg-white">
       <div className="border-b border-border-light px-3 py-1 text-sm font-medium text-on-surface">
         未スケジュール
@@ -71,19 +73,10 @@ export function UnscheduledTasksSidebar({
     </div>
   );
 
-  return (
-    <>
-      {/* デスクトップ: サイドバー */}
+  if (isMobile) {
+    return (
       <div
-        className="hidden shrink-0 self-stretch overflow-hidden transition-[width] duration-300 ease-in-out sm:block"
-        style={{ width: isOpen ? "16rem" : "0px" }}
-      >
-        {innerContent}
-      </div>
-
-      {/* モバイル: オーバーレイ */}
-      <div
-        className={`fixed inset-0 z-40 sm:hidden ${isOpen ? "pointer-events-auto" : "pointer-events-none"}`}
+        className={`fixed inset-0 z-40 ${isOpen ? "pointer-events-auto" : "pointer-events-none"}`}
       >
         <div
           className={`absolute inset-0 bg-black/30 transition-opacity duration-300 ${isOpen ? "opacity-100" : "opacity-0"}`}
@@ -92,9 +85,18 @@ export function UnscheduledTasksSidebar({
         <div
           className={`absolute top-0 bottom-0 left-0 w-64 shadow-xl transition-transform duration-300 ${isOpen ? "translate-x-0" : "-translate-x-full"}`}
         >
-          {innerContent}
+          {droppableContent}
         </div>
       </div>
-    </>
+    );
+  }
+
+  return (
+    <div
+      className="shrink-0 self-stretch overflow-hidden transition-[width] duration-300 ease-in-out"
+      style={{ width: isOpen ? "16rem" : "0px" }}
+    >
+      {droppableContent}
+    </div>
   );
 }
