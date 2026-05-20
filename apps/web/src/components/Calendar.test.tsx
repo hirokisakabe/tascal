@@ -64,6 +64,7 @@ vi.mock("@dnd-kit/core", () => ({
     isOver: false,
   }),
   PointerSensor: class PointerSensor {},
+  TouchSensor: class TouchSensor {},
   useSensor: () => ({}),
   useSensors: () => [],
 }));

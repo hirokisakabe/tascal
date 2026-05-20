@@ -3,6 +3,7 @@ import {
   DndContext,
   DragOverlay,
   PointerSensor,
+  TouchSensor,
   useSensor,
   useSensors,
   type DragEndEvent,
@@ -17,9 +18,11 @@ import {
   useUnscheduledTasks,
   useUpdateTask,
 } from "../hooks/useTasks";
+import { useMediaQuery } from "../hooks/useMediaQuery";
 import { CATEGORY_COLORS } from "../constants/categoryColors";
 import { getCalendarDays, formatDateKey } from "../utils/calendar";
 import { CalendarDayCell } from "./CalendarDayCell";
+import { MobileDayBottomSheet } from "./MobileDayBottomSheet";
 import { TaskFormModal } from "./TaskFormModal";
 import { TaskDetailModal } from "./TaskDetailModal";
 import {
@@ -52,9 +55,14 @@ export function Calendar() {
   const [year, setYear] = useState(now.getFullYear());
   const [month, setMonth] = useState(now.getMonth() + 1);
 
+  const isMobile = useMediaQuery("(max-width: 639px)");
+
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: { distance: 5 },
+    }),
+    useSensor(TouchSensor, {
+      activationConstraint: { delay: 250, tolerance: 5 },
     }),
   );
 
@@ -69,6 +77,9 @@ export function Calendar() {
   const [addUnscheduled, setAddUnscheduled] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [expandedDate, setExpandedDate] = useState<string | null>(null);
+
+  // モバイル用ボトムシート状態
+  const [mobileSheetDate, setMobileSheetDate] = useState<string | null>(null);
 
   const {
     data: tasks = [],
@@ -271,6 +282,7 @@ export function Calendar() {
             tasks={unscheduledTasks}
             categoryMap={categoryMap}
             isOpen={showSidebar}
+            onClose={() => setShowSidebar(false)}
             onTaskClick={setSelectedTask}
             onToggleStatus={handleToggleStatus}
             onAddClick={() => setAddUnscheduled(true)}
@@ -306,7 +318,11 @@ export function Calendar() {
                     tasks={tasksByDate.get(key) ?? []}
                     categoryMap={categoryMap}
                     isExpanded={expandedDate === key}
-                    onAddClick={setAddDate}
+                    onAddClick={(dateKey) =>
+                      isMobile
+                        ? setMobileSheetDate(dateKey)
+                        : setAddDate(dateKey)
+                    }
                     onTaskClick={setSelectedTask}
                     onToggleStatus={handleToggleStatus}
                     onShowMore={setExpandedDate}
@@ -388,6 +404,23 @@ export function Calendar() {
           }}
         />
       )}
+
+      <MobileDayBottomSheet
+        date={mobileSheetDate}
+        tasks={mobileSheetDate ? (tasksByDate.get(mobileSheetDate) ?? []) : []}
+        categoryMap={categoryMap}
+        isOpen={mobileSheetDate !== null}
+        onClose={() => setMobileSheetDate(null)}
+        onTaskClick={(task) => {
+          setMobileSheetDate(null);
+          setSelectedTask(task);
+        }}
+        onToggleStatus={handleToggleStatus}
+        onAddClick={(date) => {
+          setMobileSheetDate(null);
+          setAddDate(date);
+        }}
+      />
     </DndContext>
   );
 }

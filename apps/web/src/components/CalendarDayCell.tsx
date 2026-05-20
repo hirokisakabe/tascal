@@ -51,7 +51,7 @@ export function CalendarDayCell({
         }
       }}
       aria-label={`${dateKey}にタスクを追加`}
-      className={`group relative min-h-40 cursor-pointer border-[0.5px] border-border-light p-1.5 ${
+      className={`group relative min-h-20 cursor-pointer border-[0.5px] border-border-light p-1.5 sm:min-h-40 ${
         !isCurrentMonth ? "bg-surface" : "bg-white"
       } ${isOver ? "bg-primary-lighter ring-2 ring-primary-muted ring-inset" : isExpanded ? "" : ""}`}
     >
@@ -69,8 +69,13 @@ export function CalendarDayCell({
         >
           {date.getDate()}
         </span>
+        {tasks.length > 0 && (
+          <span className="ml-1 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-primary/70 px-1 text-[10px] font-bold text-white sm:hidden">
+            {tasks.length}
+          </span>
+        )}
       </div>
-      <div className="space-y-1">
+      <div className="hidden space-y-1 sm:block">
         {visibleTasks.map((task) => (
           <DraggableTask
             key={task.id}
