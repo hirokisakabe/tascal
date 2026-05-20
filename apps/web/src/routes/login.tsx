@@ -1,6 +1,7 @@
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { authClient } from "../auth-client";
+import { LoadingScreen } from "../components/LoadingScreen";
 
 export const Route = createFileRoute("/login")({
   beforeLoad: async () => {
@@ -10,6 +11,7 @@ export const Route = createFileRoute("/login")({
       throw redirect({ to: "/app" });
     }
   },
+  pendingComponent: LoadingScreen,
   component: LoginPage,
 });
 
