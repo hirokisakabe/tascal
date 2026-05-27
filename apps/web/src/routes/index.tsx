@@ -8,7 +8,8 @@ export const Route = createFileRoute("/")({
         "matchMedia" in window &&
         window.matchMedia("(display-mode: standalone)").matches) ||
       (typeof navigator !== "undefined" &&
-        (navigator as Navigator & { standalone?: boolean }).standalone === true);
+        (navigator as Navigator & { standalone?: boolean }).standalone ===
+          true);
     if (isStandalone) {
       // eslint-disable-next-line @typescript-eslint/only-throw-error
       throw redirect({ to: "/app" });
