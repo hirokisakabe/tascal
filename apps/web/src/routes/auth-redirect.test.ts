@@ -44,6 +44,60 @@ describe("/login beforeLoad", () => {
   });
 });
 
+describe("/ beforeLoad (PWA standalone redirect)", () => {
+  beforeEach(() => {
+    vi.resetModules();
+  });
+
+  it("display-mode: standalone のとき /app にリダイレクトする", async () => {
+    Object.defineProperty(window, "matchMedia", {
+      writable: true,
+      value: (query: string) => ({
+        matches: query === "(display-mode: standalone)",
+        media: query,
+        onchange: null,
+        addListener: () => {},
+        removeListener: () => {},
+        addEventListener: () => {},
+        removeEventListener: () => {},
+        dispatchEvent: () => false,
+      }),
+    });
+
+    const { Route } = await import("./index");
+    const beforeLoad = Route.options.beforeLoad!;
+
+    try {
+      (beforeLoad as () => void)();
+      expect.fail("redirect が throw されるべき");
+    } catch (e) {
+      expect(isRedirect(e)).toBe(true);
+      expect((e as { options: { to: string } }).options.to).toBe("/app");
+    }
+  });
+
+  it("通常ブラウザ (non-standalone) ではリダイレクトしない", async () => {
+    Object.defineProperty(window, "matchMedia", {
+      writable: true,
+      value: (query: string) => ({
+        matches: false,
+        media: query,
+        onchange: null,
+        addListener: () => {},
+        removeListener: () => {},
+        addEventListener: () => {},
+        removeEventListener: () => {},
+        dispatchEvent: () => false,
+      }),
+    });
+
+    const { Route } = await import("./index");
+    const beforeLoad = Route.options.beforeLoad!;
+
+    expect(() => (beforeLoad as () => void)()).not.toThrow();
+  });
+});
+
 describe("/signup beforeLoad", () => {
   beforeEach(() => {
     vi.resetModules();
