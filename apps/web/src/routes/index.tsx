@@ -1,6 +1,16 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/")({
+  beforeLoad: () => {
+    // PWA standalone モードで起動した場合は /app へリダイレクト
+    const isStandalone =
+      window.matchMedia("(display-mode: standalone)").matches ||
+      (navigator as Navigator & { standalone?: boolean }).standalone === true;
+    if (isStandalone) {
+      // eslint-disable-next-line @typescript-eslint/only-throw-error
+      throw redirect({ to: "/app" });
+    }
+  },
   component: LandingPage,
 });
 
