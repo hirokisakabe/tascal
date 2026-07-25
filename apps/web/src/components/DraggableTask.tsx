@@ -6,6 +6,7 @@ import { CATEGORY_COLORS } from "../constants/categoryColors";
 type DraggableTaskProps = {
   task: Task;
   category: Category | null;
+  muted?: boolean;
   onTaskClick: (task: Task) => void;
   onToggleStatus: (task: Task) => void;
 };
@@ -13,6 +14,7 @@ type DraggableTaskProps = {
 export function DraggableTask({
   task,
   category,
+  muted = false,
   onTaskClick,
   onToggleStatus,
 }: DraggableTaskProps) {
@@ -31,7 +33,7 @@ export function DraggableTask({
         e.stopPropagation();
         onTaskClick(task);
       }}
-      className={`flex items-center gap-1 rounded px-1 py-0 text-xs leading-tight h-[2rem] touch-none ${isDragging ? "cursor-grabbing" : "cursor-pointer"} ${
+      className={`flex items-center gap-1 rounded px-1 py-0 text-xs leading-tight h-[2rem] touch-none ${muted ? "opacity-70" : ""} ${isDragging ? "cursor-grabbing" : "cursor-pointer"} ${
         isDragging
           ? "border border-dashed border-border bg-surface text-transparent [&_input]:invisible"
           : task.status === "done"

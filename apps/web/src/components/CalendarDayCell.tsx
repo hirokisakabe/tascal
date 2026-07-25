@@ -85,6 +85,7 @@ export function CalendarDayCell({
                 ? (categoryMap.get(task.categoryId) ?? null)
                 : null
             }
+            muted={!isCurrentMonth}
             onTaskClick={onTaskClick}
             onToggleStatus={onToggleStatus}
           />

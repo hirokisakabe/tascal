@@ -169,7 +169,9 @@ describe("Calendar", () => {
     const user = userEvent.setup();
     renderWithQueryClient(<Calendar />);
 
-    await user.click(await screen.findByText("前後月のタスク"));
+    const task = await screen.findByText("前後月のタスク");
+    expect(task.closest("div")).toHaveClass("opacity-70");
+    await user.click(task);
 
     expect(screen.getByText("タスクの詳細")).toBeInTheDocument();
     expect(screen.getByDisplayValue("前後月のタスク")).toBeInTheDocument();
