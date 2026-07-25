@@ -1,5 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { Hono } from "hono";
+import type { SQL } from "drizzle-orm";
+import { PgDialect } from "drizzle-orm/pg-core";
 import type { Auth } from "../auth.js";
 
 type AuthVariables = {
@@ -41,6 +43,10 @@ const mockUnscheduledTask = {
 
 // DB モック
 const mockSelect = vi.fn();
+const mockWhere = vi.fn((condition: SQL) => {
+  void condition;
+  return { orderBy: mockSelect };
+});
 const mockInsert = vi.fn();
 const mockUpdate = vi.fn();
 const mockDelete = vi.fn();
@@ -49,9 +55,7 @@ vi.mock("../db/index.js", () => ({
   getDb: () => ({
     select: () => ({
       from: () => ({
-        where: () => ({
-          orderBy: mockSelect,
-        }),
+        where: mockWhere,
       }),
     }),
     insert: () => ({
@@ -144,6 +148,8 @@ describe("GET /api/tasks", () => {
     expect(json[0].title).toBe("テストタスク");
     expect(json[0].id).toBe(mockTask.id);
     expect(mockSelect).toHaveBeenCalled();
+    const query = new PgDialect().sqlToQuery(mockWhere.mock.calls[0][0]);
+    expect(query.params).toEqual([mockUser.id, "2026-03-01", "2026-04-01"]);
   });
 
   it("year が未指定の場合 400 を返す", async () => {
@@ -164,6 +170,74 @@ describe("GET /api/tasks", () => {
       jsonRequest("GET", "/api/tasks?year=2026&month=13"),
     );
     expect(res.status).toBe(400);
+  });
+
+  it("日付範囲パラメータだけでは月単位取得として扱わない", async () => {
+    const app = await createTestApp();
+    const res = await app.request(
+      jsonRequest("GET", "/api/tasks?startDate=2026-02-23&endDate=2026-04-05"),
+    );
+
+    expect(res.status).toBe(400);
+    expect(mockSelect).not.toHaveBeenCalled();
+  });
+});
+
+describe("GET /api/tasks/range", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("開始日から終了日までのタスク一覧を取得できる", async () => {
+    const adjacentMonthTask = {
+      ...mockTask,
+      id: "770e8400-e29b-41d4-a716-446655440002",
+      title: "翌月のタスク",
+      date: "2026-04-05",
+    };
+    mockSelect.mockResolvedValue([mockTask, adjacentMonthTask]);
+    const app = await createTestApp();
+
+    const res = await app.request(
+      jsonRequest(
+        "GET",
+        "/api/tasks/range?startDate=2026-02-23&endDate=2026-04-05",
+      ),
+    );
+
+    expect(res.status).toBe(200);
+    const json = (await res.json()) as (typeof mockTask)[];
+    expect(json.map((task) => task.date)).toEqual(["2026-03-15", "2026-04-05"]);
+    expect(mockSelect).toHaveBeenCalledOnce();
+    const query = new PgDialect().sqlToQuery(mockWhere.mock.calls[0][0]);
+    expect(query.params).toEqual([mockUser.id, "2026-02-23", "2026-04-05"]);
+    expect(query.sql).toContain('"tasks"."date" <= $3');
+  });
+
+  it("開始日が終了日より後の場合 400 を返す", async () => {
+    const app = await createTestApp();
+    const res = await app.request(
+      jsonRequest(
+        "GET",
+        "/api/tasks/range?startDate=2026-04-05&endDate=2026-02-23",
+      ),
+    );
+
+    expect(res.status).toBe(400);
+    expect(mockSelect).not.toHaveBeenCalled();
+  });
+
+  it("日付が不正な場合 400 を返す", async () => {
+    const app = await createTestApp();
+    const res = await app.request(
+      jsonRequest(
+        "GET",
+        "/api/tasks/range?startDate=invalid&endDate=2026-04-05",
+      ),
+    );
+
+    expect(res.status).toBe(400);
+    expect(mockSelect).not.toHaveBeenCalled();
   });
 });
 

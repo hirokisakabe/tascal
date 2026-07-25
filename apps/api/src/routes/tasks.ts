@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { z } from "zod";
 import { zValidator } from "@hono/zod-validator";
-import { eq, and, gte, lt, asc, isNull } from "drizzle-orm";
+import { eq, and, gte, lt, lte, asc, isNull } from "drizzle-orm";
 import { getDb } from "../db/index.js";
 import { categories, tasks } from "../db/schema.js";
 import type { Auth } from "../auth.js";
@@ -40,6 +40,15 @@ const listQuerySchema = z.object({
   month: z.coerce.number().int().min(1).max(12),
 });
 
+const rangeQuerySchema = z
+  .object({
+    startDate: z.string().date(),
+    endDate: z.string().date(),
+  })
+  .refine(({ startDate, endDate }) => startDate <= endDate, {
+    message: "開始日は終了日以前の日付を指定してください",
+  });
+
 const paramIdSchema = z.object({
   id: z.string().uuid("不正なタスクIDです"),
 });
@@ -71,6 +80,25 @@ const app = new Hono<{ Variables: AuthVariables }>()
           eq(tasks.userId, user.id),
           gte(tasks.date, startDate),
           lt(tasks.date, endDate),
+        ),
+      )
+      .orderBy(asc(tasks.status), asc(tasks.createdAt));
+
+    return c.json(result);
+  })
+  // GET /api/tasks/range?startDate=YYYY-MM-DD&endDate=YYYY-MM-DD
+  .get("/range", zValidator("query", rangeQuerySchema), async (c) => {
+    const user = c.get("user")!;
+    const { startDate, endDate } = c.req.valid("query");
+
+    const result = await getDb()
+      .select()
+      .from(tasks)
+      .where(
+        and(
+          eq(tasks.userId, user.id),
+          gte(tasks.date, startDate),
+          lte(tasks.date, endDate),
         ),
       )
       .orderBy(asc(tasks.status), asc(tasks.createdAt));
