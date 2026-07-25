@@ -58,7 +58,9 @@ describe("TaskDetailModal", () => {
     expect(screen.getByText("タスクの詳細")).toBeInTheDocument();
     expect(screen.getByDisplayValue("既存タスク")).toBeInTheDocument();
     expect(screen.getByDisplayValue("既存の説明")).toBeInTheDocument();
-    expect(screen.getByDisplayValue("2026-03-15")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /^日付/ })).toHaveTextContent(
+      "2026-03-15",
+    );
   });
 
   it("タイトルを変更して保存できる", async () => {
@@ -148,5 +150,39 @@ describe("TaskDetailModal", () => {
     );
 
     expect(screen.getByLabelText(/説明/)).toHaveValue("");
+  });
+
+  it("DatePicker で選択した日付を保存できる", async () => {
+    mockUpdateTask.mockResolvedValue({ ...mockTask, date: "2026-03-20" });
+    const user = userEvent.setup();
+    renderWithQueryClient(<TaskDetailModal {...defaultProps} />);
+
+    await user.click(screen.getByRole("button", { name: /^日付/ }));
+    await user.click(screen.getByRole("button", { name: "2026-03-20" }));
+    await user.click(screen.getByText("保存"));
+
+    await waitFor(() => {
+      expect(mockUpdateTask).toHaveBeenCalledWith(
+        "task-1",
+        expect.objectContaining({ date: "2026-03-20" }),
+      );
+    });
+  });
+
+  it("DatePicker で日付を未設定にして保存できる", async () => {
+    mockUpdateTask.mockResolvedValue({ ...mockTask, date: null });
+    const user = userEvent.setup();
+    renderWithQueryClient(<TaskDetailModal {...defaultProps} />);
+
+    await user.click(screen.getByRole("button", { name: /^日付/ }));
+    await user.click(screen.getByRole("button", { name: "未設定に戻す" }));
+    await user.click(screen.getByText("保存"));
+
+    await waitFor(() => {
+      expect(mockUpdateTask).toHaveBeenCalledWith(
+        "task-1",
+        expect.objectContaining({ date: null }),
+      );
+    });
   });
 });
