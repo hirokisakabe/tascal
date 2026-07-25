@@ -170,11 +170,20 @@ describe("Calendar", () => {
     renderWithQueryClient(<Calendar />);
 
     const task = await screen.findByText("前後月のタスク");
-    expect(task.closest("div")).toHaveClass("opacity-70");
+    expect(task.closest("div")).toHaveClass("brightness-95", "saturate-75");
     await user.click(task);
 
     expect(screen.getByText("タスクの詳細")).toBeInTheDocument();
     expect(screen.getByDisplayValue("前後月のタスク")).toBeInTheDocument();
+  });
+
+  it("当月セルのタスクは減光しない", async () => {
+    mockFetchTasks.mockResolvedValue([mockTask]);
+    renderWithQueryClient(<Calendar />);
+
+    const task = await screen.findByText("テストタスク");
+
+    expect(task.closest("div")).not.toHaveClass("brightness-95", "saturate-75");
   });
 
   it("前後月セルのタスクを完了へ切り替えられる", async () => {

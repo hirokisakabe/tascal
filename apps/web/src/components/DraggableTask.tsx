@@ -33,7 +33,7 @@ export function DraggableTask({
         e.stopPropagation();
         onTaskClick(task);
       }}
-      className={`flex items-center gap-1 rounded px-1 py-0 text-xs leading-tight h-[2rem] touch-none ${muted ? "opacity-70" : ""} ${isDragging ? "cursor-grabbing" : "cursor-pointer"} ${
+      className={`flex items-center gap-1 rounded px-1 py-0 text-xs leading-tight h-[2rem] touch-none ${muted ? "brightness-95 saturate-75" : ""} ${isDragging ? "cursor-grabbing" : "cursor-pointer"} ${
         isDragging
           ? "border border-dashed border-border bg-surface text-transparent [&_input]:invisible"
           : task.status === "done"
