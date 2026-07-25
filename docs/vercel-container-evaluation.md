@@ -20,9 +20,15 @@ container image 機能の運用実績が蓄積し、Cloud Run と比較した実
 
 ## 試験設定
 
-リポジトリ直下の [`Dockerfile.vercel`](../Dockerfile.vercel) を使う。
-Vercel はこのファイルを自動検出し、全リクエストを container function にルーティングするため、
-単一 container 構成では `vercel.json` や Services 設定は不要。
+リポジトリ直下の [`Dockerfile.vercel`](../Dockerfile.vercel) と
+[`vercel.json`](../vercel.json) を使う。Vercel は Dockerfile を build し、
+全リクエストを container function にルーティングする。単一 container 構成のため
+Services 設定は不要。
+
+`vercel.json` では container framework を明示し、Function region を Tokyo (`hnd1`)
+に固定する。CLI で新規 project を作った際、Framework Preset が `Other` に固定されると
+`Dockerfile.vercel` の自動検出が無効になり、通常の `pnpm build` が実行されたためである。
+Neon と compute の region は可能な限り近づける。
 
 既存 `Dockerfile` との差分は runtime の port のみ。
 
@@ -43,18 +49,20 @@ curl http://localhost:8080/healthz
 Vercel CLI での試験 deploy:
 
 ```bash
-npx vercel@latest link
-npx vercel@latest env add DATABASE_URL preview
-npx vercel@latest env add BETTER_AUTH_SECRET preview
-npx vercel@latest env add BETTER_AUTH_URL preview
-npx vercel@latest env add TRUSTED_ORIGINS preview
-npx vercel@latest env add CORS_ORIGIN preview
-npx vercel@latest deploy
+npx vercel@latest link --project tascal-vercel-eval-242
+npx vercel@latest env add DATABASE_URL production --sensitive
+npx vercel@latest env add BETTER_AUTH_SECRET production --sensitive
+npx vercel@latest env add BETTER_AUTH_URL production
+npx vercel@latest env add TRUSTED_ORIGINS production
+npx vercel@latest env add CORS_ORIGIN production
+npx vercel@latest deploy --prod
 ```
 
-`BETTER_AUTH_URL`、`TRUSTED_ORIGINS`、`CORS_ORIGIN` には同じ preview URL を設定する。
-Vercel が deploy ごとに生成する URL は変わるため、継続的な preview 運用では
-固定 alias または preview 用 custom domain を用意し、その origin を環境変数へ設定する。
+今回は production の `tascal.dev` とは独立した試験 project を作り、その安定 alias
+`https://tascal-vercel-eval-242.vercel.app` を `BETTER_AUTH_URL`、
+`TRUSTED_ORIGINS`、`CORS_ORIGIN` に設定した。Vercel が deploy ごとに生成する URL は
+変わるため、継続的な preview 運用では固定 alias または preview 用 custom domain を用意し、
+その origin を環境変数へ設定する。
 
 ## 環境変数と接続
 
@@ -74,6 +82,10 @@ cookie は preview URL へ送信されない。
 migration は container 起動時に実行しない。deploy 前に `DATABASE_URL` を指定して
 `pnpm db:migrate` を一度実行し、複数 instance からの重複実行を避ける。
 `GET /healthz` は Neon に `SELECT 1` を実行するため、起動確認と DB 疎通確認を兼ねる。
+今回の試験では既存 Cloud Run preview `tascal-pr-229` と同じ Neon preview branch の
+pooled connection string を、値を表示せず Vercel の sensitive environment variable
+へ登録した。migration 済みの branch であることを確認し、Vercel からの接続を
+`GET /healthz` と CRUD の両方で検証した。
 
 CLI は `TASCAL_API_URL=<preview URL>` で接続先を、`TASCAL_CONFIG_PATH=<一時ファイル>`
 で token の保存先を切り替える。これにより `~/.tascalrc` の production URL と token を
@@ -82,14 +94,14 @@ CLI は `TASCAL_API_URL=<preview URL>` で接続先を、`TASCAL_CONFIG_PATH=<�
 
 ## 動作確認
 
-試験 URL: デプロイ後に記録する
+試験 URL: https://tascal-vercel-eval-242.vercel.app
 
 ### Web
 
-- [ ] ログイン
-- [ ] タスク作成
-- [ ] タスク更新
-- [ ] タスク削除
+- [x] ログイン
+- [x] タスク作成
+- [x] タスク更新
+- [x] タスク削除
 
 ### CLI
 
@@ -103,15 +115,15 @@ tascal-cli list
 tascal-cli add
 ```
 
-- [ ] ログイン
-- [ ] タスク一覧
-- [ ] タスク作成
+- [x] ログイン
+- [x] タスク一覧
+- [x] タスク作成
 
 ### 運用確認
 
-- [ ] `GET /healthz` が `200 {"status":"ok"}` を返す
-- [ ] Vercel runtime logs で起動・API request log を確認できる
-- [ ] preview が scale-to-zero した後の初回応答時間を計測する
+- [x] `GET /healthz` が `200 {"status":"ok"}` を返す
+- [x] Vercel runtime logs で起動・API request log を確認できる
+- [x] scale-to-zero 相当の初回応答時間を計測する
 
 ## Cloud Run との比較
 
@@ -130,10 +142,20 @@ tascal-cli add
 
 ## 実測値
 
-ローカル build（Apple Silicon、Docker）:
+ローカル build（Apple Silicon、Docker）と Vercel production trial:
 
-- build 成功
-- runtime image: 426,301,468 bytes（uncompressed、arm64）
+- local build 成功
+- local runtime image: 426,301,468 bytes（uncompressed、arm64）
+- Vercel build: 118.2 秒（cache なし、`linux/amd64`）
+- Vercel Function bundle: 113.95 MB (`hnd1`)
+- 初回 `GET /healthz`: 6.88 秒（初回 deploy の `iad1` 測定）
+- warm 後の `GET /`: 0.55 秒
+- runtime logs で port 80 の起動、Neon 接続、auth、GET/POST/PATCH/DELETE の
+  success status を確認
+
+設定変更を含む再 deploy でも container layer の build と VCR push に約 2 分を要した。
+小規模な変更でも現状は image build 時間を見込む必要がある。runtime では複数 hostname
+から起動ログが出ており、同時アクセス時に複数 instance が立ち上がることも確認した。
 
 Vercel の VCR 上限は圧縮 layer 単体 500 MB、圧縮後 image 合計 15 GB。
 実 deploy では Vercel が build する `linux/amd64` / `linux/arm64` image の size を
