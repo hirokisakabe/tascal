@@ -2,8 +2,6 @@ import { readFile, writeFile, unlink } from "node:fs/promises";
 import { homedir } from "node:os";
 import { join } from "node:path";
 
-const CONFIG_PATH = join(homedir(), ".tascalrc");
-
 const DEFAULT_API_URL = "https://tascal.dev";
 
 interface Config {
@@ -11,9 +9,13 @@ interface Config {
   apiUrl?: string;
 }
 
+function getConfigPath(): string {
+  return process.env.TASCAL_CONFIG_PATH ?? join(homedir(), ".tascalrc");
+}
+
 export async function readConfig(): Promise<Config> {
   try {
-    const content = await readFile(CONFIG_PATH, "utf-8");
+    const content = await readFile(getConfigPath(), "utf-8");
     return JSON.parse(content) as Config;
   } catch (err) {
     if (err instanceof Error && "code" in err && err.code === "ENOENT") {
@@ -24,7 +26,7 @@ export async function readConfig(): Promise<Config> {
 }
 
 export async function writeConfig(config: Config): Promise<void> {
-  await writeFile(CONFIG_PATH, JSON.stringify(config, null, 2) + "\n", {
+  await writeFile(getConfigPath(), JSON.stringify(config, null, 2) + "\n", {
     encoding: "utf-8",
     mode: 0o600,
   });
@@ -32,7 +34,7 @@ export async function writeConfig(config: Config): Promise<void> {
 
 export async function deleteConfig(): Promise<void> {
   try {
-    await unlink(CONFIG_PATH);
+    await unlink(getConfigPath());
   } catch (err) {
     if (err instanceof Error && "code" in err && err.code === "ENOENT") {
       return;

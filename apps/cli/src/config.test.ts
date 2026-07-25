@@ -19,6 +19,7 @@ const mockedUnlink = vi.mocked(unlink);
 
 beforeEach(() => {
   vi.resetAllMocks();
+  delete process.env.TASCAL_CONFIG_PATH;
 });
 
 describe("readConfig", () => {
@@ -46,6 +47,18 @@ describe("readConfig", () => {
     expect(config).toEqual({});
   });
 
+  it("TASCAL_CONFIG_PATH が設定されている場合、そのファイルを読む", async () => {
+    process.env.TASCAL_CONFIG_PATH = "/tmp/tascal-preview-config";
+    mockedReadFile.mockResolvedValue(JSON.stringify({ token: "preview" }));
+
+    await readConfig();
+
+    expect(mockedReadFile).toHaveBeenCalledWith(
+      "/tmp/tascal-preview-config",
+      "utf-8",
+    );
+  });
+
   it("パースエラー時に例外をスローする", async () => {
     mockedReadFile.mockResolvedValue("invalid json");
 
@@ -62,6 +75,19 @@ describe("writeConfig", () => {
     expect(mockedWriteFile).toHaveBeenCalledWith(
       "/mock-home/.tascalrc",
       JSON.stringify({ token: "abc" }, null, 2) + "\n",
+      { encoding: "utf-8", mode: 0o600 },
+    );
+  });
+
+  it("TASCAL_CONFIG_PATH が設定されている場合、そのファイルに書く", async () => {
+    process.env.TASCAL_CONFIG_PATH = "/tmp/tascal-preview-config";
+    mockedWriteFile.mockResolvedValue();
+
+    await writeConfig({ token: "preview" });
+
+    expect(mockedWriteFile).toHaveBeenCalledWith(
+      "/tmp/tascal-preview-config",
+      JSON.stringify({ token: "preview" }, null, 2) + "\n",
       { encoding: "utf-8", mode: 0o600 },
     );
   });

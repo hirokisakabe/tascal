@@ -57,6 +57,15 @@ tascal-cli logout
 | `delete`   | タスクを削除する                         |
 | `category` | カテゴリを管理する (一覧/追加/編集/削除) |
 
+## 環境変数
+
+| 変数                 | 説明                                                           |
+| -------------------- | -------------------------------------------------------------- |
+| `TASCAL_API_URL`     | 接続する API のベース URL（既定: `https://tascal.dev`）        |
+| `TASCAL_CONFIG_PATH` | token と API URL を保存する設定ファイル（既定: `~/.tascalrc`） |
+
+preview 環境を試す場合は両方を指定すると、production の設定を上書きせずに利用できる。
+
 ## ライセンス
 
 MIT
