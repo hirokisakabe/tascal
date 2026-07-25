@@ -47,3 +47,6 @@ tascal category edit <id>  # カテゴリ編集
 tascal category delete <id>  # カテゴリ削除
 ```
 
+## デプロイ評価
+
+- [Vercel custom container 評価](docs/vercel-container-evaluation.md)
