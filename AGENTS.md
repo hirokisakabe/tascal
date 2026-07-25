@@ -22,23 +22,22 @@ tascal (task + calendar) — カレンダービューがメインのタスク管
 
 ルートの `package.json` scripts から実行：
 
-| コマンド                      | 内容                                   |
-| ----------------------------- | -------------------------------------- |
-| `pnpm install`                | 全 app の依存インストール              |
-| `pnpm dev`                    | DB 起動 + API + Web の開発サーバー起動 |
-| `pnpm build`                  | 全 app ビルド                          |
-| `pnpm lint`                   | ESLint (全 app)                        |
-| `pnpm format`                 | Prettier 自動修正                      |
-| `pnpm format:check`           | Prettier チェックのみ                  |
-| `pnpm typecheck`              | TypeScript 型チェック                  |
-| `pnpm test`                   | テスト実行 (API + Web + CLI)           |
-| `pnpm knip`                   | 未使用コード・依存の検出               |
-| `pnpm db:up` / `pnpm db:down` | PostgreSQL の起動/停止                 |
-| `pnpm db:migrate`             | Drizzle マイグレーション適用           |
-| `pnpm db:seed`                | テストデータ投入                       |
+| コマンド | 内容 |
+|---|---|
+| `pnpm install` | 全 app の依存インストール |
+| `pnpm dev` | DB 起動 + API + Web の開発サーバー起動 |
+| `pnpm build` | 全 app ビルド |
+| `pnpm lint` | ESLint (全 app) |
+| `pnpm format` | Prettier 自動修正 |
+| `pnpm format:check` | Prettier チェックのみ |
+| `pnpm typecheck` | TypeScript 型チェック |
+| `pnpm test` | テスト実行 (API + Web + CLI) |
+| `pnpm knip` | 未使用コード・依存の検出 |
+| `pnpm db:up` / `pnpm db:down` | PostgreSQL の起動/停止 |
+| `pnpm db:migrate` | Drizzle マイグレーション適用 |
+| `pnpm db:seed` | テストデータ投入 |
 
 個別 app でのテスト実行：
-
 ```bash
 pnpm --filter @tascal/api exec vitest run src/routes/tasks.test.ts  # 単一テスト
 pnpm --filter @tascal/web exec vitest run src/components/Calendar.test.tsx
@@ -109,7 +108,6 @@ Vite dev server が `/api` を `http://localhost:3000` にプロキシ。
 ## 環境変数
 
 `apps/api/.env` に設定（`.env.example` 参照）：
-
 - `DATABASE_URL` — PostgreSQL 接続文字列
 - `CORS_ORIGIN` — 許可オリジン
 - `BETTER_AUTH_SECRET` — 認証シークレット
