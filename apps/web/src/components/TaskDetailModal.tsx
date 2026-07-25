@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import type { Task } from "../types/task";
 import { useCategories } from "../hooks/useCategories";
 import { useUpdateTask, useDeleteTask } from "../hooks/useTasks";
+import { DatePicker } from "./DatePicker";
 import { ModalWrapper } from "./ModalWrapper";
 
 type TaskDetailModalProps = {
@@ -118,13 +119,7 @@ export function TaskDetailModal({
           >
             日付
           </label>
-          <input
-            id="detail-date"
-            type="date"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-            className="w-full rounded-md border border-border px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-          />
+          <DatePicker id="detail-date" value={date} onChange={setDate} />
         </div>
         {categories.length > 0 && (
           <div>
