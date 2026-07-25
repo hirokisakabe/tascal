@@ -10,7 +10,7 @@ tascal の単一 container は `Dockerfile.vercel` への小さな差分だけ�
 Container Images に載せられる。一方、API と SPA が同じ origin で動く既存構成では
 Vercel Services に分割する利点は小さく、Cloud Run から移すことで新たに得られる機能より、
 Function の実行時間・メモリ・ネットワーク制約、preview URL ごとの auth 設定、
-CLI/mobile の API URL 管理が増える影響の方が大きい。
+既存の Cloud Run 向けログ・運用基盤を変更する影響の方が大きい。
 
 Vercel の immutable preview URL と Git 連携が必要になった場合は、まず
 **Web preview のみ Vercel、production API / static serving は Cloud Run**
@@ -102,7 +102,9 @@ pooled connection string を、値を表示せず Vercel の sensitive environme
 CLI は `TASCAL_API_URL=<preview URL>` で接続先を、`TASCAL_CONFIG_PATH=<一時ファイル>`
 で token の保存先を切り替える。これにより `~/.tascalrc` の production URL と token を
 変更せずに試験できる。mobile は今回のスコープ外だが、全面移行時には同様に API base URL の
-切り替えが必要。
+切り替えが必要。この環境別 API URL 管理は Vercel 固有ではなく、現在の Cloud Run preview
+を CLI/mobile から利用する場合にも同様に必要となる。現状はいずれの preview も
+CLI/mobile から利用していない。
 
 ## 動作確認
 
@@ -153,7 +155,7 @@ tascal-cli add
 | logs          | stdout/stderr と Observability。保持は plan 依存                         | Cloud Logging、metrics、alerting                            | 既存運用を維持できる Cloud Run が有利               |
 | pricing       | Active CPU、provisioned memory、invocation、origin transfer、VCR storage | vCPU、memory、request、network。request-based free tierあり | 実トラフィックでの比較が必要                        |
 | auth/origin   | deploy URL 変化に合わせ trusted origin の運用が必要                      | `tascal.dev` の固定 origin                                  | Cloud Run が単純                                    |
-| CLI/mobile    | preview の API URL を別管理                                              | production URL を継続利用                                   | Cloud Run が単純                                    |
+| CLI/mobile    | preview で使う場合は API URL を別管理                                    | preview で使う場合は API URL を別管理                       | 差なし                                              |
 
 ## 実測値
 
