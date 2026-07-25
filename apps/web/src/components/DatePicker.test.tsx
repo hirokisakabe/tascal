@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { useState } from "react";
@@ -11,27 +11,27 @@ function DatePickerHarness({ initialValue = "" }: { initialValue?: string }) {
 }
 
 describe("DatePicker", () => {
-  afterEach(() => {
-    vi.useRealTimers();
-  });
-
   it("曜日を月曜始まりで表示する", async () => {
     const user = userEvent.setup();
     render(<DatePickerHarness initialValue="2026-03-15" />);
 
-    await user.click(screen.getByRole("button", { name: "日付を選択" }));
+    await user.click(screen.getByRole("button", { name: /^日付/ }));
 
     const weekdayLabels = ["月", "火", "水", "木", "金", "土", "日"];
     const grid = screen.getByRole("grid", { name: "2026年3月" });
-    const labels = grid.previousElementSibling;
-    expect(labels?.textContent).toBe(weekdayLabels.join(""));
+    expect(
+      within(grid)
+        .getAllByRole("columnheader")
+        .map((header) => header.textContent),
+    ).toEqual(weekdayLabels);
+    expect(within(grid).getAllByRole("row")).toHaveLength(7);
   });
 
   it("前月と翌月へ移動できる", async () => {
     const user = userEvent.setup();
     render(<DatePickerHarness initialValue="2026-03-15" />);
 
-    await user.click(screen.getByRole("button", { name: "日付を選択" }));
+    await user.click(screen.getByRole("button", { name: /^日付/ }));
     await user.click(screen.getByRole("button", { name: "前月" }));
     expect(screen.getByRole("grid", { name: "2026年2月" })).toBeInTheDocument();
 
@@ -44,24 +44,24 @@ describe("DatePicker", () => {
     const user = userEvent.setup();
     render(<DatePickerHarness initialValue="2026-03-15" />);
 
-    await user.click(screen.getByRole("button", { name: "日付を選択" }));
-    await user.click(screen.getByRole("gridcell", { name: "2026-03-20" }));
+    await user.click(screen.getByRole("button", { name: /^日付/ }));
+    await user.click(screen.getByRole("button", { name: "2026-03-20" }));
 
-    expect(
-      screen.getByRole("button", { name: "日付を選択" }),
-    ).toHaveTextContent("2026-03-20");
+    expect(screen.getByRole("button", { name: /^日付/ })).toHaveTextContent(
+      "2026-03-20",
+    );
   });
 
   it("日付を未設定に戻せる", async () => {
     const user = userEvent.setup();
     render(<DatePickerHarness initialValue="2026-03-15" />);
 
-    await user.click(screen.getByRole("button", { name: "日付を選択" }));
+    await user.click(screen.getByRole("button", { name: /^日付/ }));
     await user.click(screen.getByRole("button", { name: "未設定に戻す" }));
 
-    expect(
-      screen.getByRole("button", { name: "日付を選択" }),
-    ).toHaveTextContent("日付を選択");
+    expect(screen.getByRole("button", { name: /^日付/ })).toHaveTextContent(
+      "日付を選択",
+    );
   });
 
   it("選択中の日付と今日を視覚的に区別する", async () => {
@@ -76,16 +76,19 @@ describe("DatePicker", () => {
     const user = userEvent.setup();
     render(<DatePickerHarness initialValue={selectedKey} />);
 
-    await user.click(screen.getByRole("button", { name: "日付を選択" }));
+    await user.click(screen.getByRole("button", { name: /^日付/ }));
 
-    expect(screen.getByRole("gridcell", { name: selectedKey })).toHaveAttribute(
+    const selectedButton = screen.getByRole("button", { name: selectedKey });
+    expect(selectedButton.closest('[role="gridcell"]')).toHaveAttribute(
       "aria-selected",
       "true",
     );
-    expect(screen.getByRole("gridcell", { name: selectedKey })).toHaveClass(
-      "bg-primary",
+    expect(selectedButton).toHaveClass("bg-primary");
+    expect(screen.getByRole("button", { name: todayKey })).toHaveAttribute(
+      "aria-current",
+      "date",
     );
-    expect(screen.getByRole("gridcell", { name: todayKey })).toHaveClass(
+    expect(screen.getByRole("button", { name: todayKey })).toHaveClass(
       "ring-primary",
     );
   });
@@ -94,10 +97,10 @@ describe("DatePicker", () => {
     const user = userEvent.setup();
     render(<DatePickerHarness initialValue="2026-03-15" />);
 
-    const trigger = screen.getByRole("button", { name: "日付を選択" });
+    const trigger = screen.getByRole("button", { name: /^日付/ });
     await user.click(trigger);
 
-    const selectedDay = screen.getByRole("gridcell", { name: "2026-03-15" });
+    const selectedDay = screen.getByRole("button", { name: "2026-03-15" });
     expect(selectedDay).toHaveFocus();
 
     await user.keyboard("{ArrowRight}{Enter}");
@@ -113,12 +116,28 @@ describe("DatePicker", () => {
     const user = userEvent.setup();
     render(<DatePickerHarness initialValue="2026-03-15" />);
 
-    await user.click(screen.getByRole("button", { name: "日付を選択" }));
+    await user.click(screen.getByRole("button", { name: /^日付/ }));
     await user.keyboard("{PageDown}");
 
     const grid = screen.getByRole("grid", { name: "2026年4月" });
     expect(
-      within(grid).getByRole("gridcell", { name: "2026-04-15" }),
+      within(grid).getByRole("button", { name: "2026-04-15" }),
     ).toHaveFocus();
+  });
+
+  it("今日が選択中でも今日と選択中の両方を示す", async () => {
+    const todayKey = formatDateKey(new Date());
+    const user = userEvent.setup();
+    render(<DatePickerHarness initialValue={todayKey} />);
+
+    await user.click(screen.getByRole("button", { name: /^日付/ }));
+
+    const todayButton = screen.getByRole("button", { name: todayKey });
+    expect(todayButton).toHaveAttribute("aria-current", "date");
+    expect(todayButton).toHaveClass("bg-primary", "ring-primary");
+    expect(todayButton.closest('[role="gridcell"]')).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
   });
 });

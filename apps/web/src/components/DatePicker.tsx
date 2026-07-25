@@ -180,7 +180,7 @@ export function DatePicker({ id, value, onChange }: DatePickerProps) {
               }
             }}
             className="flex w-full items-center justify-between rounded-md border border-border px-3 py-2 text-left text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-            aria-label="日付を選択"
+            aria-label={value ? `日付: ${value}` : "日付を選択"}
           >
             <span
               className={value ? "text-on-surface" : "text-on-surface-muted"}
@@ -230,69 +230,83 @@ export function DatePicker({ id, value, onChange }: DatePickerProps) {
               </button>
             </div>
 
-            <div className="grid grid-cols-7" aria-label="曜日">
-              {WEEKDAY_LABELS.map((label) => (
-                <div
-                  key={label}
-                  className="pb-1 text-center text-xs font-medium text-on-surface-muted"
-                >
-                  {label}
-                </div>
-              ))}
-            </div>
-
             <div
               role="grid"
               aria-label={`${visibleMonth.getFullYear()}年${visibleMonth.getMonth() + 1}月`}
               className="grid grid-cols-7"
             >
-              {days.map(({ date, isCurrentMonth }) => {
-                const dateKey = formatDateKey(date);
-                const selected = dateKey === value;
-                const today = isToday(date);
-
-                return (
-                  <button
-                    key={dateKey}
-                    ref={(element) => {
-                      if (element) {
-                        dayButtonRefs.current.set(dateKey, element);
-                        if (
-                          shouldFocusDay.current &&
-                          dateKey === focusedDateKey
-                        ) {
-                          element.focus();
-                          shouldFocusDay.current = false;
-                        }
-                      } else {
-                        dayButtonRefs.current.delete(dateKey);
-                      }
-                    }}
-                    type="button"
-                    role="gridcell"
-                    aria-label={dateKey}
-                    aria-selected={selected}
-                    tabIndex={dateKey === focusedDateKey ? 0 : -1}
-                    onFocus={() => setFocusedDateKey(dateKey)}
-                    onKeyDown={(event) => handleDayKeyDown(event, date)}
-                    onClick={() => {
-                      onChange(dateKey);
-                      close();
-                    }}
-                    className={`m-0.5 flex h-8 w-8 items-center justify-center rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1 ${
-                      selected
-                        ? "bg-primary font-bold text-white hover:bg-primary-dark"
-                        : today
-                          ? "font-bold text-primary ring-1 ring-primary"
-                          : isCurrentMonth
-                            ? "text-on-surface hover:bg-surface-hover"
-                            : "text-on-surface-muted hover:bg-surface-hover"
-                    }`}
+              <div role="row" className="contents">
+                {WEEKDAY_LABELS.map((label) => (
+                  <div
+                    key={label}
+                    role="columnheader"
+                    className="pb-1 text-center text-xs font-medium text-on-surface-muted"
                   >
-                    {date.getDate()}
-                  </button>
-                );
-              })}
+                    {label}
+                  </div>
+                ))}
+              </div>
+
+              {Array.from({ length: 6 }, (_, weekIndex) => (
+                <div key={weekIndex} role="row" className="contents">
+                  {days
+                    .slice(weekIndex * 7, weekIndex * 7 + 7)
+                    .map(({ date, isCurrentMonth }) => {
+                      const dateKey = formatDateKey(date);
+                      const selected = dateKey === value;
+                      const today = isToday(date);
+
+                      return (
+                        <div
+                          key={dateKey}
+                          role="gridcell"
+                          aria-selected={selected}
+                          className="flex items-center justify-center"
+                        >
+                          <button
+                            ref={(element) => {
+                              if (element) {
+                                dayButtonRefs.current.set(dateKey, element);
+                                if (
+                                  shouldFocusDay.current &&
+                                  dateKey === focusedDateKey
+                                ) {
+                                  element.focus();
+                                  shouldFocusDay.current = false;
+                                }
+                              } else {
+                                dayButtonRefs.current.delete(dateKey);
+                              }
+                            }}
+                            type="button"
+                            aria-label={dateKey}
+                            aria-current={today ? "date" : undefined}
+                            tabIndex={dateKey === focusedDateKey ? 0 : -1}
+                            onFocus={() => setFocusedDateKey(dateKey)}
+                            onKeyDown={(event) => handleDayKeyDown(event, date)}
+                            onClick={() => {
+                              onChange(dateKey);
+                              close();
+                            }}
+                            className={`m-0.5 flex h-8 w-8 items-center justify-center rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1 ${
+                              selected
+                                ? "bg-primary font-bold text-white hover:bg-primary-dark"
+                                : isCurrentMonth
+                                  ? "text-on-surface hover:bg-surface-hover"
+                                  : "text-on-surface-muted hover:bg-surface-hover"
+                            } ${
+                              today
+                                ? "font-bold ring-1 ring-primary ring-offset-1"
+                                : ""
+                            }`}
+                          >
+                            {date.getDate()}
+                          </button>
+                        </div>
+                      );
+                    })}
+                </div>
+              ))}
             </div>
 
             <button

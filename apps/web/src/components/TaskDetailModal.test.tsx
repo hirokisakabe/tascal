@@ -58,9 +58,9 @@ describe("TaskDetailModal", () => {
     expect(screen.getByText("タスクの詳細")).toBeInTheDocument();
     expect(screen.getByDisplayValue("既存タスク")).toBeInTheDocument();
     expect(screen.getByDisplayValue("既存の説明")).toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: "日付を選択" }),
-    ).toHaveTextContent("2026-03-15");
+    expect(screen.getByRole("button", { name: /^日付/ })).toHaveTextContent(
+      "2026-03-15",
+    );
   });
 
   it("タイトルを変更して保存できる", async () => {
@@ -157,8 +157,8 @@ describe("TaskDetailModal", () => {
     const user = userEvent.setup();
     renderWithQueryClient(<TaskDetailModal {...defaultProps} />);
 
-    await user.click(screen.getByRole("button", { name: "日付を選択" }));
-    await user.click(screen.getByRole("gridcell", { name: "2026-03-20" }));
+    await user.click(screen.getByRole("button", { name: /^日付/ }));
+    await user.click(screen.getByRole("button", { name: "2026-03-20" }));
     await user.click(screen.getByText("保存"));
 
     await waitFor(() => {
@@ -174,7 +174,7 @@ describe("TaskDetailModal", () => {
     const user = userEvent.setup();
     renderWithQueryClient(<TaskDetailModal {...defaultProps} />);
 
-    await user.click(screen.getByRole("button", { name: "日付を選択" }));
+    await user.click(screen.getByRole("button", { name: /^日付/ }));
     await user.click(screen.getByRole("button", { name: "未設定に戻す" }));
     await user.click(screen.getByText("保存"));
 
