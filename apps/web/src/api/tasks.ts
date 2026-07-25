@@ -6,12 +6,12 @@ type Task = InferResponseType<typeof client.api.tasks.$get, 200>[number];
 export type { Task };
 
 export async function fetchTasks(
-  year: number,
-  month: number,
+  startDate: string,
+  endDate: string,
   signal?: AbortSignal,
 ): Promise<Task[]> {
-  const res = await client.api.tasks.$get(
-    { query: { year: String(year), month: String(month) } },
+  const res = await client.api.tasks.range.$get(
+    { query: { startDate, endDate } },
     { init: { signal } },
   );
   if (!res.ok) {

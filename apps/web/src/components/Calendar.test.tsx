@@ -92,6 +92,24 @@ const mockUnscheduledTask = {
   updatedAt: "2026-01-01T00:00:00.000Z",
 };
 
+function formatDate(date: Date) {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+}
+
+function getDisplayedRange(year: number, month: number) {
+  const firstDay = new Date(year, month - 1, 1);
+  const mondayOffset = (firstDay.getDay() + 6) % 7;
+  const start = new Date(year, month - 1, 1 - mondayOffset);
+  const end = new Date(start);
+  end.setDate(end.getDate() + 41);
+  return { start, end };
+}
+
+function getAdjacentDate(year: number, month: number) {
+  const { start, end } = getDisplayedRange(year, month);
+  return start.getMonth() !== month - 1 ? start : end;
+}
+
 describe("Calendar", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -123,11 +141,100 @@ describe("Calendar", () => {
       expect(screen.getByText("テストタスク")).toBeInTheDocument();
     });
 
+    const now = new Date();
+    const { start, end } = getDisplayedRange(
+      now.getFullYear(),
+      now.getMonth() + 1,
+    );
+
     expect(mockFetchTasks).toHaveBeenCalledWith(
-      expect.any(Number),
-      expect.any(Number),
+      formatDate(start),
+      formatDate(end),
       expect.any(AbortSignal),
     );
+  });
+
+  it("前後月セルのタスクを表示し、クリックして詳細を開ける", async () => {
+    const now = new Date();
+    const adjacentDate = getAdjacentDate(now.getFullYear(), now.getMonth() + 1);
+    const dateKey = formatDate(adjacentDate);
+    const adjacentTask = {
+      ...mockTask,
+      id: "adjacent-task",
+      title: "前後月のタスク",
+      date: dateKey,
+    };
+    mockFetchTasks.mockResolvedValue([adjacentTask]);
+
+    const user = userEvent.setup();
+    renderWithQueryClient(<Calendar />);
+
+    await user.click(await screen.findByText("前後月のタスク"));
+
+    expect(screen.getByText("タスクの詳細")).toBeInTheDocument();
+    expect(screen.getByDisplayValue("前後月のタスク")).toBeInTheDocument();
+  });
+
+  it("前後月セルのタスクを完了へ切り替えられる", async () => {
+    const now = new Date();
+    const adjacentTask = {
+      ...mockTask,
+      id: "adjacent-task",
+      title: "前後月のタスク",
+      date: formatDate(getAdjacentDate(now.getFullYear(), now.getMonth() + 1)),
+    };
+    mockFetchTasks.mockResolvedValue([adjacentTask]);
+    mockUpdateTask.mockResolvedValue({ ...adjacentTask, status: "done" });
+
+    const user = userEvent.setup();
+    renderWithQueryClient(<Calendar />);
+
+    await user.click(await screen.findByRole("checkbox"));
+
+    await waitFor(() => {
+      expect(mockUpdateTask).toHaveBeenCalledWith(adjacentTask.id, {
+        status: "done",
+      });
+    });
+  });
+
+  it("前後月セルのタスクを詳細から編集・削除できる", async () => {
+    const now = new Date();
+    const adjacentTask = {
+      ...mockTask,
+      id: "adjacent-task",
+      title: "前後月のタスク",
+      date: formatDate(getAdjacentDate(now.getFullYear(), now.getMonth() + 1)),
+    };
+    mockFetchTasks.mockResolvedValue([adjacentTask]);
+    mockUpdateTask.mockResolvedValue({
+      ...adjacentTask,
+      title: "更新した前後月タスク",
+    });
+    mockDeleteTask.mockResolvedValue(undefined);
+
+    const user = userEvent.setup();
+    renderWithQueryClient(<Calendar />);
+
+    await user.click(await screen.findByText("前後月のタスク"));
+    const titleInput = screen.getByLabelText(/タイトル/);
+    await user.clear(titleInput);
+    await user.type(titleInput, "更新した前後月タスク");
+    await user.click(screen.getByText("保存"));
+
+    await waitFor(() => {
+      expect(mockUpdateTask).toHaveBeenCalledWith(
+        adjacentTask.id,
+        expect.objectContaining({ title: "更新した前後月タスク" }),
+      );
+    });
+
+    await user.click(await screen.findByText("前後月のタスク"));
+    await user.click(screen.getByText("削除"));
+
+    await waitFor(() => {
+      expect(mockDeleteTask).toHaveBeenCalledWith(adjacentTask.id);
+    });
   });
 
   it("前月・次月ボタンで月を切り替えられる", async () => {
@@ -161,6 +268,37 @@ describe("Calendar", () => {
       expect(
         screen.getByText(`${currentYear}年${currentMonth}月`),
       ).toBeInTheDocument();
+    });
+  });
+
+  it("月移動ごとに表示範囲を含む別の条件でタスクを取得する", async () => {
+    const user = userEvent.setup();
+    renderWithQueryClient(<Calendar />);
+
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth() + 1;
+    const nextYear = currentMonth === 12 ? currentYear + 1 : currentYear;
+    const nextMonth = currentMonth === 12 ? 1 : currentMonth + 1;
+    const currentRange = getDisplayedRange(currentYear, currentMonth);
+    const nextRange = getDisplayedRange(nextYear, nextMonth);
+
+    await waitFor(() => {
+      expect(mockFetchTasks).toHaveBeenCalledWith(
+        formatDate(currentRange.start),
+        formatDate(currentRange.end),
+        expect.any(AbortSignal),
+      );
+    });
+
+    await user.click(screen.getByText("→"));
+
+    await waitFor(() => {
+      expect(mockFetchTasks).toHaveBeenCalledWith(
+        formatDate(nextRange.start),
+        formatDate(nextRange.end),
+        expect.any(AbortSignal),
+      );
     });
   });
 
@@ -368,6 +506,33 @@ describe("Calendar", () => {
       expect(mockUpdateTask).toHaveBeenCalledWith(mockTask.id, {
         date: "2026-03-20",
       });
+    });
+  });
+
+  it("前後月セルへドラッグするとタスクの日付と表示が更新される", async () => {
+    const now = new Date();
+    const targetDate = formatDate(
+      getAdjacentDate(now.getFullYear(), now.getMonth() + 1),
+    );
+    mockFetchTasks.mockResolvedValue([mockTask]);
+    mockUpdateTask.mockResolvedValue({ ...mockTask, date: targetDate });
+
+    renderWithQueryClient(<Calendar />);
+    await screen.findByText("テストタスク");
+
+    capturedOnDragEnd!({
+      active: { id: mockTask.id, data: { current: { task: mockTask } } },
+      over: { id: targetDate },
+    });
+
+    await waitFor(() => {
+      expect(mockUpdateTask).toHaveBeenCalledWith(mockTask.id, {
+        date: targetDate,
+      });
+      expect(
+        screen.getByRole("button", { name: `${targetDate}にタスクを追加` })
+          .parentElement,
+      ).toHaveTextContent("テストタスク");
     });
   });
 
