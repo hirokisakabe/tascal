@@ -40,14 +40,28 @@ const listQuerySchema = z.object({
   month: z.coerce.number().int().min(1).max(12),
 });
 
+const MAX_TASK_RANGE_DAYS = 42;
+
 const rangeQuerySchema = z
   .object({
-    startDate: z.string().date(),
-    endDate: z.string().date(),
+    startDate: z
+      .string()
+      .date("開始日はYYYY-MM-DD形式の実在する日付で指定してください"),
+    endDate: z
+      .string()
+      .date("終了日はYYYY-MM-DD形式の実在する日付で指定してください"),
   })
   .refine(({ startDate, endDate }) => startDate <= endDate, {
     message: "開始日は終了日以前の日付を指定してください",
-  });
+  })
+  .refine(
+    ({ startDate, endDate }) =>
+      Date.parse(endDate) - Date.parse(startDate) <
+      MAX_TASK_RANGE_DAYS * 24 * 60 * 60 * 1000,
+    {
+      message: `取得範囲は${MAX_TASK_RANGE_DAYS}日以内で指定してください`,
+    },
+  );
 
 const paramIdSchema = z.object({
   id: z.string().uuid("不正なタスクIDです"),

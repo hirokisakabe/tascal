@@ -1,7 +1,7 @@
 import type { InferResponseType } from "hono/client";
 import { client } from "./client";
 
-type Task = InferResponseType<typeof client.api.tasks.$get, 200>[number];
+type Task = InferResponseType<typeof client.api.tasks.range.$get, 200>[number];
 
 export type { Task };
 

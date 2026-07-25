@@ -227,6 +227,19 @@ describe("GET /api/tasks/range", () => {
     expect(mockSelect).not.toHaveBeenCalled();
   });
 
+  it("取得範囲が42日を超える場合 400 を返す", async () => {
+    const app = await createTestApp();
+    const res = await app.request(
+      jsonRequest(
+        "GET",
+        "/api/tasks/range?startDate=2026-02-23&endDate=2026-04-06",
+      ),
+    );
+
+    expect(res.status).toBe(400);
+    expect(mockSelect).not.toHaveBeenCalled();
+  });
+
   it("日付が不正な場合 400 を返す", async () => {
     const app = await createTestApp();
     const res = await app.request(
