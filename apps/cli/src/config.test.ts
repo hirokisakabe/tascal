@@ -102,6 +102,15 @@ describe("deleteConfig", () => {
     expect(mockedUnlink).toHaveBeenCalledWith("/mock-home/.tascalrc");
   });
 
+  it("TASCAL_CONFIG_PATH が設定されている場合、そのファイルを削除する", async () => {
+    process.env.TASCAL_CONFIG_PATH = "/tmp/tascal-preview-config";
+    mockedUnlink.mockResolvedValue();
+
+    await deleteConfig();
+
+    expect(mockedUnlink).toHaveBeenCalledWith("/tmp/tascal-preview-config");
+  });
+
   it("ファイルが存在しない場合（ENOENT）、エラーなくスキップする", async () => {
     const err = new Error("ENOENT") as NodeJS.ErrnoException;
     err.code = "ENOENT";

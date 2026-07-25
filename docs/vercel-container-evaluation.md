@@ -64,6 +64,18 @@ npx vercel@latest deploy --prod
 変わるため、継続的な preview 運用では固定 alias または preview 用 custom domain を用意し、
 その origin を環境変数へ設定する。
 
+上記コマンドは独立 project の production trial 専用である。Git 連携の Preview
+Deployment へ展開する場合、Production と Preview の環境変数スコープは分離されているため、
+preview 専用値も登録する。
+
+```bash
+npx vercel@latest env add DATABASE_URL preview --sensitive
+npx vercel@latest env add BETTER_AUTH_SECRET preview --sensitive
+npx vercel@latest env add BETTER_AUTH_URL preview
+npx vercel@latest env add TRUSTED_ORIGINS preview
+npx vercel@latest env add CORS_ORIGIN preview
+```
+
 ## 環境変数と接続
 
 | 変数                 | Preview での設定                                        | 理由                                                     |
@@ -109,7 +121,10 @@ production 用 `~/.tascalrc` を上書きしないよう、試験用の一時設
 
 ```bash
 export TASCAL_API_URL=<preview URL>
-export TASCAL_CONFIG_PATH=/tmp/tascal-vercel-preview.json
+TASCAL_PREVIEW_DIR="$(mktemp -d)"
+chmod 700 "$TASCAL_PREVIEW_DIR"
+export TASCAL_CONFIG_PATH="$TASCAL_PREVIEW_DIR/config.json"
+trap 'rm -f -- "$TASCAL_CONFIG_PATH"; rmdir -- "$TASCAL_PREVIEW_DIR"' EXIT
 tascal-cli login
 tascal-cli list
 tascal-cli add
@@ -150,12 +165,15 @@ tascal-cli add
 - Vercel Function bundle: 113.95 MB (`hnd1`)
 - 初回 `GET /healthz`: 6.88 秒（初回 deploy の `iad1` 測定）
 - warm 後の `GET /`: 0.55 秒
+- `hnd1` で 5 分以上無通信後の連続 `GET /healthz`: 0.87 秒、6.13 秒
 - runtime logs で port 80 の起動、Neon 接続、auth、GET/POST/PATCH/DELETE の
   success status を確認
 
 設定変更を含む再 deploy でも container layer の build と VCR push に約 2 分を要した。
 小規模な変更でも現状は image build 時間を見込む必要がある。runtime では複数 hostname
 から起動ログが出ており、同時アクセス時に複数 instance が立ち上がることも確認した。
+5 分以上無通信後の 2 リクエストは後発の方が遅く、単純な「初回だけ cold、以降は warm」
+にはならなかった。複数 instance への分散を含めた実トラフィックでの継続計測が必要である。
 
 Vercel の VCR 上限は圧縮 layer 単体 500 MB、圧縮後 image 合計 15 GB。
 実 deploy では Vercel が build する `linux/amd64` / `linux/arm64` image の size を
