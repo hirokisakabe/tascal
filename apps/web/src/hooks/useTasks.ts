@@ -8,17 +8,28 @@ import {
   updateTask,
   deleteTask,
 } from "../api/tasks";
+import { formatDateKey, getCalendarDays } from "../utils/calendar";
 
-function tasksQueryKey(year: number, month: number) {
-  return ["tasks", year, month] as const;
+function getTaskDateRange(year: number, month: number) {
+  const days = getCalendarDays(year, month);
+  return {
+    startDate: formatDateKey(days[0].date),
+    endDate: formatDateKey(days[days.length - 1].date),
+  };
+}
+
+function tasksQueryKey(startDate: string, endDate: string) {
+  return ["tasks", "range", startDate, endDate] as const;
 }
 
 const unscheduledTasksQueryKey = ["tasks", "unscheduled"] as const;
 
 export function useTasks(year: number, month: number) {
+  const { startDate, endDate } = getTaskDateRange(year, month);
+
   return useQuery({
-    queryKey: tasksQueryKey(year, month),
-    queryFn: ({ signal }) => fetchTasks(year, month, signal),
+    queryKey: tasksQueryKey(startDate, endDate),
+    queryFn: ({ signal }) => fetchTasks(startDate, endDate, signal),
   });
 }
 
@@ -31,7 +42,8 @@ export function useUnscheduledTasks() {
 
 export function useCreateTask(year: number, month: number) {
   const queryClient = useQueryClient();
-  const key = tasksQueryKey(year, month);
+  const { startDate, endDate } = getTaskDateRange(year, month);
+  const key = tasksQueryKey(startDate, endDate);
 
   return useMutation({
     mutationFn: (data: {
@@ -70,17 +82,15 @@ export function useCreateTask(year: number, month: number) {
       toast.error("タスクの作成に失敗しました");
     },
     onSettled: () => {
-      void queryClient.invalidateQueries({ queryKey: key });
-      void queryClient.invalidateQueries({
-        queryKey: unscheduledTasksQueryKey,
-      });
+      void queryClient.invalidateQueries({ queryKey: ["tasks"] });
     },
   });
 }
 
 export function useUpdateTask(year: number, month: number) {
   const queryClient = useQueryClient();
-  const key = tasksQueryKey(year, month);
+  const { startDate, endDate } = getTaskDateRange(year, month);
+  const key = tasksQueryKey(startDate, endDate);
 
   return useMutation({
     mutationFn: ({
@@ -115,17 +125,15 @@ export function useUpdateTask(year: number, month: number) {
       toast.error("タスクの更新に失敗しました");
     },
     onSettled: () => {
-      void queryClient.invalidateQueries({ queryKey: key });
-      void queryClient.invalidateQueries({
-        queryKey: unscheduledTasksQueryKey,
-      });
+      void queryClient.invalidateQueries({ queryKey: ["tasks"] });
     },
   });
 }
 
 export function useDeleteTask(year: number, month: number) {
   const queryClient = useQueryClient();
-  const key = tasksQueryKey(year, month);
+  const { startDate, endDate } = getTaskDateRange(year, month);
+  const key = tasksQueryKey(startDate, endDate);
 
   return useMutation({
     mutationFn: (id: string) => deleteTask(id),
@@ -158,7 +166,9 @@ export function useDeleteTask(year: number, month: number) {
                 categoryId: deletedTask.categoryId,
               })
                 .then(() => {
-                  void queryClient.invalidateQueries({ queryKey: key });
+                  void queryClient.invalidateQueries({
+                    queryKey: ["tasks"],
+                  });
                 })
                 .catch(() => {
                   toast.error("タスクの復元に失敗しました");
@@ -176,10 +186,7 @@ export function useDeleteTask(year: number, month: number) {
       toast.error("タスクの削除に失敗しました");
     },
     onSettled: () => {
-      void queryClient.invalidateQueries({ queryKey: key });
-      void queryClient.invalidateQueries({
-        queryKey: unscheduledTasksQueryKey,
-      });
+      void queryClient.invalidateQueries({ queryKey: ["tasks"] });
     },
   });
 }

@@ -51,7 +51,7 @@ pnpm --filter @tascal/web exec vitest run src/components/Calendar.test.tsx
 
 - `src/index.ts` — エントリポイント。サーバー起動のみ
 - `src/app.ts` — Hono アプリ定義。CORS 設定、セッション取得ミドルウェア、ルートマウント、SPA 静的ファイル配信
-- `src/routes/tasks.ts` — タスク CRUD (`GET /api/tasks?year&month`, `POST`, `PATCH /:id`, `DELETE /:id`)。認証ミドルウェアで保護
+- `src/routes/tasks.ts` — タスク CRUD (`GET /api/tasks?year&month`, 終了日を含む最大42日間の `GET /api/tasks/range?startDate&endDate`, `POST`, `PATCH /:id`, `DELETE /:id`)。認証ミドルウェアで保護
 - `src/auth.ts` — better-auth 設定 (Drizzle アダプタ、Bearer トークンプラグイン)
 - `src/db/schema.ts` — Drizzle スキーマ定義 (users, tasks, sessions, accounts, verifications)
 - `src/db/index.ts` — DB コネクション (シングルトン)
