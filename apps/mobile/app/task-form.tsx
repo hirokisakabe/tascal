@@ -16,7 +16,13 @@ import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { Colors } from "@/constants/theme";
 import { useColorScheme } from "@/hooks/use-color-scheme";
-import { createTask, deleteTask, fetchTasks, updateTask } from "@/api/tasks";
+import {
+  createTask,
+  deleteTask,
+  fetchTasks,
+  fetchUnscheduledTasks,
+  updateTask,
+} from "@/api/tasks";
 import type { Task } from "@/types/task";
 
 export default function TaskFormScreen() {
@@ -51,8 +57,13 @@ export default function TaskFormScreen() {
 
     void (async () => {
       try {
-        const tasks = await fetchTasks(Number(year), Number(month));
-        const task = tasks.find((t) => t.id === taskId);
+        const [scheduledTasks, unscheduledTasks] = await Promise.all([
+          fetchTasks(Number(year), Number(month)),
+          fetchUnscheduledTasks(),
+        ]);
+        const task = [...scheduledTasks, ...unscheduledTasks].find(
+          (value) => value.id === taskId,
+        );
         if (task) {
           setOriginalTask(task);
           setTitle(task.title);

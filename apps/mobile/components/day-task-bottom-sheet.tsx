@@ -12,6 +12,7 @@ type DayTaskBottomSheetProps = {
   title: string;
   visible: boolean;
   canAddTask?: boolean;
+  emptyMessage?: string;
   onAddTask?: () => void;
   onClose: () => void;
   onOpenTask: (task: Task) => void;
@@ -24,6 +25,7 @@ export function DayTaskBottomSheet({
   title,
   visible,
   canAddTask = false,
+  emptyMessage = "この日のタスクはありません",
   onAddTask,
   onClose,
   onOpenTask,
@@ -79,9 +81,7 @@ export function DayTaskBottomSheet({
                 style={[styles.addButton, { backgroundColor: colors.tint }]}
               >
                 <ThemedText
-                  lightColor="#ffffff"
-                  darkColor="#ffffff"
-                  style={styles.addButtonText}
+                  style={[styles.addButtonText, { color: colors.onTint }]}
                 >
                   ＋ タスクを追加
                 </ThemedText>
@@ -98,7 +98,7 @@ export function DayTaskBottomSheet({
           >
             {tasks.length === 0 ? (
               <ThemedText style={[styles.emptyText, { color: colors.icon }]}>
-                この日のタスクはありません
+                {emptyMessage}
               </ThemedText>
             ) : (
               tasks.map((task) => (
@@ -113,9 +113,9 @@ export function DayTaskBottomSheet({
                   ]}
                 >
                   <Pressable
-                    accessibilityLabel={
+                    accessibilityLabel={`${task.title}を${
                       task.status === "done" ? "未完了に戻す" : "完了にする"
-                    }
+                    }`}
                     accessibilityRole="checkbox"
                     accessibilityState={{ checked: task.status === "done" }}
                     hitSlop={8}
@@ -136,9 +136,7 @@ export function DayTaskBottomSheet({
                     >
                       {task.status === "done" ? (
                         <ThemedText
-                          lightColor="#ffffff"
-                          darkColor="#ffffff"
-                          style={styles.checkmark}
+                          style={[styles.checkmark, { color: colors.onTint }]}
                         >
                           ✓
                         </ThemedText>

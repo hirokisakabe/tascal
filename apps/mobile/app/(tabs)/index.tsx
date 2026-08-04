@@ -14,7 +14,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import {
   createTask,
-  fetchTasks,
+  fetchTasksRange,
   fetchUnscheduledTasks,
   updateTask,
 } from "@/api/tasks";
@@ -79,20 +79,6 @@ function getCalendarDays(year: number, month: number): CalendarDay[] {
   });
 }
 
-function getVisibleMonths(
-  days: CalendarDay[],
-): { year: number; month: number }[] {
-  const uniqueMonths = new Map<string, { year: number; month: number }>();
-  for (const day of days) {
-    const value = {
-      year: day.date.getFullYear(),
-      month: day.date.getMonth() + 1,
-    };
-    uniqueMonths.set(`${value.year}-${value.month}`, value);
-  }
-  return [...uniqueMonths.values()];
-}
-
 export default function HomeScreen() {
   const { signOut } = useAuth();
   const colorScheme = useColorScheme() ?? "light";
@@ -108,6 +94,7 @@ export default function HomeScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const isFirstLoad = useRef(true);
+  const requestGeneration = useRef(0);
 
   const calendarDays = useMemo(
     () => getCalendarDays(year, month),
@@ -115,18 +102,27 @@ export default function HomeScreen() {
   );
 
   const loadTasks = useCallback(async () => {
+    const generation = ++requestGeneration.current;
     try {
-      const visibleMonths = getVisibleMonths(getCalendarDays(year, month));
-      const [monthlyTaskGroups, unscheduled] = await Promise.all([
-        Promise.all(
-          visibleMonths.map((value) => fetchTasks(value.year, value.month)),
+      const visibleDays = getCalendarDays(year, month);
+      const [scheduled, unscheduled] = await Promise.all([
+        fetchTasksRange(
+          visibleDays[0].dateKey,
+          visibleDays[visibleDays.length - 1].dateKey,
         ),
         fetchUnscheduledTasks(),
       ]);
-      setScheduledTasks(monthlyTaskGroups.flat());
+      if (generation !== requestGeneration.current) return;
+      setScheduledTasks(scheduled);
       setUnscheduledTasks(unscheduled);
     } catch {
+      if (generation !== requestGeneration.current) return;
       Alert.alert("エラー", "タスクの取得に失敗しました");
+    } finally {
+      if (generation === requestGeneration.current) {
+        setIsLoading(false);
+        setIsRefreshing(false);
+      }
     }
   }, [year, month]);
 
@@ -135,10 +131,11 @@ export default function HomeScreen() {
       if (isFirstLoad.current) {
         isFirstLoad.current = false;
         setIsLoading(true);
-        void loadTasks().finally(() => setIsLoading(false));
-      } else {
-        void loadTasks();
       }
+      void loadTasks();
+      return () => {
+        requestGeneration.current += 1;
+      };
     }, [loadTasks]),
   );
 
@@ -160,7 +157,6 @@ export default function HomeScreen() {
   const handleRefresh = async () => {
     setIsRefreshing(true);
     await loadTasks();
-    setIsRefreshing(false);
   };
 
   const handlePrevMonth = () => {
@@ -205,13 +201,17 @@ export default function HomeScreen() {
 
   const handleOpenTask = (task: Task) => {
     const taskDate = task.date ? new Date(`${task.date}T00:00:00`) : null;
-    router.push({
-      pathname: "/task-form",
-      params: {
-        taskId: task.id,
-        year: String(taskDate?.getFullYear() ?? year),
-        month: String((taskDate?.getMonth() ?? month - 1) + 1),
-      },
+    setSelectedDate(null);
+    setShowUnscheduled(false);
+    requestAnimationFrame(() => {
+      router.push({
+        pathname: "/task-form",
+        params: {
+          taskId: task.id,
+          year: String(taskDate?.getFullYear() ?? year),
+          month: String((taskDate?.getMonth() ?? month - 1) + 1),
+        },
+      });
     });
   };
 
@@ -281,9 +281,7 @@ export default function HomeScreen() {
               {unscheduledTasks.length > 0 ? (
                 <View style={[styles.badge, { backgroundColor: colors.tint }]}>
                   <ThemedText
-                    lightColor="#ffffff"
-                    darkColor="#ffffff"
-                    style={styles.badgeText}
+                    style={[styles.badgeText, { color: colors.onTint }]}
                   >
                     {unscheduledTasks.length}
                   </ThemedText>
@@ -383,12 +381,11 @@ export default function HomeScreen() {
                         ]}
                       >
                         <ThemedText
-                          lightColor={today ? "#ffffff" : undefined}
-                          darkColor={today ? "#ffffff" : undefined}
                           style={[
                             styles.dateText,
                             !day.isCurrentMonth && styles.outsideMonthText,
                             today && styles.todayText,
+                            today && { color: colors.onTint },
                           ]}
                         >
                           {day.date.getDate()}
@@ -398,13 +395,14 @@ export default function HomeScreen() {
                         <View
                           style={[
                             styles.taskBadge,
-                            { backgroundColor: colors.tint + "CC" },
+                            { backgroundColor: colors.tint },
                           ]}
                         >
                           <ThemedText
-                            lightColor="#ffffff"
-                            darkColor="#ffffff"
-                            style={styles.taskBadgeText}
+                            style={[
+                              styles.taskBadgeText,
+                              { color: colors.onTint },
+                            ]}
                           >
                             {taskCount}
                           </ThemedText>
@@ -435,6 +433,7 @@ export default function HomeScreen() {
       />
       <DayTaskBottomSheet
         date={null}
+        emptyMessage="未スケジュールタスクはありません"
         onClose={() => setShowUnscheduled(false)}
         onOpenTask={handleOpenTask}
         onToggleTask={(task) => void handleToggleStatus(task)}
