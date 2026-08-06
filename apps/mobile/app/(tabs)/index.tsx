@@ -14,6 +14,7 @@ import {
 import { router } from "expo-router";
 import { useFocusEffect } from "@react-navigation/native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useReducedMotion } from "react-native-reanimated";
 
 import {
   createTask,
@@ -24,6 +25,7 @@ import {
 import { DayTaskBottomSheet } from "@/components/day-task-bottom-sheet";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
+import { UnscheduledTasksButton } from "@/components/unscheduled-tasks-button";
 import { Colors } from "@/constants/theme";
 import { useAuth } from "@/contexts/auth-context";
 import { useColorScheme } from "@/hooks/use-color-scheme";
@@ -34,7 +36,6 @@ import {
   shouldActivateMonthSwipe,
   type MonthSwipeDirection,
 } from "@/utils/month-swipe";
-import { useReducedMotion } from "react-native-reanimated";
 
 const WEEKDAY_LABELS = ["月", "火", "水", "木", "金", "土", "日"];
 
@@ -323,31 +324,10 @@ export default function HomeScreen() {
 
         <View style={styles.monthNav}>
           <View style={styles.monthTitleGroup}>
-            <Pressable
-              accessibilityLabel={`未スケジュールタスク ${unscheduledTasks.length}件`}
-              accessibilityRole="button"
+            <UnscheduledTasksButton
+              count={unscheduledTasks.length}
               onPress={() => setShowUnscheduled(true)}
-              style={[
-                styles.unscheduledButton,
-                { borderColor: colors.controlBorder },
-              ]}
-            >
-              <ThemedText style={styles.unscheduledIcon}>☷</ThemedText>
-              {unscheduledTasks.length > 0 ? (
-                <View
-                  style={[
-                    styles.badge,
-                    { backgroundColor: colors.tintBackground },
-                  ]}
-                >
-                  <ThemedText
-                    style={[styles.badgeText, { color: colors.onTint }]}
-                  >
-                    {unscheduledTasks.length}
-                  </ThemedText>
-                </View>
-              ) : null}
-            </Pressable>
+            />
             <ThemedText type="subtitle">{formatMonth(year, month)}</ThemedText>
           </View>
           <View style={styles.navButtons}>
@@ -547,35 +527,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     flexShrink: 1,
     gap: 8,
-  },
-  unscheduledButton: {
-    alignItems: "center",
-    borderRadius: 8,
-    borderWidth: 1,
-    height: 44,
-    justifyContent: "center",
-    position: "relative",
-    width: 44,
-  },
-  unscheduledIcon: {
-    fontSize: 22,
-    lineHeight: 26,
-  },
-  badge: {
-    alignItems: "center",
-    borderRadius: 9,
-    justifyContent: "center",
-    minHeight: 18,
-    minWidth: 18,
-    paddingHorizontal: 4,
-    position: "absolute",
-    right: -5,
-    top: -5,
-  },
-  badgeText: {
-    fontSize: 10,
-    fontWeight: "700",
-    lineHeight: 13,
   },
   navButtons: {
     flexDirection: "row",
