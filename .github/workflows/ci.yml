@@ -65,6 +65,8 @@ jobs:
         run: pnpm --filter @tascal/mobile run format:check
       - name: Type check
         run: pnpm --filter @tascal/mobile run typecheck
+      - name: Test
+        run: pnpm --filter @tascal/mobile run test
 
   cli:
     runs-on: ubuntu-latest
