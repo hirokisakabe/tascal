@@ -2,6 +2,9 @@ import { useCallback, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
+  Animated,
+  Easing,
+  PanResponder,
   Pressable,
   RefreshControl,
   ScrollView,
@@ -25,6 +28,13 @@ import { Colors } from "@/constants/theme";
 import { useAuth } from "@/contexts/auth-context";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import type { Task } from "@/types/task";
+import {
+  resolveMonthSwipe,
+  shiftCalendarMonth,
+  shouldActivateMonthSwipe,
+  type MonthSwipeDirection,
+} from "@/utils/month-swipe";
+import { useReducedMotion } from "react-native-reanimated";
 
 const WEEKDAY_LABELS = ["月", "火", "水", "木", "金", "土", "日"];
 
@@ -83,10 +93,15 @@ export default function HomeScreen() {
   const { signOut } = useAuth();
   const colorScheme = useColorScheme() ?? "light";
   const colors = Colors[colorScheme];
+  const reduceMotion = useReducedMotion();
 
   const initialDate = useRef(new Date()).current;
   const [year, setYear] = useState(initialDate.getFullYear());
   const [month, setMonth] = useState(initialDate.getMonth() + 1);
+  const displayedMonth = useRef({
+    year: initialDate.getFullYear(),
+    month: initialDate.getMonth() + 1,
+  });
   const [scheduledTasks, setScheduledTasks] = useState<Task[]>([]);
   const [unscheduledTasks, setUnscheduledTasks] = useState<Task[]>([]);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
@@ -95,6 +110,8 @@ export default function HomeScreen() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const isFirstLoad = useRef(true);
   const requestGeneration = useRef(0);
+  const calendarTranslateX = useRef(new Animated.Value(0)).current;
+  const calendarWidth = useRef(0);
 
   const calendarDays = useMemo(
     () => getCalendarDays(year, month),
@@ -159,28 +176,63 @@ export default function HomeScreen() {
     await loadTasks();
   };
 
-  const handlePrevMonth = () => {
+  const moveMonth = useCallback((offset: -1 | 1) => {
+    const next = shiftCalendarMonth(displayedMonth.current, offset);
+    displayedMonth.current = next;
     setSelectedDate(null);
-    if (month === 1) {
-      setYear((value) => value - 1);
-      setMonth(12);
-    } else {
-      setMonth((value) => value - 1);
-    }
-  };
+    setYear(next.year);
+    setMonth(next.month);
+  }, []);
 
-  const handleNextMonth = () => {
-    setSelectedDate(null);
-    if (month === 12) {
-      setYear((value) => value + 1);
-      setMonth(1);
-    } else {
-      setMonth((value) => value + 1);
-    }
-  };
+  const handlePrevMonth = useCallback(() => moveMonth(-1), [moveMonth]);
+  const handleNextMonth = useCallback(() => moveMonth(1), [moveMonth]);
+
+  const settleMonthSwipe = useCallback(
+    (direction: MonthSwipeDirection | null) => {
+      const width = calendarWidth.current;
+      const destination =
+        direction === "next" ? -width : direction === "previous" ? width : 0;
+
+      Animated.timing(calendarTranslateX, {
+        duration: reduceMotion ? 0 : direction ? 160 : 180,
+        easing: direction ? Easing.out(Easing.cubic) : Easing.out(Easing.quad),
+        toValue: destination,
+        useNativeDriver: true,
+      }).start(() => {
+        if (direction) {
+          moveMonth(direction === "next" ? 1 : -1);
+        }
+        calendarTranslateX.setValue(0);
+      });
+    },
+    [calendarTranslateX, moveMonth, reduceMotion],
+  );
+
+  const calendarPanResponder = useMemo(
+    () =>
+      PanResponder.create({
+        onMoveShouldSetPanResponder: (_, gesture) =>
+          shouldActivateMonthSwipe(gesture.dx, gesture.dy),
+        onPanResponderMove: (_, gesture) => {
+          calendarTranslateX.setValue(gesture.dx);
+        },
+        onPanResponderRelease: (_, gesture) => {
+          settleMonthSwipe(
+            resolveMonthSwipe(gesture.dx, gesture.vx, calendarWidth.current),
+          );
+        },
+        onPanResponderTerminate: () => settleMonthSwipe(null),
+        onPanResponderTerminationRequest: () => true,
+      }),
+    [calendarTranslateX, settleMonthSwipe],
+  );
 
   const handleToday = () => {
     const today = new Date();
+    displayedMonth.current = {
+      year: today.getFullYear(),
+      month: today.getMonth() + 1,
+    };
     setYear(today.getFullYear());
     setMonth(today.getMonth() + 1);
     setSelectedDate(formatDateKey(today));
@@ -341,8 +393,13 @@ export default function HomeScreen() {
               />
             }
           >
-            <View
+            <Animated.View
+              accessibilityHint="左右にスワイプして月を移動できます"
+              onLayout={(event) => {
+                calendarWidth.current = event.nativeEvent.layout.width;
+              }}
               style={[styles.calendar, { borderColor: colors.borderLight }]}
+              {...calendarPanResponder.panHandlers}
             >
               <View style={styles.weekdayRow}>
                 {WEEKDAY_LABELS.map((label, index) => (
@@ -419,7 +476,7 @@ export default function HomeScreen() {
                   );
                 })}
               </View>
-            </View>
+            </Animated.View>
             <ThemedText style={[styles.refreshHint, { color: colors.icon }]}>
               下に引いて更新
             </ThemedText>
