@@ -14,6 +14,7 @@ vi.mock("hono/client", () => ({
 }));
 
 import { consola } from "consola";
+import { hc } from "hono/client";
 import { readConfig, getApiUrl } from "./config.js";
 import { requireAuthClient, handleApiError } from "./api.js";
 
@@ -40,6 +41,12 @@ describe("requireAuthClient", () => {
     const client = await requireAuthClient();
 
     expect(client).toBeDefined();
+    expect(hc).toHaveBeenCalledWith(
+      "http://localhost:3000",
+      expect.objectContaining({
+        headers: { Authorization: "Bearer test-token" },
+      }),
+    );
   });
 
   it("トークンがない場合、process.exit(1) が呼ばれる", async () => {

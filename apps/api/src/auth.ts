@@ -1,7 +1,7 @@
 import { createAuthMiddleware } from "better-auth/api";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { bearer } from "better-auth/plugins";
+import { bearer, customSession } from "better-auth/plugins";
 import { getDb } from "./db/index.js";
 import * as schema from "./db/schema.js";
 import logger from "./logger.js";
@@ -11,6 +11,25 @@ function maskEmail(email: string): string {
   if (!local || !domain) return "***";
   const visible = local.slice(0, Math.min(2, local.length));
   return `${visible}***@${domain}`;
+}
+
+export function createPublicSessionPlugin() {
+  return customSession(({ user, session }, ctx) => {
+    ctx.setHeader("Cache-Control", "private, no-store");
+
+    return Promise.resolve({
+      user,
+      session: {
+        id: session.id,
+        userId: session.userId,
+        expiresAt: session.expiresAt,
+        createdAt: session.createdAt,
+        updatedAt: session.updatedAt,
+        ipAddress: session.ipAddress,
+        userAgent: session.userAgent,
+      },
+    });
+  });
 }
 
 function createAuth() {
@@ -23,7 +42,7 @@ function createAuth() {
     emailAndPassword: {
       enabled: true,
     },
-    plugins: [bearer()],
+    plugins: [bearer(), createPublicSessionPlugin()],
     trustedOrigins: process.env.TRUSTED_ORIGINS
       ? process.env.TRUSTED_ORIGINS.split(",")
           .map((s) => s.trim())
