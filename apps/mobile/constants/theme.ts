@@ -39,7 +39,7 @@ export const Colors = {
     surfaceHover: "#2b282e",
     border: "#69646e",
     borderLight: "#3b3740",
-    controlBorder: "#69646e",
+    controlBorder: "#706b75",
     danger: "#e89aae",
     tabIconDefault: "#c0bbb6",
     tabIconSelected: primaryMuted,
