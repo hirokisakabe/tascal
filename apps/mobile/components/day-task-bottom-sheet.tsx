@@ -1,6 +1,8 @@
 import { Modal, Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useReducedMotion } from "react-native-reanimated";
 
+import { SheetSurface } from "@/components/sheet-surface";
 import { ThemedText } from "@/components/themed-text";
 import { Colors } from "@/constants/theme";
 import { useColorScheme } from "@/hooks/use-color-scheme";
@@ -34,10 +36,11 @@ export function DayTaskBottomSheet({
   const colorScheme = useColorScheme() ?? "light";
   const insets = useSafeAreaInsets();
   const colors = Colors[colorScheme];
+  const reduceMotion = useReducedMotion();
 
   return (
     <Modal
-      animationType="slide"
+      animationType={reduceMotion ? "none" : "slide"}
       onRequestClose={onClose}
       presentationStyle="overFullScreen"
       transparent
@@ -49,11 +52,12 @@ export function DayTaskBottomSheet({
           onPress={onClose}
           style={styles.backdrop}
         />
-        <View
+        <SheetSurface
+          fallbackBackgroundColor={colors.background}
+          glassTintColor={colors.glassTint}
           style={[
             styles.sheet,
             {
-              backgroundColor: colors.background,
               paddingBottom: Math.max(insets.bottom, 16),
             },
           ]}
@@ -165,7 +169,7 @@ export function DayTaskBottomSheet({
               ))
             )}
           </ScrollView>
-        </View>
+        </SheetSurface>
       </View>
     </Modal>
   );
