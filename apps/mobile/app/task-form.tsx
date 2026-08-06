@@ -16,7 +16,13 @@ import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { Colors } from "@/constants/theme";
 import { useColorScheme } from "@/hooks/use-color-scheme";
-import { createTask, deleteTask, fetchTasks, updateTask } from "@/api/tasks";
+import {
+  createTask,
+  deleteTask,
+  fetchTasks,
+  fetchUnscheduledTasks,
+  updateTask,
+} from "@/api/tasks";
 import type { Task } from "@/types/task";
 
 export default function TaskFormScreen() {
@@ -51,8 +57,13 @@ export default function TaskFormScreen() {
 
     void (async () => {
       try {
-        const tasks = await fetchTasks(Number(year), Number(month));
-        const task = tasks.find((t) => t.id === taskId);
+        const [scheduledTasks, unscheduledTasks] = await Promise.all([
+          fetchTasks(Number(year), Number(month)),
+          fetchUnscheduledTasks(),
+        ]);
+        const task = [...scheduledTasks, ...unscheduledTasks].find(
+          (value) => value.id === taskId,
+        );
         if (task) {
           setOriginalTask(task);
           setTitle(task.title);
@@ -178,9 +189,8 @@ export default function TaskFormScreen() {
                 styles.input,
                 {
                   color: Colors[colorScheme].text,
-                  borderColor: Colors[colorScheme].icon + "50",
-                  backgroundColor:
-                    colorScheme === "dark" ? "#1e2022" : "#f5f5f5",
+                  borderColor: Colors[colorScheme].controlBorder,
+                  backgroundColor: Colors[colorScheme].surface,
                 },
               ]}
               value={title}
@@ -198,9 +208,8 @@ export default function TaskFormScreen() {
                 styles.input,
                 {
                   color: Colors[colorScheme].text,
-                  borderColor: Colors[colorScheme].icon + "50",
-                  backgroundColor:
-                    colorScheme === "dark" ? "#1e2022" : "#f5f5f5",
+                  borderColor: Colors[colorScheme].controlBorder,
+                  backgroundColor: Colors[colorScheme].surface,
                 },
               ]}
               value={date}
@@ -218,9 +227,8 @@ export default function TaskFormScreen() {
                 styles.textArea,
                 {
                   color: Colors[colorScheme].text,
-                  borderColor: Colors[colorScheme].icon + "50",
-                  backgroundColor:
-                    colorScheme === "dark" ? "#1e2022" : "#f5f5f5",
+                  borderColor: Colors[colorScheme].controlBorder,
+                  backgroundColor: Colors[colorScheme].surface,
                 },
               ]}
               value={description}
@@ -255,11 +263,17 @@ export default function TaskFormScreen() {
               </Pressable>
 
               <Pressable
-                style={[styles.actionButton, { borderColor: "#e53e3e" }]}
+                style={[
+                  styles.actionButton,
+                  { borderColor: Colors[colorScheme].danger },
+                ]}
                 onPress={handleDelete}
               >
                 <ThemedText
-                  style={[styles.actionButtonText, { color: "#e53e3e" }]}
+                  style={[
+                    styles.actionButtonText,
+                    { color: Colors[colorScheme].danger },
+                  ]}
                 >
                   削除
                 </ThemedText>

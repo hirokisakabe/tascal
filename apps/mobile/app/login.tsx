@@ -60,7 +60,7 @@ export default function LoginScreen() {
             styles.input,
             {
               color: Colors[colorScheme].text,
-              borderColor: Colors[colorScheme].icon,
+              borderColor: Colors[colorScheme].controlBorder,
             },
           ]}
           placeholder="メールアドレス"
@@ -78,7 +78,7 @@ export default function LoginScreen() {
             styles.input,
             {
               color: Colors[colorScheme].text,
-              borderColor: Colors[colorScheme].icon,
+              borderColor: Colors[colorScheme].controlBorder,
             },
           ]}
           placeholder="パスワード"
@@ -93,16 +93,20 @@ export default function LoginScreen() {
         <Pressable
           style={[
             styles.button,
-            { backgroundColor: Colors[colorScheme].tint },
+            { backgroundColor: Colors[colorScheme].tintBackground },
             isSubmitting && styles.buttonDisabled,
           ]}
           onPress={handleSignIn}
           disabled={isSubmitting}
         >
           {isSubmitting ? (
-            <ActivityIndicator color="#fff" />
+            <ActivityIndicator color={Colors[colorScheme].onTint} />
           ) : (
-            <ThemedText style={styles.buttonText}>ログイン</ThemedText>
+            <ThemedText
+              style={[styles.buttonText, { color: Colors[colorScheme].onTint }]}
+            >
+              ログイン
+            </ThemedText>
           )}
         </Pressable>
       </View>
@@ -141,7 +145,6 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   buttonText: {
-    color: "#fff",
     fontSize: 16,
     fontWeight: "600",
   },

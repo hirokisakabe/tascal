@@ -5,25 +5,46 @@
 
 import { Platform } from "react-native";
 
-const tintColorLight = "#0a7ea4";
-const tintColorDark = "#fff";
+// Keep these semantic colors aligned with apps/web/src/index.css.
+const primary = "#4a4181";
+const primaryMuted = "#7a73a8";
 
 export const Colors = {
   light: {
-    text: "#11181C",
+    text: "#2d2a26",
     background: "#fff",
-    tint: tintColorLight,
-    icon: "#687076",
-    tabIconDefault: "#687076",
-    tabIconSelected: tintColorLight,
+    tint: primary,
+    tintBackground: primary,
+    onTint: "#fff",
+    icon: "#6b6560",
+    muted: "#a09a94",
+    surface: "#f5f4f0",
+    glassTint: "rgba(245, 244, 240, 0.72)",
+    surfaceHover: "#eeedea",
+    border: "#cbc8c0",
+    borderLight: "#dddbd5",
+    controlBorder: "#8b857f",
+    danger: "#881337",
+    tabIconDefault: "#6b6560",
+    tabIconSelected: primary,
   },
   dark: {
-    text: "#ECEDEE",
-    background: "#151718",
-    tint: tintColorDark,
-    icon: "#9BA1A6",
-    tabIconDefault: "#9BA1A6",
-    tabIconSelected: tintColorDark,
+    text: "#f5f4f0",
+    background: "#17151a",
+    tint: "#b8b2dc",
+    tintBackground: "#8881b4",
+    onTint: "#17151a",
+    icon: "#c0bbb6",
+    muted: "#8f8984",
+    surface: "#211f23",
+    glassTint: "rgba(33, 31, 35, 0.8)",
+    surfaceHover: "#2b282e",
+    border: "#69646e",
+    borderLight: "#3b3740",
+    controlBorder: "#706b75",
+    danger: "#e89aae",
+    tabIconDefault: "#c0bbb6",
+    tabIconSelected: primaryMuted,
   },
 };
 

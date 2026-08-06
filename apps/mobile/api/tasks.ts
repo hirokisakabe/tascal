@@ -27,6 +27,21 @@ export async function fetchTasks(year: number, month: number): Promise<Task[]> {
   return res.json();
 }
 
+export async function fetchTasksRange(
+  startDate: string,
+  endDate: string,
+): Promise<Task[]> {
+  const headers = await authHeaders();
+  const params = new URLSearchParams({ startDate, endDate });
+  const res = await fetch(`${API_BASE_URL}/api/tasks/range?${params}`, {
+    headers,
+  });
+  if (!res.ok) {
+    throw new Error("タスクの取得に失敗しました");
+  }
+  return res.json();
+}
+
 export async function fetchUnscheduledTasks(): Promise<Task[]> {
   const headers = await authHeaders();
   const res = await fetch(`${API_BASE_URL}/api/tasks/unscheduled`, {
