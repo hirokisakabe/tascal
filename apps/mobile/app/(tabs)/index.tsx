@@ -182,6 +182,7 @@ export default function HomeScreen() {
   const moveMonth = useCallback((offset: -1 | 1) => {
     const next = shiftCalendarMonth(displayedMonth.current, offset);
     displayedMonth.current = next;
+    requestGeneration.current += 1;
     setSelectedDate(null);
     setScheduledTasks([]);
     setIsLoading(true);
@@ -272,6 +273,7 @@ export default function HomeScreen() {
     setMonth(today.getMonth() + 1);
     setSelectedDate(formatDateKey(today));
     if (!isAlreadyCurrentMonth) {
+      requestGeneration.current += 1;
       setScheduledTasks([]);
       setIsLoading(true);
     }
