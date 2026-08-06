@@ -159,6 +159,12 @@ describe("mobile task queries", () => {
     expect(invalidateQueries).toHaveBeenNthCalledWith(1, {
       queryKey: taskQueryKeys.all,
     });
+    expect(invalidateQueries).toHaveBeenNthCalledWith(2, {
+      queryKey: taskQueryKeys.all,
+    });
+    expect(invalidateQueries).toHaveBeenNthCalledWith(3, {
+      queryKey: taskQueryKeys.all,
+    });
     create.unmount();
     update.unmount();
     remove.unmount();

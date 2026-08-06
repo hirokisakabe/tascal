@@ -10,6 +10,7 @@ function onAppStateChange(status: AppStateStatus) {
 
 export function useAppStateFocus() {
   useEffect(() => {
+    onAppStateChange(AppState.currentState);
     const subscription = AppState.addEventListener("change", onAppStateChange);
     return () => subscription.remove();
   }, []);

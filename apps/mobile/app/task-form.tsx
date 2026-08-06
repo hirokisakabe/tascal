@@ -62,11 +62,18 @@ export default function TaskFormScreen() {
     ...(scheduledTasksQuery.data ?? []),
     ...(unscheduledTasksQuery.data ?? []),
   ].find((value) => value.id === taskId);
+  const loadedTask = task ?? originalTask;
   const isLoadingTask =
     isEditing &&
+    !loadedTask &&
     (scheduledTasksQuery.isPending || unscheduledTasksQuery.isPending);
-  const hasTaskError =
-    isEditing && (scheduledTasksQuery.isError || unscheduledTasksQuery.isError);
+  const hasInitialTaskError =
+    isEditing &&
+    !loadedTask &&
+    !isLoadingTask &&
+    (scheduledTasksQuery.isError || unscheduledTasksQuery.isError);
+  const isTaskMissing =
+    isEditing && !loadedTask && !isLoadingTask && !hasInitialTaskError;
   const isSaving = createTaskMutation.isPending || updateTaskMutation.isPending;
 
   useEffect(() => {
@@ -80,6 +87,11 @@ export default function TaskFormScreen() {
   }, [task, taskId]);
 
   const handleSave = async () => {
+    if (isEditing && (!taskId || !loadedTask)) {
+      Alert.alert("エラー", "タスクが見つかりません");
+      return;
+    }
+
     const trimmedTitle = title.trim();
     if (!trimmedTitle) {
       Alert.alert("エラー", "タイトルを入力してください");
@@ -159,7 +171,7 @@ export default function TaskFormScreen() {
     );
   }
 
-  if (hasTaskError) {
+  if (hasInitialTaskError) {
     return (
       <ThemedView style={[styles.container, styles.centered]}>
         <ThemedText>タスクの取得に失敗しました</ThemedText>
@@ -173,6 +185,19 @@ export default function TaskFormScreen() {
         >
           <ThemedText style={{ color: Colors[colorScheme].tint }}>
             再試行
+          </ThemedText>
+        </Pressable>
+      </ThemedView>
+    );
+  }
+
+  if (isTaskMissing) {
+    return (
+      <ThemedView style={[styles.container, styles.centered]}>
+        <ThemedText>タスクが見つかりません</ThemedText>
+        <Pressable accessibilityRole="button" onPress={() => router.back()}>
+          <ThemedText style={{ color: Colors[colorScheme].tint }}>
+            戻る
           </ThemedText>
         </Pressable>
       </ThemedView>
