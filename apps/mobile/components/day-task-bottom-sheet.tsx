@@ -49,6 +49,7 @@ export function DayTaskBottomSheet({
       <View style={styles.modalRoot}>
         <Pressable
           accessibilityLabel="閉じる"
+          accessibilityRole="button"
           onPress={onClose}
           style={styles.backdrop}
         />
@@ -62,9 +63,6 @@ export function DayTaskBottomSheet({
             },
           ]}
         >
-          <View
-            style={[styles.dragHandle, { backgroundColor: colors.border }]}
-          />
           <View
             style={[
               styles.sheetHeader,
@@ -94,6 +92,15 @@ export function DayTaskBottomSheet({
                 </ThemedText>
               </Pressable>
             ) : null}
+            <Pressable
+              accessibilityLabel="閉じる"
+              accessibilityRole="button"
+              hitSlop={4}
+              onPress={onClose}
+              style={styles.closeButton}
+            >
+              <ThemedText style={styles.closeButtonText}>×</ThemedText>
+            </Pressable>
           </View>
 
           <ScrollView
@@ -159,7 +166,10 @@ export function DayTaskBottomSheet({
                       numberOfLines={2}
                       style={[
                         styles.taskTitle,
-                        task.status === "done" && styles.completedTask,
+                        task.status === "done" && [
+                          styles.completedTask,
+                          { color: colors.icon },
+                        ],
                       ]}
                     >
                       {task.title}
@@ -195,14 +205,6 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
     elevation: 12,
   },
-  dragHandle: {
-    alignSelf: "center",
-    borderRadius: 2,
-    height: 4,
-    marginBottom: 8,
-    marginTop: 10,
-    width: 40,
-  },
   sheetHeader: {
     alignItems: "center",
     borderBottomWidth: StyleSheet.hairlineWidth,
@@ -231,6 +233,17 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: "700",
     lineHeight: 18,
+  },
+  closeButton: {
+    alignItems: "center",
+    height: 44,
+    justifyContent: "center",
+    marginLeft: 4,
+    width: 44,
+  },
+  closeButtonText: {
+    fontSize: 26,
+    lineHeight: 30,
   },
   scrollArea: {
     flexGrow: 0,
@@ -284,7 +297,6 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   completedTask: {
-    opacity: 0.55,
     textDecorationLine: "line-through",
   },
 });

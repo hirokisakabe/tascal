@@ -36,6 +36,8 @@ export function resolveMonthSwipe(
   velocityX: number,
   calendarWidth: number,
 ): MonthSwipeDirection | null {
+  if (calendarWidth <= 0) return null;
+
   const distanceThreshold = calendarWidth * SWIPE_DISTANCE_RATIO;
   const completedByDistance = Math.abs(distanceX) >= distanceThreshold;
   const completedByVelocity =

@@ -42,5 +42,9 @@ describe("month swipe", () => {
       expect(resolveMonthSwipe(-24, -0.8, 320)).toBe("next");
       expect(resolveMonthSwipe(24, 0.8, 320)).toBe("previous");
     });
+
+    it("レイアウト幅が未確定の間は月を移動しない", () => {
+      expect(resolveMonthSwipe(-24, -0.8, 0)).toBeNull();
+    });
   });
 });

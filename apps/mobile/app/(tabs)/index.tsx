@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
+  AccessibilityInfo,
   Alert,
   Animated,
   Easing,
@@ -113,6 +114,7 @@ export default function HomeScreen() {
   const requestGeneration = useRef(0);
   const calendarTranslateX = useRef(new Animated.Value(0)).current;
   const calendarWidth = useRef(0);
+  const isMonthTransitioning = useRef(false);
 
   const calendarDays = useMemo(
     () => getCalendarDays(year, month),
@@ -181,29 +183,54 @@ export default function HomeScreen() {
     const next = shiftCalendarMonth(displayedMonth.current, offset);
     displayedMonth.current = next;
     setSelectedDate(null);
+    setScheduledTasks([]);
+    setIsLoading(true);
     setYear(next.year);
     setMonth(next.month);
+    AccessibilityInfo.announceForAccessibility(
+      formatMonth(next.year, next.month),
+    );
   }, []);
 
-  const handlePrevMonth = useCallback(() => moveMonth(-1), [moveMonth]);
-  const handleNextMonth = useCallback(() => moveMonth(1), [moveMonth]);
+  const moveMonthImmediately = useCallback(
+    (offset: -1 | 1) => {
+      calendarTranslateX.stopAnimation();
+      calendarTranslateX.setValue(0);
+      isMonthTransitioning.current = false;
+      moveMonth(offset);
+    },
+    [calendarTranslateX, moveMonth],
+  );
+
+  const handlePrevMonth = useCallback(
+    () => moveMonthImmediately(-1),
+    [moveMonthImmediately],
+  );
+  const handleNextMonth = useCallback(
+    () => moveMonthImmediately(1),
+    [moveMonthImmediately],
+  );
 
   const settleMonthSwipe = useCallback(
     (direction: MonthSwipeDirection | null) => {
+      if (isMonthTransitioning.current) return;
+
       const width = calendarWidth.current;
       const destination =
         direction === "next" ? -width : direction === "previous" ? width : 0;
 
+      isMonthTransitioning.current = true;
       Animated.timing(calendarTranslateX, {
         duration: reduceMotion ? 0 : direction ? 160 : 180,
         easing: direction ? Easing.out(Easing.cubic) : Easing.out(Easing.quad),
         toValue: destination,
         useNativeDriver: true,
-      }).start(() => {
-        if (direction) {
+      }).start(({ finished }) => {
+        if (finished && direction) {
           moveMonth(direction === "next" ? 1 : -1);
         }
         calendarTranslateX.setValue(0);
+        isMonthTransitioning.current = false;
       });
     },
     [calendarTranslateX, moveMonth, reduceMotion],
@@ -213,6 +240,7 @@ export default function HomeScreen() {
     () =>
       PanResponder.create({
         onMoveShouldSetPanResponder: (_, gesture) =>
+          !isMonthTransitioning.current &&
           shouldActivateMonthSwipe(gesture.dx, gesture.dy),
         onPanResponderMove: (_, gesture) => {
           calendarTranslateX.setValue(gesture.dx);
@@ -229,7 +257,13 @@ export default function HomeScreen() {
   );
 
   const handleToday = () => {
+    calendarTranslateX.stopAnimation();
+    calendarTranslateX.setValue(0);
+    isMonthTransitioning.current = false;
     const today = new Date();
+    const isAlreadyCurrentMonth =
+      displayedMonth.current.year === today.getFullYear() &&
+      displayedMonth.current.month === today.getMonth() + 1;
     displayedMonth.current = {
       year: today.getFullYear(),
       month: today.getMonth() + 1,
@@ -237,6 +271,13 @@ export default function HomeScreen() {
     setYear(today.getFullYear());
     setMonth(today.getMonth() + 1);
     setSelectedDate(formatDateKey(today));
+    if (!isAlreadyCurrentMonth) {
+      setScheduledTasks([]);
+      setIsLoading(true);
+    }
+    AccessibilityInfo.announceForAccessibility(
+      formatMonth(today.getFullYear(), today.getMonth() + 1),
+    );
   };
 
   const handleToggleStatus = async (task: Task) => {
@@ -328,7 +369,9 @@ export default function HomeScreen() {
               count={unscheduledTasks.length}
               onPress={() => setShowUnscheduled(true)}
             />
-            <ThemedText type="subtitle">{formatMonth(year, month)}</ThemedText>
+            <ThemedText accessibilityLiveRegion="polite" type="subtitle">
+              {formatMonth(year, month)}
+            </ThemedText>
           </View>
           <View style={styles.navButtons}>
             <Pressable
@@ -378,7 +421,11 @@ export default function HomeScreen() {
               onLayout={(event) => {
                 calendarWidth.current = event.nativeEvent.layout.width;
               }}
-              style={[styles.calendar, { borderColor: colors.borderLight }]}
+              style={[
+                styles.calendar,
+                { borderColor: colors.borderLight },
+                { transform: [{ translateX: calendarTranslateX }] },
+              ]}
               {...calendarPanResponder.panHandlers}
             >
               <View style={styles.weekdayRow}>
