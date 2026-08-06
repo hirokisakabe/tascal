@@ -59,17 +59,17 @@ export function DayTaskBottomSheet({
           ]}
         >
           <View
-            style={[styles.dragHandle, { backgroundColor: colors.icon + "70" }]}
+            style={[styles.dragHandle, { backgroundColor: colors.border }]}
           />
           <View
             style={[
               styles.sheetHeader,
-              { borderBottomColor: colors.icon + "30" },
+              { borderBottomColor: colors.borderLight },
             ]}
           >
             <View style={styles.sheetTitleGroup}>
               <ThemedText type="defaultSemiBold">{title}</ThemedText>
-              <ThemedText style={[styles.taskCount, { color: colors.icon }]}>
+              <ThemedText style={[styles.taskCount, { color: colors.muted }]}>
                 {tasks.length}件
               </ThemedText>
             </View>
@@ -97,7 +97,7 @@ export function DayTaskBottomSheet({
             style={styles.scrollArea}
           >
             {tasks.length === 0 ? (
-              <ThemedText style={[styles.emptyText, { color: colors.icon }]}>
+              <ThemedText style={[styles.emptyText, { color: colors.muted }]}>
                 {emptyMessage}
               </ThemedText>
             ) : (
@@ -107,8 +107,7 @@ export function DayTaskBottomSheet({
                   style={[
                     styles.taskRow,
                     {
-                      backgroundColor:
-                        colorScheme === "dark" ? "#1e2022" : "#f5f4f0",
+                      backgroundColor: colors.surface,
                     },
                   ]}
                 >

@@ -189,15 +189,14 @@ export default function TaskFormScreen() {
                 styles.input,
                 {
                   color: Colors[colorScheme].text,
-                  borderColor: Colors[colorScheme].icon + "50",
-                  backgroundColor:
-                    colorScheme === "dark" ? "#1e2022" : "#f5f5f5",
+                  borderColor: Colors[colorScheme].border,
+                  backgroundColor: Colors[colorScheme].surface,
                 },
               ]}
               value={title}
               onChangeText={setTitle}
               placeholder="タスクのタイトル"
-              placeholderTextColor={Colors[colorScheme].icon}
+              placeholderTextColor={Colors[colorScheme].muted}
               autoFocus={!isEditing}
             />
           </View>
@@ -209,15 +208,14 @@ export default function TaskFormScreen() {
                 styles.input,
                 {
                   color: Colors[colorScheme].text,
-                  borderColor: Colors[colorScheme].icon + "50",
-                  backgroundColor:
-                    colorScheme === "dark" ? "#1e2022" : "#f5f5f5",
+                  borderColor: Colors[colorScheme].border,
+                  backgroundColor: Colors[colorScheme].surface,
                 },
               ]}
               value={date}
               onChangeText={setDate}
               placeholder="例: 2026-04-15"
-              placeholderTextColor={Colors[colorScheme].icon}
+              placeholderTextColor={Colors[colorScheme].muted}
               keyboardType="numbers-and-punctuation"
             />
           </View>
@@ -229,15 +227,14 @@ export default function TaskFormScreen() {
                 styles.textArea,
                 {
                   color: Colors[colorScheme].text,
-                  borderColor: Colors[colorScheme].icon + "50",
-                  backgroundColor:
-                    colorScheme === "dark" ? "#1e2022" : "#f5f5f5",
+                  borderColor: Colors[colorScheme].border,
+                  backgroundColor: Colors[colorScheme].surface,
                 },
               ]}
               value={description}
               onChangeText={setDescription}
               placeholder="タスクの説明（任意）"
-              placeholderTextColor={Colors[colorScheme].icon}
+              placeholderTextColor={Colors[colorScheme].muted}
               multiline
               numberOfLines={4}
               textAlignVertical="top"
@@ -266,11 +263,17 @@ export default function TaskFormScreen() {
               </Pressable>
 
               <Pressable
-                style={[styles.actionButton, { borderColor: "#e53e3e" }]}
+                style={[
+                  styles.actionButton,
+                  { borderColor: Colors[colorScheme].danger },
+                ]}
                 onPress={handleDelete}
               >
                 <ThemedText
-                  style={[styles.actionButtonText, { color: "#e53e3e" }]}
+                  style={[
+                    styles.actionButtonText,
+                    { color: Colors[colorScheme].danger },
+                  ]}
                 >
                   削除
                 </ThemedText>

@@ -60,11 +60,11 @@ export default function LoginScreen() {
             styles.input,
             {
               color: Colors[colorScheme].text,
-              borderColor: Colors[colorScheme].icon,
+              borderColor: Colors[colorScheme].border,
             },
           ]}
           placeholder="メールアドレス"
-          placeholderTextColor={Colors[colorScheme].icon}
+          placeholderTextColor={Colors[colorScheme].muted}
           value={email}
           onChangeText={setEmail}
           autoCapitalize="none"
@@ -78,11 +78,11 @@ export default function LoginScreen() {
             styles.input,
             {
               color: Colors[colorScheme].text,
-              borderColor: Colors[colorScheme].icon,
+              borderColor: Colors[colorScheme].border,
             },
           ]}
           placeholder="パスワード"
-          placeholderTextColor={Colors[colorScheme].icon}
+          placeholderTextColor={Colors[colorScheme].muted}
           value={password}
           onChangeText={setPassword}
           secureTextEntry
@@ -100,9 +100,13 @@ export default function LoginScreen() {
           disabled={isSubmitting}
         >
           {isSubmitting ? (
-            <ActivityIndicator color="#fff" />
+            <ActivityIndicator color={Colors[colorScheme].onTint} />
           ) : (
-            <ThemedText style={styles.buttonText}>ログイン</ThemedText>
+            <ThemedText
+              style={[styles.buttonText, { color: Colors[colorScheme].onTint }]}
+            >
+              ログイン
+            </ThemedText>
           )}
         </Pressable>
       </View>
@@ -141,7 +145,6 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   buttonText: {
-    color: "#fff",
     fontSize: 16,
     fontWeight: "600",
   },

@@ -260,7 +260,7 @@ export default function HomeScreen() {
           <Pressable
             accessibilityRole="button"
             onPress={handleSignOut}
-            style={[styles.signOutButton, { borderColor: colors.icon }]}
+            style={[styles.signOutButton, { borderColor: colors.border }]}
           >
             <ThemedText style={styles.signOutText}>ログアウト</ThemedText>
           </Pressable>
@@ -272,10 +272,7 @@ export default function HomeScreen() {
               accessibilityLabel={`未スケジュールタスク ${unscheduledTasks.length}件`}
               accessibilityRole="button"
               onPress={() => setShowUnscheduled(true)}
-              style={[
-                styles.unscheduledButton,
-                { borderColor: colors.icon + "50" },
-              ]}
+              style={[styles.unscheduledButton, { borderColor: colors.border }]}
             >
               <ThemedText style={styles.unscheduledIcon}>☷</ThemedText>
               {unscheduledTasks.length > 0 ? (
@@ -295,7 +292,7 @@ export default function HomeScreen() {
               accessibilityLabel="今日へ移動"
               accessibilityRole="button"
               onPress={handleToday}
-              style={[styles.navButton, { borderColor: colors.icon + "50" }]}
+              style={[styles.navButton, { borderColor: colors.border }]}
             >
               <ThemedText style={styles.todayButtonText}>今日</ThemedText>
             </Pressable>
@@ -303,7 +300,7 @@ export default function HomeScreen() {
               accessibilityLabel="前の月"
               accessibilityRole="button"
               onPress={handlePrevMonth}
-              style={[styles.navButton, { borderColor: colors.icon + "50" }]}
+              style={[styles.navButton, { borderColor: colors.border }]}
             >
               <ThemedText style={styles.navArrow}>←</ThemedText>
             </Pressable>
@@ -311,7 +308,7 @@ export default function HomeScreen() {
               accessibilityLabel="次の月"
               accessibilityRole="button"
               onPress={handleNextMonth}
-              style={[styles.navButton, { borderColor: colors.icon + "50" }]}
+              style={[styles.navButton, { borderColor: colors.border }]}
             >
               <ThemedText style={styles.navArrow}>→</ThemedText>
             </Pressable>
@@ -334,7 +331,7 @@ export default function HomeScreen() {
             }
           >
             <View
-              style={[styles.calendar, { borderColor: colors.icon + "35" }]}
+              style={[styles.calendar, { borderColor: colors.borderLight }]}
             >
               <View style={styles.weekdayRow}>
                 {WEEKDAY_LABELS.map((label, index) => (
@@ -342,8 +339,9 @@ export default function HomeScreen() {
                     <ThemedText
                       style={[
                         styles.weekdayText,
+                        { color: colors.icon },
                         index === 5 && { color: colors.tint },
-                        index === 6 && styles.sundayText,
+                        index === 6 && { color: colors.danger },
                       ]}
                     >
                       {label}
@@ -366,10 +364,8 @@ export default function HomeScreen() {
                         {
                           backgroundColor: day.isCurrentMonth
                             ? colors.background
-                            : colorScheme === "dark"
-                              ? "#1b1d1f"
-                              : "#f5f4f0",
-                          borderColor: colors.icon + "25",
+                            : colors.surface,
+                          borderColor: colors.borderLight,
                         },
                         pressed && styles.pressedCell,
                       ]}
@@ -413,7 +409,7 @@ export default function HomeScreen() {
                 })}
               </View>
             </View>
-            <ThemedText style={[styles.refreshHint, { color: colors.icon }]}>
+            <ThemedText style={[styles.refreshHint, { color: colors.muted }]}>
               下に引いて更新
             </ThemedText>
           </ScrollView>
@@ -563,9 +559,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: "600",
     lineHeight: 16,
-  },
-  sundayText: {
-    color: "#dc2626",
   },
   dayGrid: {
     flexDirection: "row",
