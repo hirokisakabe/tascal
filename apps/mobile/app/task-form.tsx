@@ -189,14 +189,14 @@ export default function TaskFormScreen() {
                 styles.input,
                 {
                   color: Colors[colorScheme].text,
-                  borderColor: Colors[colorScheme].border,
+                  borderColor: Colors[colorScheme].controlBorder,
                   backgroundColor: Colors[colorScheme].surface,
                 },
               ]}
               value={title}
               onChangeText={setTitle}
               placeholder="タスクのタイトル"
-              placeholderTextColor={Colors[colorScheme].muted}
+              placeholderTextColor={Colors[colorScheme].icon}
               autoFocus={!isEditing}
             />
           </View>
@@ -208,14 +208,14 @@ export default function TaskFormScreen() {
                 styles.input,
                 {
                   color: Colors[colorScheme].text,
-                  borderColor: Colors[colorScheme].border,
+                  borderColor: Colors[colorScheme].controlBorder,
                   backgroundColor: Colors[colorScheme].surface,
                 },
               ]}
               value={date}
               onChangeText={setDate}
               placeholder="例: 2026-04-15"
-              placeholderTextColor={Colors[colorScheme].muted}
+              placeholderTextColor={Colors[colorScheme].icon}
               keyboardType="numbers-and-punctuation"
             />
           </View>
@@ -227,14 +227,14 @@ export default function TaskFormScreen() {
                 styles.textArea,
                 {
                   color: Colors[colorScheme].text,
-                  borderColor: Colors[colorScheme].border,
+                  borderColor: Colors[colorScheme].controlBorder,
                   backgroundColor: Colors[colorScheme].surface,
                 },
               ]}
               value={description}
               onChangeText={setDescription}
               placeholder="タスクの説明（任意）"
-              placeholderTextColor={Colors[colorScheme].muted}
+              placeholderTextColor={Colors[colorScheme].icon}
               multiline
               numberOfLines={4}
               textAlignVertical="top"

@@ -60,11 +60,11 @@ export default function LoginScreen() {
             styles.input,
             {
               color: Colors[colorScheme].text,
-              borderColor: Colors[colorScheme].border,
+              borderColor: Colors[colorScheme].controlBorder,
             },
           ]}
           placeholder="メールアドレス"
-          placeholderTextColor={Colors[colorScheme].muted}
+          placeholderTextColor={Colors[colorScheme].icon}
           value={email}
           onChangeText={setEmail}
           autoCapitalize="none"
@@ -78,11 +78,11 @@ export default function LoginScreen() {
             styles.input,
             {
               color: Colors[colorScheme].text,
-              borderColor: Colors[colorScheme].border,
+              borderColor: Colors[colorScheme].controlBorder,
             },
           ]}
           placeholder="パスワード"
-          placeholderTextColor={Colors[colorScheme].muted}
+          placeholderTextColor={Colors[colorScheme].icon}
           value={password}
           onChangeText={setPassword}
           secureTextEntry
@@ -93,7 +93,7 @@ export default function LoginScreen() {
         <Pressable
           style={[
             styles.button,
-            { backgroundColor: Colors[colorScheme].tint },
+            { backgroundColor: Colors[colorScheme].tintBackground },
             isSubmitting && styles.buttonDisabled,
           ]}
           onPress={handleSignIn}

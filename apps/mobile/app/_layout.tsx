@@ -10,6 +10,33 @@ import "react-native-reanimated";
 
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { AuthProvider, useAuth } from "@/contexts/auth-context";
+import { Colors } from "@/constants/theme";
+
+const lightNavigationTheme = {
+  ...DefaultTheme,
+  colors: {
+    ...DefaultTheme.colors,
+    primary: Colors.light.tint,
+    background: Colors.light.background,
+    card: Colors.light.background,
+    text: Colors.light.text,
+    border: Colors.light.borderLight,
+    notification: Colors.light.danger,
+  },
+};
+
+const darkNavigationTheme = {
+  ...DarkTheme,
+  colors: {
+    ...DarkTheme.colors,
+    primary: Colors.dark.tint,
+    background: Colors.dark.background,
+    card: Colors.dark.background,
+    text: Colors.dark.text,
+    border: Colors.dark.borderLight,
+    notification: Colors.dark.danger,
+  },
+};
 
 function AuthGate() {
   const { user, isLoading } = useAuth();
@@ -42,7 +69,11 @@ export default function RootLayout() {
 
   return (
     <AuthProvider>
-      <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
+      <ThemeProvider
+        value={
+          colorScheme === "dark" ? darkNavigationTheme : lightNavigationTheme
+        }
+      >
         <AuthGate />
         <StatusBar style="auto" />
       </ThemeProvider>

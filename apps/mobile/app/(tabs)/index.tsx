@@ -260,7 +260,10 @@ export default function HomeScreen() {
           <Pressable
             accessibilityRole="button"
             onPress={handleSignOut}
-            style={[styles.signOutButton, { borderColor: colors.border }]}
+            style={[
+              styles.signOutButton,
+              { borderColor: colors.controlBorder },
+            ]}
           >
             <ThemedText style={styles.signOutText}>ログアウト</ThemedText>
           </Pressable>
@@ -272,11 +275,19 @@ export default function HomeScreen() {
               accessibilityLabel={`未スケジュールタスク ${unscheduledTasks.length}件`}
               accessibilityRole="button"
               onPress={() => setShowUnscheduled(true)}
-              style={[styles.unscheduledButton, { borderColor: colors.border }]}
+              style={[
+                styles.unscheduledButton,
+                { borderColor: colors.controlBorder },
+              ]}
             >
               <ThemedText style={styles.unscheduledIcon}>☷</ThemedText>
               {unscheduledTasks.length > 0 ? (
-                <View style={[styles.badge, { backgroundColor: colors.tint }]}>
+                <View
+                  style={[
+                    styles.badge,
+                    { backgroundColor: colors.tintBackground },
+                  ]}
+                >
                   <ThemedText
                     style={[styles.badgeText, { color: colors.onTint }]}
                   >
@@ -292,7 +303,7 @@ export default function HomeScreen() {
               accessibilityLabel="今日へ移動"
               accessibilityRole="button"
               onPress={handleToday}
-              style={[styles.navButton, { borderColor: colors.border }]}
+              style={[styles.navButton, { borderColor: colors.controlBorder }]}
             >
               <ThemedText style={styles.todayButtonText}>今日</ThemedText>
             </Pressable>
@@ -300,7 +311,7 @@ export default function HomeScreen() {
               accessibilityLabel="前の月"
               accessibilityRole="button"
               onPress={handlePrevMonth}
-              style={[styles.navButton, { borderColor: colors.border }]}
+              style={[styles.navButton, { borderColor: colors.controlBorder }]}
             >
               <ThemedText style={styles.navArrow}>←</ThemedText>
             </Pressable>
@@ -308,7 +319,7 @@ export default function HomeScreen() {
               accessibilityLabel="次の月"
               accessibilityRole="button"
               onPress={handleNextMonth}
-              style={[styles.navButton, { borderColor: colors.border }]}
+              style={[styles.navButton, { borderColor: colors.controlBorder }]}
             >
               <ThemedText style={styles.navArrow}>→</ThemedText>
             </Pressable>
@@ -373,7 +384,7 @@ export default function HomeScreen() {
                       <View
                         style={[
                           styles.dateCircle,
-                          today && { backgroundColor: colors.tint },
+                          today && { backgroundColor: colors.tintBackground },
                         ]}
                       >
                         <ThemedText
@@ -391,7 +402,7 @@ export default function HomeScreen() {
                         <View
                           style={[
                             styles.taskBadge,
-                            { backgroundColor: colors.tint },
+                            { backgroundColor: colors.tintBackground },
                           ]}
                         >
                           <ThemedText
@@ -409,7 +420,7 @@ export default function HomeScreen() {
                 })}
               </View>
             </View>
-            <ThemedText style={[styles.refreshHint, { color: colors.muted }]}>
+            <ThemedText style={[styles.refreshHint, { color: colors.icon }]}>
               下に引いて更新
             </ThemedText>
           </ScrollView>

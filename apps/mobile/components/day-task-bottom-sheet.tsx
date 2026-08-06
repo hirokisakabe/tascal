@@ -69,7 +69,7 @@ export function DayTaskBottomSheet({
           >
             <View style={styles.sheetTitleGroup}>
               <ThemedText type="defaultSemiBold">{title}</ThemedText>
-              <ThemedText style={[styles.taskCount, { color: colors.muted }]}>
+              <ThemedText style={[styles.taskCount, { color: colors.icon }]}>
                 {tasks.length}件
               </ThemedText>
             </View>
@@ -78,7 +78,10 @@ export function DayTaskBottomSheet({
                 accessibilityHint={`${date ?? "選択日"}のタスクを作成します`}
                 accessibilityRole="button"
                 onPress={onAddTask}
-                style={[styles.addButton, { backgroundColor: colors.tint }]}
+                style={[
+                  styles.addButton,
+                  { backgroundColor: colors.tintBackground },
+                ]}
               >
                 <ThemedText
                   style={[styles.addButtonText, { color: colors.onTint }]}
@@ -97,7 +100,7 @@ export function DayTaskBottomSheet({
             style={styles.scrollArea}
           >
             {tasks.length === 0 ? (
-              <ThemedText style={[styles.emptyText, { color: colors.muted }]}>
+              <ThemedText style={[styles.emptyText, { color: colors.icon }]}>
                 {emptyMessage}
               </ThemedText>
             ) : (
@@ -125,10 +128,10 @@ export function DayTaskBottomSheet({
                       style={[
                         styles.checkbox,
                         {
-                          borderColor: colors.icon,
+                          borderColor: colors.controlBorder,
                           backgroundColor:
                             task.status === "done"
-                              ? colors.tint
+                              ? colors.tintBackground
                               : "transparent",
                         },
                       ]}
