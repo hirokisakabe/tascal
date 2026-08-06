@@ -15,26 +15,16 @@ async function authHeaders(): Promise<Record<string, string>> {
   };
 }
 
-export async function fetchTasks(year: number, month: number): Promise<Task[]> {
-  const headers = await authHeaders();
-  const res = await fetch(
-    `${API_BASE_URL}/api/tasks?year=${year}&month=${month}`,
-    { headers },
-  );
-  if (!res.ok) {
-    throw new Error("タスクの取得に失敗しました");
-  }
-  return res.json();
-}
-
 export async function fetchTasksRange(
   startDate: string,
   endDate: string,
+  signal?: AbortSignal,
 ): Promise<Task[]> {
   const headers = await authHeaders();
   const params = new URLSearchParams({ startDate, endDate });
   const res = await fetch(`${API_BASE_URL}/api/tasks/range?${params}`, {
     headers,
+    signal,
   });
   if (!res.ok) {
     throw new Error("タスクの取得に失敗しました");
@@ -42,10 +32,13 @@ export async function fetchTasksRange(
   return res.json();
 }
 
-export async function fetchUnscheduledTasks(): Promise<Task[]> {
+export async function fetchUnscheduledTasks(
+  signal?: AbortSignal,
+): Promise<Task[]> {
   const headers = await authHeaders();
   const res = await fetch(`${API_BASE_URL}/api/tasks/unscheduled`, {
     headers,
+    signal,
   });
   if (!res.ok) {
     throw new Error("未スケジュールタスクの取得に失敗しました");
