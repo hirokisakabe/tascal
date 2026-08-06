@@ -17,7 +17,7 @@ describe("LoginScreen", () => {
     mockSignIn.mockResolvedValue(undefined);
   });
 
-  it("入力した認証情報でログインできる", async () => {
+  it("入力した認証情報でサインイン処理を呼び出す", async () => {
     renderRouter({ login: LoginScreen }, { initialUrl: "/login" });
 
     expect(screen.getByText("tascal")).toBeOnTheScreen();
