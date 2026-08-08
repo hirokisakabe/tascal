@@ -10,6 +10,8 @@
       "ignoreDependencies": [
         // Expo's app-config introspection exposes this optional built-in even when EAS Update is not configured.
         "expo-updates",
+        // Required at runtime as a peer of the React Native Storybook on-device UI.
+        "react-native-svg",
       ],
     },
     "packages/shared": {
