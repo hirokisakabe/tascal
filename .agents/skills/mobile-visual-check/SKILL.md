@@ -108,25 +108,30 @@ xcrun simctl list devices available
 test -f apps/mobile/.rnstorybook/index.ts
 ```
 
-compact と standard の device identifier を記録する。対象 Simulator を boot し、
-boot 完了を待ってから tascal の script で Storybook を起動する。
+tascal の script で Storybook の Metro server と Terminal UI を起動する。
 
 ```bash
-open -a Simulator
-xcrun simctl boot <DEVICE_UDID> 2>/dev/null || true
-xcrun simctl bootstatus <DEVICE_UDID> -b
-pnpm --filter @tascal/mobile storybook:ios
+pnpm --filter @tascal/mobile storybook
 ```
 
-`storybook:ios` は `STORYBOOK_ENABLED=true` を設定し、Metro の entry-point swapping
-で `.rnstorybook/index.ts` を表示する。通常アプリの `ios` script で代用しない。
+Terminal UI で `shift+i`（Select an iOS Simulator to open）を押し、まず compact、次に
+standard の model を picker から明示選択する。各選択後に boot 完了と UDID を確認し、
+その端末で対象 matrix の確認と screenshot 取得を終えてから `shift+i` で次へ切り替える。
+
+```bash
+xcrun simctl list devices available
+xcrun simctl bootstatus <SELECTED_DEVICE_UDID> -b
+```
+
+`storybook` は `STORYBOOK_ENABLED=true` を設定し、Metro の entry-point swapping で
+`.rnstorybook/index.ts` を表示する。通常アプリの `ios` script で代用しない。
+`storybook:ios` (`expo start --ios`) は既定 Simulator をすぐ開く単一端末 smoke には使えるが、
+UDID を指定できないため 2 端末 matrix では使わない。active window や先頭の booted device
+から対象を推測しない。picker の選択、Simulator window、`simctl` の model / UDID が一致
+しなければ blocker とする。
+
 Metro cache が原因で story が見つからない場合は、既存 process を止めてから
 `pnpm --filter @tascal/mobile storybook --clear` を試す。
-
-`storybook:ios` の実体である `expo start --ios` には UDID 指定がない。Simulator UI で
-対象 device を active にしてから起動し、Storybook が matrix の UDID / model に表示された
-ことを Simulator window と `xcrun simctl list devices` の両方で確認する。複数 Simulator
-が boot 済みで対象を確定できない場合は、別端末の証拠で続けず blocker とする。
 
 ## 5. Story を表示して証拠を取る
 
@@ -179,8 +184,9 @@ fallback surface を確認する。切り替え後は story を再選択し、`S
 
 次の順で fallback する。
 
-1. Simulator の UI 操作 tool がない: ユーザーに story 選択と theme 切り替えを依頼し、
-   `xcrun simctl io` で agent が screenshot を取得する。
+1. Terminal / Simulator の UI 操作 tool がない: ユーザーに `shift+i` での端末選択と
+   story 選択を依頼し、選択した model / UDID を照合してから agent が
+   `xcrun simctl io` で screenshot を取得する。
 2. `xcrun simctl io ... screenshot` が使えない: UI 操作 tool の screenshot、または
    ユーザー提供画像を使い、取得方法を報告する。
 3. Simulator / Xcode runtime / Storybook 起動 / UI 操作 / screenshot のいずれも代替
@@ -230,5 +236,6 @@ fallback でも story、device、theme を証拠から識別できることが�
 - [React Native Storybook: Getting started](https://storybookjs.github.io/react-native/docs/intro/getting-started/)
 - [React Native Storybook: Writing stories](https://storybookjs.github.io/react-native/docs/intro/writing-stories/)
 - [React Native Storybook: Storybook UI configuration](https://storybookjs.github.io/react-native/docs/intro/configuration/storybook-ui-configuration/)
+- [Expo CLI](https://docs.expo.dev/more/expo-cli/)
 - [Expo: GlassEffect](https://docs.expo.dev/versions/latest/sdk/glass-effect/)
 - [`apps/mobile/README.md`](../../../apps/mobile/README.md)

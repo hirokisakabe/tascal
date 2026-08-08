@@ -2,45 +2,67 @@
 
 Evaluated: 2026-08-08
 
-## Method
+## Method and limitation
 
-- Trigger evaluation: an independent read-only agent classified all queries from the
-  `SKILL.md` description before comparing its decisions with `should_trigger`.
-- Workflow evaluation: a separate independent read-only agent graded every expectation in
-  `evals.json` against the skill instructions and the current tascal Storybook files.
-- Static validation: JSON shape, positive/negative balance, frontmatter, repository paths,
-  Markdown formatting, and whitespace checks are verified locally.
-- A nested ephemeral `codex exec` attempt could not initialize its app-server inside the
-  managed sandbox. This was an evaluator-harness limitation before prompt execution, so it is
-  not counted as a skill result and no bulky transcript is retained.
+- An independent read-only reviewer classified each query from the final frontmatter description
+  before comparing it with `should_trigger`.
+- A separate independent read-only reviewer graded each workflow expectation against the final
+  `SKILL.md`, current tascal stories, preview, and package scripts.
+- Trigger results are a **description-classification proxy**, not measured Codex runtime skill
+  invocation. A nested ephemeral `codex exec` attempt was rejected by the managed sandbox before
+  prompt execution, so it is not counted and its transcript is not retained.
+- JSON shape, positive/negative balance, frontmatter, repository paths, Markdown formatting, and
+  whitespace are also checked locally.
 
-## Iteration 1
+## Final trigger classification proxy
 
-| Evaluation             |  Result | Notes                                                                                  |
-| ---------------------- | ------: | -------------------------------------------------------------------------------------- |
-| Trigger classification | 10 / 10 | Five visual Mobile prompts triggered; five near-miss non-visual/setup prompts did not. |
-| Workflow expectations  | 13 / 13 | All three representative workflows were explicitly covered.                            |
+The full prompts and expected labels are in `trigger-cases.json`.
 
-The reviewers identified useful execution ambiguities despite the passing expectations:
+|  ID | Expected   | Reviewer decision | Match | Evidence                                                       |
+| --: | ---------- | ----------------- | ----- | -------------------------------------------------------------- |
+|   1 | trigger    | trigger           | yes   | Mobile component spacing and iPhone visual evidence.           |
+|   2 | trigger    | trigger           | yes   | Design-token color change can affect Mobile consumers.         |
+|   3 | trigger    | trigger           | yes   | Liquid Glass and compact-device layout are visual concerns.    |
+|   4 | trigger    | trigger           | yes   | Mobile UI review explicitly requests Storybook screenshots.    |
+|   5 | trigger    | trigger           | yes   | Mobile component overlap and dark mode are visual concerns.    |
+|   6 | no trigger | no trigger        | yes   | Mobile API error mapping and tests are non-visual.             |
+|   7 | no trigger | no trigger        | yes   | Storybook setup/upgrade is explicitly excluded.                |
+|   8 | no trigger | no trigger        | yes   | API, CLI, and Web schema/type changes do not affect Mobile UI. |
+|   9 | no trigger | no trigger        | yes   | Hook logic and Jest coverage are non-visual.                   |
+|  10 | no trigger | no trigger        | yes   | Dependency and build verification alone are non-visual.        |
 
-- compact / standard coverage conflicted between the completion criteria and matrix guidance;
-- `expo start --ios` does not target a specific Simulator UDID;
-- Storybook safe-area metrics are fixed at 390×844;
-- Liquid Glass native/fallback reproduction and partial/blocked status needed sharper rules;
-- local screenshot paths alone are not durable PR evidence.
+Result: **10 / 10 matched; no ambiguous case**.
 
-## Iteration 2 changes
+## Final workflow grading
 
-- Require the matrix to cover both device classes and both themes, while combining states only
-  where the diff's size, color, contrast, or native-material concern makes that combination
-  relevant. This avoids an unsupported Cartesian product of current stories.
-- Require verification of the actual Simulator model/UDID and block when target selection is
-  ambiguous.
-- Record fixed safe-area metrics as a limitation when safe area is in scope.
-- Define native/fallback checks using the iOS Reduce Transparency setting and supported runtime.
-- Define pass, partial, and blocked boundaries and explain how to share screenshot evidence.
-- Clarify the formerly ambiguous positive badge prompt with explicit Mobile component context.
+The full prompts and expectations are in `evals.json`.
 
-The persisted eval inputs remain intentionally small: they cover the issue's representative
-Mobile component, design-token/native, unavailable-tool, and non-UI boundaries without storing
-ephemeral model transcripts or benchmark artifacts.
+| Eval | Expectation                             | Result | Evidence in final skill                                                                                    |
+| ---: | --------------------------------------- | ------ | ---------------------------------------------------------------------------------------------------------- |
+|    1 | Scope Mobile visual change              | pass   | Description and Scope gate include Mobile component/style changes.                                         |
+|    1 | Select stories from diff/imports        | pass   | Step 2 follows colocated stories, render tree, and consumers.                                              |
+|    1 | Cover themes, sizes, related states     | pass   | Step 3 covers both themes/device classes and named related states without an unsupported Cartesian matrix. |
+|    1 | Use tascal Storybook and Simulator      | pass   | Step 4 runs `storybook`, uses Expo `shift+i`, and verifies model/UDID.                                     |
+|    1 | Structured evidence report              | pass   | Step 8 requires story, device, theme, result, evidence, and remaining issues.                              |
+|    2 | Trace design-token consumers            | pass   | Step 2 includes token importers and representative stories.                                                |
+|    2 | Record themes and device classes        | pass   | Steps 2–3 require light/dark and compact/standard in the matrix.                                           |
+|    2 | Check native glass and fallback         | pass   | Step 6 uses Reduce Transparency and supported/unsupported runtimes.                                        |
+|    2 | Treat missing coverage/tools as blocker | pass   | Steps 3 and 7 prohibit a pass without required coverage/evidence.                                          |
+|    3 | Select button state stories             | pass   | Colocated selection plus named states covers Empty, MultipleTasks, and Dark.                               |
+|    3 | Follow tool fallback order              | pass   | Step 7 orders assisted selection, `simctl`, and alternate images.                                          |
+|    3 | Never pass without visual evidence      | pass   | Completion criteria and Step 7 explicitly prohibit it.                                                     |
+|    3 | Report blocked status and gaps          | pass   | Steps 7–8 define statuses and Remaining issues.                                                            |
+
+Result: **13 / 13 passed**.
+
+## Iteration record
+
+| Draft   | Trigger proxy | Workflow | Material reviewer feedback                                                                                   |
+| ------- | ------------: | -------: | ------------------------------------------------------------------------------------------------------------ |
+| Initial |       10 / 10 |  13 / 13 | Clarify matrix, UDID targeting, safe-area limitation, Liquid Glass fallback, statuses, and evidence sharing. |
+| Final   |       10 / 10 |  13 / 13 | Use Expo `shift+i` device picker; expose case-level proxy evidence and its runtime limitation.               |
+
+The final draft uses a risk-based matrix, records the fixed 390×844 Storybook safe-area limitation,
+defines native/fallback and pass/partial/blocked rules, and selects compact and standard Simulators
+explicitly from the Expo Terminal UI. This evidence stays intentionally small and reviewable; no
+ephemeral model transcripts or generated benchmark viewer are committed.
