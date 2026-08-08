@@ -1,0 +1,42 @@
+{
+  "skill_name": "mobile-visual-check",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "apps/mobile/components/day-task-bottom-sheet.tsx のタスク行の余白と長いタイトルの折り返しを変更しました。PR 前に Mobile の見た目を確認して、確認条件と証拠を報告してください。",
+      "expected_output": "Skill が発火し、diff から DayTaskBottomSheet の LongTitle、MultipleTasks、Empty と dark variant を選び、compact / standard iPhone の light / dark matrix、Storybook 起動、screenshot、構造化報告まで計画または実行する。",
+      "files": [],
+      "expectations": [
+        "Mobile UI の視覚変更として scope 内と判定する",
+        "diff と import 関係から対象 story を選ぶ",
+        "light / dark、compact / standard、long / empty / multiple の関連状態を含む",
+        "Storybook の tascal script と iOS Simulator を使う",
+        "story、device、theme、result、evidence、remaining issues を構造化して報告する"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "packages/design-tokens の surface と text color を変えたので、apps/mobile への見た目の影響をレビューして。Liquid Glass の SheetSurface も含め、必要な story だけ Simulator で確認したい。",
+      "expected_output": "Skill が発火し、token consumer を追って SheetSurface などの representative story を選定し、light / dark、native / fallback、端末サイズと evidence の matrix を作る。",
+      "files": [],
+      "expectations": [
+        "design token の consumer を追跡して story を選ぶ",
+        "light / dark と compact / standard の条件を記録する",
+        "Liquid Glass の native 表現と fallback をチェック対象にする",
+        "未再現状態や tool 不足を pass ではなく blocker として扱う"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Mobile UI のレビューを頼まれましたが、この環境には Xcode Simulator も画面操作 tool もありません。apps/mobile/components/unscheduled-tasks-button.tsx の count badge 変更について、できるところまで確認して結果を出してください。",
+      "expected_output": "Skill が発火し、対象 story と必要 matrix を static に選ぶが、代替 screenshot も得られなければ blocked とし、実行済み範囲と具体的 blocker を報告する。",
+      "files": [],
+      "expectations": [
+        "UnscheduledTasksButton の Empty、MultipleTasks、Dark を候補にする",
+        "UI 操作、simctl screenshot、ユーザー提供画像の fallback 順を示す",
+        "視覚証拠がなければ pass を宣言しない",
+        "blocked status と残課題を構造化して報告する"
+      ]
+    }
+  ]
+}

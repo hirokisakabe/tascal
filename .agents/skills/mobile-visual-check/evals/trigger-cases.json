@@ -1,0 +1,52 @@
+[
+  {
+    "query": "apps/mobile/components/day-task-bottom-sheet.tsx の余白を直した。PR 前に iPhone の light/dark で見た目を確認してスクショを残して",
+    "should_trigger": true,
+    "reason": "Mobile component の layout 変更と視覚確認"
+  },
+  {
+    "query": "デザイントークンの surface color を更新したので、Mobile の影響範囲を story から選んでレビューしてほしい",
+    "should_trigger": true,
+    "reason": "Mobile consumer に波及する color 変更"
+  },
+  {
+    "query": "Liquid Glass の fallback を変えた。小さい iPhone でも bottom sheet が崩れないか見て",
+    "should_trigger": true,
+    "reason": "native 表現と端末サイズに関わる Mobile UI 変更"
+  },
+  {
+    "query": "React Native Storybook の upgrade は完了したので、既存の Mobile UI story に描画崩れがないか iOS Simulator のスクリーンショット付きで確認して",
+    "should_trigger": true,
+    "reason": "Storybook upgrade 後の Mobile UI 描画を確認する視覚 review"
+  },
+  {
+    "query": "Mobile の UnscheduledTasksButton で、長いタスク名の近くにある件数 badge が重ならないか dark mode も含めてチェックして",
+    "should_trigger": true,
+    "reason": "長文・重なり・dark mode の visual check"
+  },
+  {
+    "query": "apps/mobile/api/tasks.ts の fetch error mapping を直したので unit test と typecheck を実行して",
+    "should_trigger": false,
+    "reason": "Mobile 配下だが非視覚的な API logic 変更"
+  },
+  {
+    "query": "React Native Storybook を最新版へ upgrade して breaking changes を直し、build と typecheck だけ確認して",
+    "should_trigger": false,
+    "reason": "Storybook setup / upgrade の実施と非視覚的な build 確認だけは別 workflow"
+  },
+  {
+    "query": "apps/api の task range endpoint の Zod schema を変更して CLI と Web の型エラーを直して",
+    "should_trigger": false,
+    "reason": "Mobile UI と無関係な API / CLI / Web 変更"
+  },
+  {
+    "query": "useTasks の refetch 条件を変えた。Jest で AppState 復帰時のケースを追加して",
+    "should_trigger": false,
+    "reason": "hook logic と test のみで視覚的影響がない"
+  },
+  {
+    "query": "Expo SDK の依存だけ更新した。lockfile と build が通るか確認して",
+    "should_trigger": false,
+    "reason": "依存更新と build verification のみ"
+  }
+]
