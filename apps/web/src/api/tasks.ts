@@ -5,8 +5,6 @@ import type {
 } from "@tascal/shared/api-contract";
 import { client } from "./client";
 
-export type { Task };
-
 export async function fetchTasks(
   startDate: string,
   endDate: string,

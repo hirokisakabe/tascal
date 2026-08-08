@@ -1,1 +1,1 @@
-export type { Task, TaskStatus } from "@tascal/shared/api-contract";
+export type { Task } from "@tascal/shared/api-contract";

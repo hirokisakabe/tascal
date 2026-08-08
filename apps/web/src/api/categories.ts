@@ -5,8 +5,6 @@ import type {
 } from "@tascal/shared/api-contract";
 import { client } from "./client";
 
-export type { Category };
-
 export async function fetchCategories(): Promise<Category[]> {
   const res = await client.api.categories.$get();
   if (!res.ok) {
