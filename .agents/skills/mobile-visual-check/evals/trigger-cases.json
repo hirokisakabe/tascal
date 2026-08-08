@@ -30,9 +30,9 @@
     "reason": "Mobile 配下だが非視覚的な API logic 変更"
   },
   {
-    "query": "React Native Storybook を最新版へ upgrade して breaking changes を直して",
+    "query": "React Native Storybook を最新版へ upgrade して breaking changes を直し、build と typecheck だけ確認して",
     "should_trigger": false,
-    "reason": "Storybook setup / upgrade は別 workflow"
+    "reason": "Storybook setup / upgrade の実施と非視覚的な build 確認だけは別 workflow"
   },
   {
     "query": "apps/api の task range endpoint の Zod schema を変更して CLI と Web の型エラーを直して",

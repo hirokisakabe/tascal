@@ -1,6 +1,6 @@
 ---
 name: mobile-visual-check
-description: "tascal の Mobile UI を実装・変更・レビューしたときに、React Native Storybook と iOS Simulator で対象 story を選定し、light/dark・端末サイズ・関連状態を目視確認してスクリーンショット付きで報告する。apps/mobile のコンポーネント、画面、theme、design token、Liquid Glass など見た目に影響する変更では明示指定がなくても使用する。API、DB、CLI、テスト、型、ロジック、依存関係だけの非視覚的な変更では使用しない。Storybook の導入・upgrade 自体には使用しない。"
+description: "tascal の Mobile UI を実装・変更・レビューしたときに、React Native Storybook と iOS Simulator で対象 story を選定し、light/dark・端末サイズ・関連状態を目視確認してスクリーンショット付きで報告する。apps/mobile のコンポーネント、画面、theme、design token、Liquid Glass、Storybook 設定変更後の描画など見た目に影響する変更では明示指定がなくても使用する。API、DB、CLI、テスト、型、ロジック、依存関係だけの非視覚的な変更では使用しない。Storybook の導入・upgrade 作業そのものや build 確認だけには使用しない。"
 ---
 
 # Mobile visual check
@@ -30,13 +30,16 @@ tascal の Mobile UI 変更を、既存の React Native Storybook と iOS Simula
 - `apps/mobile` の画面、visual component、style、asset、animation、safe area
 - `apps/mobile/constants/theme.ts` や `packages/design-tokens` の見た目に関わる変更
 - Liquid Glass など native 表現や fallback 表示の変更
+- Storybook の設定移行・upgrade 後に、既存 story の描画、theme、decorator への
+  視覚的影響を確認する作業
 - Mobile UI の PR review、見た目確認、スクリーンショット取得
 
 対象外になる例:
 
 - API、DB、Web、CLI だけの変更
 - Mobile でも data fetching、認証、型、test、build 設定だけで見た目が変わらない変更
-- Storybook の導入、設定移行、version upgrade（公式 setup skill / docs の領域）
+- Storybook の導入、設定移行、version upgrade の実施や build 確認だけの作業
+  （公式 setup skill / docs の領域）。完了後の視覚的影響確認は対象に含む
 
 対象外なら「非視覚的な変更のため mobile visual check は不要」と短く報告して終了する。
 見た目への影響が不明なら、消極的に除外せず diff の consumer まで追跡する。
@@ -225,7 +228,7 @@ fallback でも story、device、theme を証拠から識別できることが�
 - <coverage gap、未確認 matrix、tool blocker。なければ「なし」>
 ```
 
-`Status: pass` は matrix の全行に証拠があり、重大な finding と blocker がない場合だけ使う。
+`Status: pass` は matrix の全行に証拠があり、未解決 finding と blocker がない場合だけ使う。
 共有可能な review / PR が成果物なら、利用可能な添付機能で screenshot を共有し、Evidence
 から参照できるようにする。依頼がなければ screenshot を repository に commit せず、添付
 できない環境では一時 path と共有 blocker を報告する。
