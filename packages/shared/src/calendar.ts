@@ -1,4 +1,4 @@
-export type CalendarDay = {
+type CalendarDay = {
   date: Date;
   dateKey: string;
   isCurrentMonth: boolean;

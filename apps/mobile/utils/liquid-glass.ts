@@ -1,4 +1,4 @@
-export type SheetSurfaceMode = "glass" | "surface";
+type SheetSurfaceMode = "glass" | "surface";
 
 type SheetSurfaceCapabilities = {
   glassEffectApiAvailable: boolean;

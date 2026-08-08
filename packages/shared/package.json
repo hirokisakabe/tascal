@@ -12,7 +12,8 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "knip": "knip --directory ../.. --workspace @tascal/shared"
   },
   "dependencies": {
     "@tascal/api": "workspace:*",

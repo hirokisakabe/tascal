@@ -1,8 +1,8 @@
-export const SWIPE_ACTIVATION_DISTANCE = 12;
-export const SWIPE_DISTANCE_RATIO = 0.2;
-export const SWIPE_VELOCITY_THRESHOLD = 0.55;
+const SWIPE_ACTIVATION_DISTANCE = 12;
+const SWIPE_DISTANCE_RATIO = 0.2;
+const SWIPE_VELOCITY_THRESHOLD = 0.55;
 
-export type CalendarMonth = {
+type CalendarMonth = {
   month: number;
   year: number;
 };
