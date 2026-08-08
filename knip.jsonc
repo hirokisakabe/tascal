@@ -4,7 +4,8 @@
     "apps/mobile": {
       "entry": [
         // Metro resolves these platform variants without a literal import of the suffixed file.
-        "**/*.{ios,android,windows,web,native,default}.{js,jsx,ts,tsx}",
+        "components/ui/icon-symbol.ios.tsx",
+        "hooks/use-color-scheme.web.ts",
       ],
       "ignoreDependencies": [
         // Expo's app-config introspection exposes this optional built-in even when EAS Update is not configured.
