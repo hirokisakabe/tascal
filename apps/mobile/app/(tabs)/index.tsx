@@ -14,6 +14,11 @@ import {
 } from "react-native";
 import { router } from "expo-router";
 import { useQueryClient } from "@tanstack/react-query";
+import {
+  formatDateKey,
+  getCalendarDays,
+  isToday,
+} from "@tascal/shared/calendar";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useReducedMotion } from "react-native-reanimated";
 
@@ -42,55 +47,14 @@ import {
 const WEEKDAY_LABELS = ["月", "火", "水", "木", "金", "土", "日"];
 const EMPTY_TASKS: Task[] = [];
 
-type CalendarDay = {
-  date: Date;
-  dateKey: string;
-  isCurrentMonth: boolean;
-};
-
 function formatMonth(year: number, month: number): string {
   return `${year}年${month}月`;
-}
-
-function formatDateKey(date: Date): string {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
 }
 
 function formatSheetTitle(dateKey: string): string {
   const date = new Date(`${dateKey}T00:00:00`);
   const weekday = ["日", "月", "火", "水", "木", "金", "土"][date.getDay()];
   return `${date.getMonth() + 1}月${date.getDate()}日（${weekday}）`;
-}
-
-function isSameDay(first: Date, second: Date): boolean {
-  return (
-    first.getFullYear() === second.getFullYear() &&
-    first.getMonth() === second.getMonth() &&
-    first.getDate() === second.getDate()
-  );
-}
-
-function getCalendarDays(year: number, month: number): CalendarDay[] {
-  const firstDay = new Date(year, month - 1, 1);
-  const mondayOffset = (firstDay.getDay() + 6) % 7;
-  const calendarStart = new Date(year, month - 1, 1 - mondayOffset);
-
-  return Array.from({ length: 42 }, (_, index) => {
-    const date = new Date(
-      calendarStart.getFullYear(),
-      calendarStart.getMonth(),
-      calendarStart.getDate() + index,
-    );
-    return {
-      date,
-      dateKey: formatDateKey(date),
-      isCurrentMonth:
-        date.getFullYear() === year && date.getMonth() === month - 1,
-    };
-  });
 }
 
 export default function HomeScreen() {
@@ -423,7 +387,7 @@ export default function HomeScreen() {
               <View style={styles.dayGrid}>
                 {calendarDays.map((day) => {
                   const taskCount = tasksByDate.get(day.dateKey)?.length ?? 0;
-                  const today = isSameDay(day.date, new Date());
+                  const today = isToday(day.date);
                   return (
                     <Pressable
                       accessibilityLabel={`${day.date.getMonth() + 1}月${day.date.getDate()}日、タスク${taskCount}件`}

@@ -1,6 +1,10 @@
 import * as SecureStore from "expo-secure-store";
+import type {
+  Task,
+  TaskCreateInput,
+  TaskUpdateInput,
+} from "@tascal/shared/api-contract";
 import { API_BASE_URL } from "@/constants/api";
-import type { Task } from "@/types/task";
 
 const TOKEN_KEY = "auth_token";
 
@@ -46,12 +50,7 @@ export async function fetchUnscheduledTasks(
   return res.json();
 }
 
-export async function createTask(data: {
-  title: string;
-  description?: string | null;
-  date?: string | null;
-  status?: "todo" | "done";
-}): Promise<Task> {
+export async function createTask(data: TaskCreateInput): Promise<Task> {
   const headers = await authHeaders();
   const res = await fetch(`${API_BASE_URL}/api/tasks`, {
     method: "POST",
@@ -66,12 +65,7 @@ export async function createTask(data: {
 
 export async function updateTask(
   id: string,
-  data: {
-    title?: string;
-    description?: string | null;
-    date?: string | null;
-    status?: "todo" | "done";
-  },
+  data: TaskUpdateInput,
 ): Promise<Task> {
   const headers = await authHeaders();
   const res = await fetch(`${API_BASE_URL}/api/tasks/${id}`, {

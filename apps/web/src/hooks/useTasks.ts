@@ -1,4 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { getCalendarDateRange } from "@tascal/shared/calendar";
+import type {
+  TaskCreateInput,
+  TaskUpdateInput,
+} from "@tascal/shared/api-contract";
 import { toast } from "sonner";
 import type { Task } from "../types/task";
 import {
@@ -8,15 +13,6 @@ import {
   updateTask,
   deleteTask,
 } from "../api/tasks";
-import { formatDateKey, getCalendarDays } from "../utils/calendar";
-
-function getTaskDateRange(year: number, month: number) {
-  const days = getCalendarDays(year, month);
-  return {
-    startDate: formatDateKey(days[0].date),
-    endDate: formatDateKey(days[days.length - 1].date),
-  };
-}
 
 function tasksQueryKey(startDate: string, endDate: string) {
   return ["tasks", "range", startDate, endDate] as const;
@@ -25,7 +21,7 @@ function tasksQueryKey(startDate: string, endDate: string) {
 const unscheduledTasksQueryKey = ["tasks", "unscheduled"] as const;
 
 export function useTasks(year: number, month: number) {
-  const { startDate, endDate } = getTaskDateRange(year, month);
+  const { startDate, endDate } = getCalendarDateRange(year, month);
 
   return useQuery({
     queryKey: tasksQueryKey(startDate, endDate),
@@ -42,17 +38,11 @@ export function useUnscheduledTasks() {
 
 export function useCreateTask(year: number, month: number) {
   const queryClient = useQueryClient();
-  const { startDate, endDate } = getTaskDateRange(year, month);
+  const { startDate, endDate } = getCalendarDateRange(year, month);
   const key = tasksQueryKey(startDate, endDate);
 
   return useMutation({
-    mutationFn: (data: {
-      title: string;
-      description?: string | null;
-      date?: string | null;
-      status?: "todo" | "done";
-      categoryId?: string | null;
-    }) => createTask(data),
+    mutationFn: (data: TaskCreateInput) => createTask(data),
     onMutate: async (newTask) => {
       const targetKey = newTask.date ? key : unscheduledTasksQueryKey;
       await queryClient.cancelQueries({ queryKey: targetKey });
@@ -89,23 +79,12 @@ export function useCreateTask(year: number, month: number) {
 
 export function useUpdateTask(year: number, month: number) {
   const queryClient = useQueryClient();
-  const { startDate, endDate } = getTaskDateRange(year, month);
+  const { startDate, endDate } = getCalendarDateRange(year, month);
   const key = tasksQueryKey(startDate, endDate);
 
   return useMutation({
-    mutationFn: ({
-      id,
-      data,
-    }: {
-      id: string;
-      data: {
-        title?: string;
-        description?: string | null;
-        date?: string | null;
-        status?: "todo" | "done";
-        categoryId?: string | null;
-      };
-    }) => updateTask(id, data),
+    mutationFn: ({ id, data }: { id: string; data: TaskUpdateInput }) =>
+      updateTask(id, data),
     onMutate: async ({ id, data }) => {
       await queryClient.cancelQueries({ queryKey: key });
       const previous = queryClient.getQueryData<Task[]>(key);
@@ -132,7 +111,7 @@ export function useUpdateTask(year: number, month: number) {
 
 export function useDeleteTask(year: number, month: number) {
   const queryClient = useQueryClient();
-  const { startDate, endDate } = getTaskDateRange(year, month);
+  const { startDate, endDate } = getCalendarDateRange(year, month);
   const key = tasksQueryKey(startDate, endDate);
 
   return useMutation({

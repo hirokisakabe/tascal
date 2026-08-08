@@ -1,0 +1,29 @@
+{
+  "name": "@tascal/shared",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./calendar": "./src/calendar.ts",
+    "./api-contract": "./src/api-contract.ts"
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@tascal/api": "workspace:*",
+    "hono": "4.12.34"
+  },
+  "devDependencies": {
+    "@eslint/js": "9.39.4",
+    "eslint": "9.39.4",
+    "prettier": "3.8.2",
+    "typescript": "6.0.2",
+    "typescript-eslint": "8.58.2",
+    "vitest": "4.1.4"
+  }
+}
