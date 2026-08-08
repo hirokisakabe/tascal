@@ -37,3 +37,21 @@ iOS または Android で起動し、対象 story を目視確認してくださ
 `pnpm --filter @tascal/mobile storybook:verify` は通常 production bundle と
 Storybook bundle をそれぞれ iOS 向けに export し、story marker が前者にはなく
 後者にだけ含まれることを検証します。
+
+### Agent による見た目確認
+
+Mobile UI の実装・変更・レビュー時は repo-scoped の
+[`mobile-visual-check`](../../.agents/skills/mobile-visual-check/SKILL.md) skill を使います。
+変更 diff から対象 story を選び、iOS Simulator で light / dark、compact / standard
+端末、長文・empty・複数件など変更に関係する状態を確認し、スクリーンショット付きの
+定型レポートを作成します。API、hook、型、test、依存更新だけの非視覚的な変更では
+使用しません。
+
+Codex では Mobile UI の依頼内容に合えば自動選択されます。明示する場合は prompt で
+`$mobile-visual-check` を指定してください。Simulator 操作や screenshot 取得ができない
+環境では、skill の fallback に従い partial / blocked と未確認条件を報告します。
+
+skill の形式と配置は [OpenAI の skills documentation](https://developers.openai.com/codex/skills)、
+Storybook の起動・story 定義は
+[React Native Storybook documentation](https://storybookjs.github.io/react-native/docs/intro/getting-started/)
+に準拠しています。
