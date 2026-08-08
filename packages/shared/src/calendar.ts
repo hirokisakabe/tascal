@@ -4,6 +4,15 @@ export type CalendarDay = {
   isCurrentMonth: boolean;
 };
 
+function assertValidCalendarMonth(year: number, month: number): void {
+  if (!Number.isInteger(year) || year < 100 || year > 9999) {
+    throw new RangeError("year must be an integer between 100 and 9999");
+  }
+  if (!Number.isInteger(month) || month < 1 || month > 12) {
+    throw new RangeError("month must be an integer between 1 and 12");
+  }
+}
+
 export function formatDateKey(date: Date): string {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -31,6 +40,8 @@ export function isPast(date: Date): boolean {
 }
 
 export function getCalendarDays(year: number, month: number): CalendarDay[] {
+  assertValidCalendarMonth(year, month);
+
   const firstDay = new Date(year, month - 1, 1);
   const mondayOffset = (firstDay.getDay() + 6) % 7;
   const calendarStart = new Date(year, month - 1, 1 - mondayOffset);

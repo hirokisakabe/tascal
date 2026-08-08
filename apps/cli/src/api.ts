@@ -1,5 +1,5 @@
 import { hc } from "hono/client";
-import type { AppType } from "@tascal/api/src/app.js";
+import type { AppType } from "@tascal/api/app-type";
 import { consola } from "consola";
 import { readConfig, getApiUrl } from "./config.js";
 

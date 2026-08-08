@@ -1,4 +1,4 @@
-import type { AppType } from "@tascal/api/src/app.js";
+import type { AppType } from "@tascal/api/app-type";
 import type { InferRequestType, InferResponseType, hc } from "hono/client";
 
 type ApiClient = ReturnType<typeof hc<AppType>>;

@@ -34,6 +34,37 @@ describe("getCalendarDays", () => {
     expect(days[41].dateKey).toBe("2026-02-08");
   });
 
+  it("月曜始まりの月は前月パディングなしで始まる", () => {
+    const days = getCalendarDays(2026, 6);
+
+    expect(days[0]).toMatchObject({
+      dateKey: "2026-06-01",
+      isCurrentMonth: true,
+    });
+  });
+
+  it("日曜始まりの月は前月パディングを6日含む", () => {
+    const days = getCalendarDays(2026, 3);
+
+    expect(days[0]).toMatchObject({
+      dateKey: "2026-02-23",
+      isCurrentMonth: false,
+    });
+    expect(days[6]).toMatchObject({
+      dateKey: "2026-03-01",
+      isCurrentMonth: true,
+    });
+  });
+
+  it("各週を月曜日から日曜日の順で生成する", () => {
+    const days = getCalendarDays(2026, 4);
+
+    for (let row = 0; row < 6; row++) {
+      expect(days[row * 7].date.getDay()).toBe(1);
+      expect(days[row * 7 + 6].date.getDay()).toBe(0);
+    }
+  });
+
   it("うるう年の2月29日を当月として含める", () => {
     const leapDay = getCalendarDays(2028, 2).find(
       (day) => day.dateKey === "2028-02-29",
@@ -56,6 +87,23 @@ describe("getCalendarDays", () => {
       startDate: "2026-07-27",
       endDate: "2026-09-06",
     });
+  });
+
+  it.each([
+    [99, 1, "year"],
+    [2026.5, 1, "year"],
+    [10_000, 1, "year"],
+    [2026, 0, "month"],
+    [2026, 1.5, "month"],
+    [2026, 13, "month"],
+  ])("不正な年・月 (%s, %s) を拒否する", (year, month, field) => {
+    expect(() => getCalendarDays(year, month)).toThrow(
+      new RangeError(
+        field === "year"
+          ? "year must be an integer between 100 and 9999"
+          : "month must be an integer between 1 and 12",
+      ),
+    );
   });
 });
 

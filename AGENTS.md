@@ -71,8 +71,7 @@ pnpm --filter @tascal/web exec vitest run src/components/Calendar.test.tsx
 - `src/hooks/useTasks.ts` — React Query によるタスク CRUD フック
 - `src/api/tasks.ts` — API クライアント (fetch ベース)
 - `src/auth-client.ts` — better-auth クライアント
-- `src/types/task.ts` — Task 型定義
-- `src/utils/calendar.ts` — カレンダーユーティリティ関数 (getCalendarDays, formatDateKey, isToday)
+- `src/types/task.ts` — shared API 契約からの Task 型 re-export
 - `src/routeTree.gen.ts` — 自動生成ファイル（編集不可）
 
 ### CLI (apps/cli)
@@ -96,6 +95,11 @@ pnpm --filter @tascal/web exec vitest run src/components/Calendar.test.tsx
 - `components/` — ThemedText, ThemedView 等の共通コンポーネント
 - `constants/theme.ts` — テーマカラー定義、`constants/api.ts` — API ベース URL
 - `hooks/` — useColorScheme, useThemeColor
+
+### Shared (packages/shared)
+
+- `src/calendar.ts` — Web/Mobile 共通のカレンダー・日付ユーティリティ関数 (getCalendarDays, formatDateKey, isToday 等)
+- `src/api-contract.ts` — API の公開 AppType から推論する Task・Category・入力型
 
 ### DB スキーマ
 
