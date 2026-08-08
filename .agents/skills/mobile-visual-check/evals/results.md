@@ -18,36 +18,20 @@ Evaluated: 2026-08-08
 
 The full prompts and expected labels are in `trigger-cases.json`.
 
-|  ID | Expected   | Reviewer decision | Match | Evidence                                                          |
-| --: | ---------- | ----------------- | ----- | ----------------------------------------------------------------- |
-|   1 | trigger    | trigger           | yes   | Mobile component spacing and iPhone visual evidence.              |
-|   2 | trigger    | trigger           | yes   | Design-token color change can affect Mobile consumers.            |
-|   3 | trigger    | trigger           | yes   | Liquid Glass and compact-device layout are visual concerns.       |
-|   4 | trigger    | trigger           | yes   | Mobile UI review explicitly requests Storybook screenshots.       |
-|   5 | trigger    | trigger           | yes   | Mobile component overlap and dark mode are visual concerns.       |
-|   6 | no trigger | no trigger        | yes   | Mobile API error mapping and tests are non-visual.                |
-|   7 | no trigger | no trigger        | yes   | Storybook upgrade implementation and build checks are non-visual. |
-|   8 | no trigger | no trigger        | yes   | API, CLI, and Web schema/type changes do not affect Mobile UI.    |
-|   9 | no trigger | no trigger        | yes   | Hook logic and Jest coverage are non-visual.                      |
-|  10 | no trigger | no trigger        | yes   | Dependency and build verification alone are non-visual.           |
+|  ID | Expected   | Reviewer decision | Match | Evidence                                                              |
+| --: | ---------- | ----------------- | ----- | --------------------------------------------------------------------- |
+|   1 | trigger    | trigger           | yes   | Mobile component spacing and iPhone visual evidence.                  |
+|   2 | trigger    | trigger           | yes   | Design-token color change can affect Mobile consumers.                |
+|   3 | trigger    | trigger           | yes   | Liquid Glass and compact-device layout are visual concerns.           |
+|   4 | trigger    | trigger           | yes   | Post-upgrade Mobile story rendering explicitly needs visual evidence. |
+|   5 | trigger    | trigger           | yes   | Mobile component overlap and dark mode are visual concerns.           |
+|   6 | no trigger | no trigger        | yes   | Mobile API error mapping and tests are non-visual.                    |
+|   7 | no trigger | no trigger        | yes   | Storybook upgrade implementation and build checks are non-visual.     |
+|   8 | no trigger | no trigger        | yes   | API, CLI, and Web schema/type changes do not affect Mobile UI.        |
+|   9 | no trigger | no trigger        | yes   | Hook logic and Jest coverage are non-visual.                          |
+|  10 | no trigger | no trigger        | yes   | Dependency and build verification alone are non-visual.               |
 
 Result: **10 / 10 matched; no ambiguous case**.
-
-## Codex runtime spot check
-
-The final description was also loaded by three independent read-only Codex CLI sessions
-(`codex 0.147.0`, `gpt-5.6-sol`, 2026-08-08). This is a focused runtime check, separate from the
-10-case classification proxy above.
-
-| Prompt boundary                                             | Runtime decision      | Expected   | Result |
-| ----------------------------------------------------------- | --------------------- | ---------- | ------ |
-| Mobile component spacing with light/dark screenshots        | `mobile-visual-check` | trigger    | pass   |
-| Storybook upgrade implementation plus build/typecheck only  | no repo skill         | no trigger | pass   |
-| Visual regression check after a completed Storybook upgrade | `mobile-visual-check` | trigger    | pass   |
-
-Result: **3 / 3 runtime spot checks passed**. The sessions planned only and made no file changes;
-the Simulator workflow itself remains covered by the static workflow grading because the managed
-environment could not connect to CoreSimulatorService.
 
 ## Final workflow grading
 
@@ -76,7 +60,7 @@ Result: **13 / 13 passed**.
 | Draft   | Trigger proxy | Workflow | Material reviewer feedback                                                                                   |
 | ------- | ------------: | -------: | ------------------------------------------------------------------------------------------------------------ |
 | Initial |       10 / 10 |  13 / 13 | Clarify matrix, UDID targeting, safe-area limitation, Liquid Glass fallback, statuses, and evidence sharing. |
-| Final   |       10 / 10 |  13 / 13 | Use Expo `shift+i` device picker; expose case-level proxy evidence and its runtime limitation.               |
+| Final   |       10 / 10 |  13 / 13 | Use Expo `shift+i`; expose case-level proxy evidence; pair upgrade-only and post-upgrade visual boundaries.  |
 
 The final draft uses a risk-based matrix, records the fixed 390×844 Storybook safe-area limitation,
 defines native/fallback and pass/partial/blocked rules, and selects compact and standard Simulators

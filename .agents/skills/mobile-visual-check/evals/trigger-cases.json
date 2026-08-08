@@ -15,9 +15,9 @@
     "reason": "native 表現と端末サイズに関わる Mobile UI 変更"
   },
   {
-    "query": "この Mobile UI の PR、実装レビューに加えて Storybook のスクリーンショット付きで確認して",
+    "query": "React Native Storybook の upgrade は完了したので、既存の Mobile UI story に描画崩れがないか iOS Simulator のスクリーンショット付きで確認して",
     "should_trigger": true,
-    "reason": "Mobile UI review と明示的な visual evidence"
+    "reason": "Storybook upgrade 後の Mobile UI 描画を確認する視覚 review"
   },
   {
     "query": "Mobile の UnscheduledTasksButton で、長いタスク名の近くにある件数 badge が重ならないか dark mode も含めてチェックして",
