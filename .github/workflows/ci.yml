@@ -5,6 +5,27 @@ on:
     branches: [main]
 
 jobs:
+  design-tokens:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Lint
+        run: pnpm --filter @tascal/design-tokens run lint
+      - name: Format check
+        run: pnpm --filter @tascal/design-tokens run format:check
+      - name: Type check
+        run: pnpm --filter @tascal/design-tokens run typecheck
+      - name: Test
+        run: pnpm --filter @tascal/design-tokens run test
+      - name: Build
+        run: pnpm --filter @tascal/design-tokens run build
+
   shared:
     runs-on: ubuntu-latest
     steps:
@@ -63,6 +84,8 @@ jobs:
         run: pnpm --filter @tascal/web run format:check
       - name: Type check
         run: pnpm --filter @tascal/web run typecheck
+      - name: Build
+        run: pnpm --filter @tascal/web run build
       - name: Test
         run: pnpm --filter @tascal/web run test
       - name: Knip
