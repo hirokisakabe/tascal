@@ -7,7 +7,6 @@ export type Task = InferResponseType<
   ApiClient["api"]["tasks"]["range"]["$get"],
   200
 >[number];
-export type TaskStatus = Task["status"];
 export type TaskCreateInput = InferRequestType<
   ApiClient["api"]["tasks"]["$post"]
 >["json"];

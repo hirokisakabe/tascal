@@ -1,0 +1,19 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema-jsonc.json",
+  "workspaces": {
+    "apps/mobile": {
+      "entry": [
+        // Metro resolves these platform variants without a literal import of the suffixed file.
+        "components/ui/icon-symbol.ios.tsx",
+        "hooks/use-color-scheme.web.ts",
+      ],
+      "ignoreDependencies": [
+        // Expo's app-config introspection exposes this optional built-in even when EAS Update is not configured.
+        "expo-updates",
+      ],
+    },
+    "packages/shared": {
+      "includeEntryExports": true,
+    },
+  },
+}
