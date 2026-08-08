@@ -20,7 +20,7 @@
     "reason": "Mobile UI review と明示的な visual evidence"
   },
   {
-    "query": "長いタスク名でボタンと件数 badge が重ならないか、dark mode も含めてチェックして",
+    "query": "Mobile の UnscheduledTasksButton で、長いタスク名の近くにある件数 badge が重ならないか dark mode も含めてチェックして",
     "should_trigger": true,
     "reason": "長文・重なり・dark mode の visual check"
   },

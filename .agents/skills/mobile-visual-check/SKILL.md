@@ -68,16 +68,17 @@ git diff --name-status "origin/${DEFAULT_BRANCH}...HEAD"
 
 選定結果を先に表へまとめる。
 
-| Story                  | diff との関係                | 確認する状態      | Theme       | Device class      |
-| ---------------------- | ---------------------------- | ----------------- | ----------- | ----------------- |
-| `Components/... / ...` | 変更 component を直接 render | long / empty など | light, dark | compact, standard |
+| Story                  | diff との関係                | 確認する状態      | Theme      | Device class      |
+| ---------------------- | ---------------------------- | ----------------- | ---------- | ----------------- |
+| `Components/... / ...` | 変更 component を直接 render | long / empty など | 関連 theme | 関連 device class |
 
 ## 3. 確認 matrix を作る
 
-対象 story はすべて standard 端末の light / dark で確認する。さらに、折り返し、横幅、
-bottom sheet、safe area、重なりに影響する story は compact 端末でも light / dark を
-確認する。色以外の変更でも dark 固有のコントラストや native material があるため、
-片方を省略しない。
+matrix 全体で compact / standard の両端末と light / dark の両 theme を含める。
+折り返し、横幅、safe area に関係する state は両端末で、色、contrast、native material
+に関係する state は両 theme で確認する。state と theme が相互作用する変更だけはその
+組み合わせも確認する。全 state × 全 theme の直積を機械的に要求せず、diff の visual
+concern を各条件で代表できる最小 matrix にする。
 
 端末名を固定せず、`xcrun simctl list devices available` から利用可能な iPhone を選ぶ。
 
@@ -91,6 +92,11 @@ bottom sheet、safe area、重なりに影響する story は compact 端末で�
 `MultipleTasks`、`LongTitle`、通常状態を確認する。必要な state / theme の組み合わせを
 fixture や Controls で再現できず、対応 story もなければ coverage blocker とする。
 この視覚確認の途中で UI を勝手に修正したり、scope 外の story を追加したりしない。
+
+`.rnstorybook/preview.tsx` の safe-area `initialMetrics` は 390×844 に固定されている。
+compact / standard の実画面幅による折り返しや配置は比較できるが、端末固有の safe-area
+insets は比較できない。safe area が変更対象ならこの制約を Remaining issues に記録し、
+Storybook だけで検証済みにしない。
 
 ## 4. Simulator と Storybook を起動する
 
@@ -117,9 +123,10 @@ pnpm --filter @tascal/mobile storybook:ios
 Metro cache が原因で story が見つからない場合は、既存 process を止めてから
 `pnpm --filter @tascal/mobile storybook --clear` を試す。
 
-複数 Simulator が boot 済みなら、Storybook が matrix の UDID / model に表示された
-ことを Simulator window と `xcrun simctl list devices` の両方で確認する。別端末に
-表示されたまま検査を続けない。
+`storybook:ios` の実体である `expo start --ios` には UDID 指定がない。Simulator UI で
+対象 device を active にしてから起動し、Storybook が matrix の UDID / model に表示された
+ことを Simulator window と `xcrun simctl list devices` の両方で確認する。複数 Simulator
+が boot 済みで対象を確定できない場合は、別端末の証拠で続けず blocker とする。
 
 ## 5. Story を表示して証拠を取る
 
@@ -162,6 +169,12 @@ xcrun simctl io <DEVICE_UDID> screenshot \
 
 主観的な違和感は断定せず、story / screenshot / 観察事実を添える。
 
+Liquid Glass が対象なら、対応する iOS runtime で「設定 > アクセシビリティ > 画面表示と
+テキストサイズ > 透明度を下げる」を off にして native glass を、on にして不透明な
+fallback surface を確認する。切り替え後は story を再選択し、`SheetSurface` の実装が
+参照する accessibility state を更新させる。利用可能なら非対応 runtime の fallback も
+追加する。対応 runtime がなく native 表現を再現できない場合は未確認条件として報告する。
+
 ## 7. Tool fallback と blocker
 
 次の順で fallback する。
@@ -177,6 +190,11 @@ xcrun simctl io <DEVICE_UDID> screenshot \
 
 fallback でも story、device、theme を証拠から識別できることが必要。証拠なしに pass を
 宣言しない。
+
+- `pass`: 全 matrix に証拠があり、未解決 finding / blocker がない
+- `partial`: 対象 UI の証拠は一部取得できたが、matrix の一部または再現条件が未確認
+- `blocked`: 対象 UI を示す信頼できる screenshot がない、Storybook を起動できない、
+  または変更の中心を表す story / state がない
 
 ## 8. 報告形式
 
@@ -202,6 +220,9 @@ fallback でも story、device、theme を証拠から識別できることが�
 ```
 
 `Status: pass` は matrix の全行に証拠があり、重大な finding と blocker がない場合だけ使う。
+共有可能な review / PR が成果物なら、利用可能な添付機能で screenshot を共有し、Evidence
+から参照できるようにする。依頼がなければ screenshot を repository に commit せず、添付
+できない環境では一時 path と共有 blocker を報告する。
 
 ## 参考資料
 
@@ -209,4 +230,5 @@ fallback でも story、device、theme を証拠から識別できることが�
 - [React Native Storybook: Getting started](https://storybookjs.github.io/react-native/docs/intro/getting-started/)
 - [React Native Storybook: Writing stories](https://storybookjs.github.io/react-native/docs/intro/writing-stories/)
 - [React Native Storybook: Storybook UI configuration](https://storybookjs.github.io/react-native/docs/intro/configuration/storybook-ui-configuration/)
+- [Expo: GlassEffect](https://docs.expo.dev/versions/latest/sdk/glass-effect/)
 - [`apps/mobile/README.md`](../../../apps/mobile/README.md)
