@@ -15,8 +15,9 @@ pnpm --filter @tascal/mobile storybook:ios
 pnpm --filter @tascal/mobile storybook:android
 ```
 
-Metro の設定変更後や story が見つからない場合は、`-- --clear` を末尾に付けて
-cache を消して再起動してください。通常アプリは従来どおり `start`、`ios`、
+Metro の設定変更後や story が見つからない場合は、たとえば
+`pnpm --filter @tascal/mobile storybook --clear` で cache を消して再起動して
+ください。通常アプリは従来どおり `start`、`ios`、
 `android` script で起動します。
 
 ### Story の追加
@@ -32,3 +33,7 @@ cache を消して再起動してください。通常アプリは従来どお�
 
 Storybook 設定を変更した場合は、通常の Mobile checks に加えて Storybook を
 iOS または Android で起動し、対象 story を目視確認してください。
+
+`pnpm --filter @tascal/mobile storybook:verify` は通常 production bundle と
+Storybook bundle をそれぞれ iOS 向けに export し、story marker が前者にはなく
+後者にだけ含まれることを検証します。

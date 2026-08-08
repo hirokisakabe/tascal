@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-native";
+import type { ComponentProps } from "react";
 import { StyleSheet, View } from "react-native";
 
 import { SheetSurface } from "@/components/sheet-surface";
@@ -14,18 +15,19 @@ export default meta;
 
 type Story = StoryObj<typeof meta>;
 
-function renderSurface(colorScheme: "light" | "dark") {
-  const colors = Colors[colorScheme];
-
+function renderSurface(
+  args: ComponentProps<typeof SheetSurface>,
+  colorScheme: "light" | "dark",
+) {
   return (
     <View style={styles.container}>
-      <SheetSurface
-        fallbackBackgroundColor={colors.background}
-        glassTintColor={colors.glassTint}
-        style={styles.surface}
-      >
-        <ThemedText type="defaultSemiBold">Sheet surface</ThemedText>
-        <ThemedText>Glass対応端末とfallback表示を確認します。</ThemedText>
+      <SheetSurface {...args} style={[styles.surface, args.style]}>
+        {args.children ?? (
+          <>
+            <ThemedText type="defaultSemiBold">Sheet surface</ThemedText>
+            <ThemedText>Glass対応端末とfallback表示を確認します。</ThemedText>
+          </>
+        )}
       </SheetSurface>
     </View>
   );
@@ -36,7 +38,7 @@ export const Light: Story = {
     fallbackBackgroundColor: Colors.light.background,
     glassTintColor: Colors.light.glassTint,
   },
-  render: () => renderSurface("light"),
+  render: (args) => renderSurface(args, "light"),
 };
 
 export const Dark: Story = {
@@ -45,7 +47,7 @@ export const Dark: Story = {
     glassTintColor: Colors.dark.glassTint,
   },
   parameters: { colorScheme: "dark" },
-  render: () => renderSurface("dark"),
+  render: (args) => renderSurface(args, "dark"),
 };
 
 const styles = StyleSheet.create({

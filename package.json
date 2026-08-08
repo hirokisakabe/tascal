@@ -17,6 +17,17 @@
     "db:seed": "pnpm --filter @tascal/api run db:seed"
   },
   "pnpm": {
+    "overrides": {
+      "@storybook/addon-ondevice-actions": "10.5.1",
+      "@storybook/addon-ondevice-controls": "10.5.1",
+      "@storybook/react": "10.5.1",
+      "@storybook/react-dom-shim": "10.5.1",
+      "@storybook/react-native": "10.5.1",
+      "@storybook/react-native-theming": "10.5.1",
+      "@storybook/react-native-ui": "10.5.1",
+      "@storybook/react-native-ui-common": "10.5.1",
+      "storybook": "10.5.1"
+    },
     "onlyBuiltDependencies": [
       "esbuild"
     ]

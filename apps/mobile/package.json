@@ -14,6 +14,7 @@
     "format:check": "prettier --check .",
     "typecheck": "tsc --noEmit",
     "knip": "knip --directory ../.. --workspace @tascal/mobile",
+    "storybook:verify": "node ./scripts/verify-storybook-bundles.js",
     "storybook": "cross-env STORYBOOK_ENABLED=true expo start",
     "storybook:ios": "cross-env STORYBOOK_ENABLED=true expo start --ios",
     "storybook:android": "cross-env STORYBOOK_ENABLED=true expo start --android"
@@ -48,16 +49,17 @@
     "@react-native-community/datetimepicker": "8.4.4",
     "@react-native-community/slider": "5.0.1",
     "@gorhom/bottom-sheet": "^5.2.14",
-    "cross-env": "^10.1.0",
-    "@storybook/addon-ondevice-controls": "^10.5.4",
-    "@storybook/addon-ondevice-actions": "^10.5.4",
-    "@storybook/react-native": "^10.5.4",
-    "storybook": "^10.5.7"
+    "@storybook/addon-ondevice-controls": "10.5.1",
+    "@storybook/addon-ondevice-actions": "10.5.1",
+    "@storybook/react-native": "10.5.1",
+    "react-native-svg": "15.12.1",
+    "storybook": "10.5.1"
   },
   "devDependencies": {
     "@testing-library/react-native": "^13.3.3",
     "@types/jest": "^29.5.14",
     "@types/react": "~19.1.0",
+    "cross-env": "^10.1.0",
     "eslint": "^9.25.0",
     "eslint-config-expo": "~10.0.0",
     "jest": "^29.7.0",

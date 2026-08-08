@@ -113,6 +113,8 @@ jobs:
         run: pnpm --filter @tascal/mobile run test
       - name: Knip
         run: pnpm --filter @tascal/mobile run knip
+      - name: Verify Storybook bundle isolation
+        run: pnpm --filter @tascal/mobile run storybook:verify
 
   cli:
     runs-on: ubuntu-latest
