@@ -13,16 +13,10 @@ import {
   View,
 } from "react-native";
 import { router } from "expo-router";
-import { useFocusEffect } from "@react-navigation/native";
+import { useQueryClient } from "@tanstack/react-query";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useReducedMotion } from "react-native-reanimated";
 
-import {
-  createTask,
-  fetchTasksRange,
-  fetchUnscheduledTasks,
-  updateTask,
-} from "@/api/tasks";
 import { DayTaskBottomSheet } from "@/components/day-task-bottom-sheet";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
@@ -30,6 +24,13 @@ import { UnscheduledTasksButton } from "@/components/unscheduled-tasks-button";
 import { Colors } from "@/constants/theme";
 import { useAuth } from "@/contexts/auth-context";
 import { useColorScheme } from "@/hooks/use-color-scheme";
+import { useRefreshOnFocus } from "@/hooks/use-refresh-on-focus";
+import {
+  useCreateTask,
+  useTasks,
+  useUnscheduledTasks,
+  useUpdateTask,
+} from "@/hooks/use-tasks";
 import type { Task } from "@/types/task";
 import {
   resolveMonthSwipe,
@@ -39,6 +40,7 @@ import {
 } from "@/utils/month-swipe";
 
 const WEEKDAY_LABELS = ["月", "火", "水", "木", "金", "土", "日"];
+const EMPTY_TASKS: Task[] = [];
 
 type CalendarDay = {
   date: Date;
@@ -93,6 +95,7 @@ function getCalendarDays(year: number, month: number): CalendarDay[] {
 
 export default function HomeScreen() {
   const { signOut } = useAuth();
+  const queryClient = useQueryClient();
   const colorScheme = useColorScheme() ?? "light";
   const colors = Colors[colorScheme];
   const reduceMotion = useReducedMotion();
@@ -104,14 +107,8 @@ export default function HomeScreen() {
     year: initialDate.getFullYear(),
     month: initialDate.getMonth() + 1,
   });
-  const [scheduledTasks, setScheduledTasks] = useState<Task[]>([]);
-  const [unscheduledTasks, setUnscheduledTasks] = useState<Task[]>([]);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [showUnscheduled, setShowUnscheduled] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const isFirstLoad = useRef(true);
-  const requestGeneration = useRef(0);
   const calendarTranslateX = useRef(new Animated.Value(0)).current;
   const calendarWidth = useRef(0);
   const isMonthTransitioning = useRef(false);
@@ -120,44 +117,20 @@ export default function HomeScreen() {
     () => getCalendarDays(year, month),
     [year, month],
   );
+  const scheduledTasksQuery = useTasks(year, month);
+  const unscheduledTasksQuery = useUnscheduledTasks();
+  const createTaskMutation = useCreateTask();
+  const updateTaskMutation = useUpdateTask();
+  useRefreshOnFocus();
 
-  const loadTasks = useCallback(async () => {
-    const generation = ++requestGeneration.current;
-    try {
-      const visibleDays = getCalendarDays(year, month);
-      const [scheduled, unscheduled] = await Promise.all([
-        fetchTasksRange(
-          visibleDays[0].dateKey,
-          visibleDays[visibleDays.length - 1].dateKey,
-        ),
-        fetchUnscheduledTasks(),
-      ]);
-      if (generation !== requestGeneration.current) return;
-      setScheduledTasks(scheduled);
-      setUnscheduledTasks(unscheduled);
-    } catch {
-      if (generation !== requestGeneration.current) return;
-      Alert.alert("エラー", "タスクの取得に失敗しました");
-    } finally {
-      if (generation === requestGeneration.current) {
-        setIsLoading(false);
-        setIsRefreshing(false);
-      }
-    }
-  }, [year, month]);
-
-  useFocusEffect(
-    useCallback(() => {
-      if (isFirstLoad.current) {
-        isFirstLoad.current = false;
-        setIsLoading(true);
-      }
-      void loadTasks();
-      return () => {
-        requestGeneration.current += 1;
-      };
-    }, [loadTasks]),
-  );
+  const scheduledTasks = scheduledTasksQuery.data ?? EMPTY_TASKS;
+  const unscheduledTasks = unscheduledTasksQuery.data ?? EMPTY_TASKS;
+  const isLoading =
+    scheduledTasksQuery.isPending || unscheduledTasksQuery.isPending;
+  const isRefreshing =
+    scheduledTasksQuery.isRefetching || unscheduledTasksQuery.isRefetching;
+  const hasTaskError =
+    scheduledTasksQuery.isError || unscheduledTasksQuery.isError;
 
   const tasksByDate = useMemo(() => {
     const map = new Map<string, Task[]>();
@@ -175,17 +148,16 @@ export default function HomeScreen() {
     : [];
 
   const handleRefresh = async () => {
-    setIsRefreshing(true);
-    await loadTasks();
+    await Promise.all([
+      scheduledTasksQuery.refetch(),
+      unscheduledTasksQuery.refetch(),
+    ]);
   };
 
   const moveMonth = useCallback((offset: -1 | 1) => {
     const next = shiftCalendarMonth(displayedMonth.current, offset);
     displayedMonth.current = next;
-    requestGeneration.current += 1;
     setSelectedDate(null);
-    setScheduledTasks([]);
-    setIsLoading(true);
     setYear(next.year);
     setMonth(next.month);
     AccessibilityInfo.announceForAccessibility(
@@ -262,9 +234,6 @@ export default function HomeScreen() {
     calendarTranslateX.setValue(0);
     isMonthTransitioning.current = false;
     const today = new Date();
-    const isAlreadyCurrentMonth =
-      displayedMonth.current.year === today.getFullYear() &&
-      displayedMonth.current.month === today.getMonth() + 1;
     displayedMonth.current = {
       year: today.getFullYear(),
       month: today.getMonth() + 1,
@@ -272,11 +241,6 @@ export default function HomeScreen() {
     setYear(today.getFullYear());
     setMonth(today.getMonth() + 1);
     setSelectedDate(formatDateKey(today));
-    if (!isAlreadyCurrentMonth) {
-      requestGeneration.current += 1;
-      setScheduledTasks([]);
-      setIsLoading(true);
-    }
     AccessibilityInfo.announceForAccessibility(
       formatMonth(today.getFullYear(), today.getMonth() + 1),
     );
@@ -284,12 +248,11 @@ export default function HomeScreen() {
 
   const handleToggleStatus = async (task: Task) => {
     const newStatus = task.status === "todo" ? "done" : "todo";
-    const updateList = task.date ? setScheduledTasks : setUnscheduledTasks;
     try {
-      const updated = await updateTask(task.id, { status: newStatus });
-      updateList((tasks) =>
-        tasks.map((value) => (value.id === updated.id ? updated : value)),
-      );
+      await updateTaskMutation.mutateAsync({
+        id: task.id,
+        data: { status: newStatus },
+      });
     } catch {
       Alert.alert("エラー", "ステータスの更新に失敗しました");
     }
@@ -323,10 +286,8 @@ export default function HomeScreen() {
           onPress: (title?: string) => {
             const trimmedTitle = title?.trim();
             if (!trimmedTitle) return;
-            void createTask({ title: trimmedTitle, date: selectedDate })
-              .then((task) => {
-                setScheduledTasks((tasks) => [...tasks, task]);
-              })
+            void createTaskMutation
+              .mutateAsync({ title: trimmedTitle, date: selectedDate })
               .catch(() => {
                 Alert.alert("エラー", "タスクの作成に失敗しました");
               });
@@ -343,7 +304,9 @@ export default function HomeScreen() {
       {
         text: "ログアウト",
         style: "destructive",
-        onPress: () => void signOut(),
+        onPress: () => {
+          void signOut().finally(() => queryClient.clear());
+        },
       },
     ]);
   };
@@ -418,6 +381,17 @@ export default function HomeScreen() {
               />
             }
           >
+            {hasTaskError ? (
+              <View style={styles.errorBanner}>
+                <ThemedText>タスクの取得に失敗しました</ThemedText>
+                <Pressable
+                  accessibilityRole="button"
+                  onPress={() => void handleRefresh()}
+                >
+                  <ThemedText style={{ color: colors.tint }}>再試行</ThemedText>
+                </Pressable>
+              </View>
+            ) : null}
             <Animated.View
               accessibilityHint="左右にスワイプして月を移動できます"
               onLayout={(event) => {
@@ -608,6 +582,13 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     paddingBottom: 16,
     paddingHorizontal: 8,
+  },
+  errorBanner: {
+    alignItems: "center",
+    flexDirection: "row",
+    gap: 12,
+    justifyContent: "center",
+    paddingBottom: 10,
   },
   calendar: {
     borderRadius: 10,

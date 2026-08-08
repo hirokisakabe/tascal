@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -17,12 +17,12 @@ import { ThemedView } from "@/components/themed-view";
 import { Colors } from "@/constants/theme";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import {
-  createTask,
-  deleteTask,
-  fetchTasks,
-  fetchUnscheduledTasks,
-  updateTask,
-} from "@/api/tasks";
+  useCreateTask,
+  useDeleteTask,
+  useTasks,
+  useUnscheduledTasks,
+  useUpdateTask,
+} from "@/hooks/use-tasks";
 import type { Task } from "@/types/task";
 
 export default function TaskFormScreen() {
@@ -33,12 +33,14 @@ export default function TaskFormScreen() {
   }>();
   const colorScheme = useColorScheme() ?? "light";
   const isEditing = !!taskId;
+  const numericYear = Number(year);
+  const numericMonth = Number(month);
 
   // デフォルト日付: 表示中の月が当月なら今日、それ以外なら月初
   const defaultDate = (() => {
     const now = new Date();
-    const y = Number(year);
-    const m = Number(month);
+    const y = numericYear;
+    const m = numericMonth;
     if (y === now.getFullYear() && m === now.getMonth() + 1) {
       return `${y}-${String(m).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
     }
@@ -48,37 +50,48 @@ export default function TaskFormScreen() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [date, setDate] = useState(isEditing ? "" : defaultDate);
-  const [isLoadingTask, setIsLoadingTask] = useState(isEditing);
-  const [isSaving, setIsSaving] = useState(false);
   const [originalTask, setOriginalTask] = useState<Task | null>(null);
+  const initializedTaskId = useRef<string | null>(null);
+  const scheduledTasksQuery = useTasks(numericYear, numericMonth, isEditing);
+  const unscheduledTasksQuery = useUnscheduledTasks(isEditing);
+  const createTaskMutation = useCreateTask();
+  const updateTaskMutation = useUpdateTask();
+  const deleteTaskMutation = useDeleteTask();
+
+  const task = [
+    ...(scheduledTasksQuery.data ?? []),
+    ...(unscheduledTasksQuery.data ?? []),
+  ].find((value) => value.id === taskId);
+  const loadedTask = task ?? originalTask;
+  const isLoadingTask =
+    isEditing &&
+    !loadedTask &&
+    (scheduledTasksQuery.isPending || unscheduledTasksQuery.isPending);
+  const hasInitialTaskError =
+    isEditing &&
+    !loadedTask &&
+    !isLoadingTask &&
+    (scheduledTasksQuery.isError || unscheduledTasksQuery.isError);
+  const isTaskMissing =
+    isEditing && !loadedTask && !isLoadingTask && !hasInitialTaskError;
+  const isSaving = createTaskMutation.isPending || updateTaskMutation.isPending;
 
   useEffect(() => {
-    if (!isEditing) return;
+    if (!taskId || !task || initializedTaskId.current === taskId) return;
 
-    void (async () => {
-      try {
-        const [scheduledTasks, unscheduledTasks] = await Promise.all([
-          fetchTasks(Number(year), Number(month)),
-          fetchUnscheduledTasks(),
-        ]);
-        const task = [...scheduledTasks, ...unscheduledTasks].find(
-          (value) => value.id === taskId,
-        );
-        if (task) {
-          setOriginalTask(task);
-          setTitle(task.title);
-          setDescription(task.description ?? "");
-          setDate(task.date ?? "");
-        }
-      } catch {
-        Alert.alert("エラー", "タスクの取得に失敗しました");
-      } finally {
-        setIsLoadingTask(false);
-      }
-    })();
-  }, [isEditing, taskId, year, month]);
+    initializedTaskId.current = taskId;
+    setOriginalTask(task);
+    setTitle(task.title);
+    setDescription(task.description ?? "");
+    setDate(task.date ?? "");
+  }, [task, taskId]);
 
   const handleSave = async () => {
+    if (isEditing && (!taskId || !loadedTask)) {
+      Alert.alert("エラー", "タスクが見つかりません");
+      return;
+    }
+
     const trimmedTitle = title.trim();
     if (!trimmedTitle) {
       Alert.alert("エラー", "タイトルを入力してください");
@@ -91,16 +104,18 @@ export default function TaskFormScreen() {
       return;
     }
 
-    setIsSaving(true);
     try {
       if (isEditing && taskId) {
-        await updateTask(taskId, {
-          title: trimmedTitle,
-          description: description.trim() || null,
-          date: trimmedDate || null,
+        await updateTaskMutation.mutateAsync({
+          id: taskId,
+          data: {
+            title: trimmedTitle,
+            description: description.trim() || null,
+            date: trimmedDate || null,
+          },
         });
       } else {
-        await createTask({
+        await createTaskMutation.mutateAsync({
           title: trimmedTitle,
           description: description.trim() || null,
           date: trimmedDate || null,
@@ -112,8 +127,6 @@ export default function TaskFormScreen() {
         "エラー",
         isEditing ? "タスクの更新に失敗しました" : "タスクの作成に失敗しました",
       );
-    } finally {
-      setIsSaving(false);
     }
   };
 
@@ -126,7 +139,7 @@ export default function TaskFormScreen() {
         style: "destructive",
         onPress: async () => {
           try {
-            await deleteTask(taskId);
+            await deleteTaskMutation.mutateAsync(taskId);
             router.back();
           } catch {
             Alert.alert("エラー", "タスクの削除に失敗しました");
@@ -140,7 +153,10 @@ export default function TaskFormScreen() {
     if (!taskId || !originalTask) return;
     const newStatus = originalTask.status === "todo" ? "done" : "todo";
     try {
-      const updated = await updateTask(taskId, { status: newStatus });
+      const updated = await updateTaskMutation.mutateAsync({
+        id: taskId,
+        data: { status: newStatus },
+      });
       setOriginalTask(updated);
     } catch {
       Alert.alert("エラー", "ステータスの更新に失敗しました");
@@ -151,6 +167,39 @@ export default function TaskFormScreen() {
     return (
       <ThemedView style={[styles.container, styles.centered]}>
         <ActivityIndicator size="large" />
+      </ThemedView>
+    );
+  }
+
+  if (hasInitialTaskError) {
+    return (
+      <ThemedView style={[styles.container, styles.centered]}>
+        <ThemedText>タスクの取得に失敗しました</ThemedText>
+        <Pressable
+          onPress={() => {
+            void Promise.all([
+              scheduledTasksQuery.refetch(),
+              unscheduledTasksQuery.refetch(),
+            ]);
+          }}
+        >
+          <ThemedText style={{ color: Colors[colorScheme].tint }}>
+            再試行
+          </ThemedText>
+        </Pressable>
+      </ThemedView>
+    );
+  }
+
+  if (isTaskMissing) {
+    return (
+      <ThemedView style={[styles.container, styles.centered]}>
+        <ThemedText>タスクが見つかりません</ThemedText>
+        <Pressable accessibilityRole="button" onPress={() => router.back()}>
+          <ThemedText style={{ color: Colors[colorScheme].tint }}>
+            戻る
+          </ThemedText>
+        </Pressable>
       </ThemedView>
     );
   }

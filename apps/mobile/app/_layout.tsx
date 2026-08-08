@@ -6,11 +6,21 @@ import {
 import { Redirect, Slot, useSegments } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { ActivityIndicator, View } from "react-native";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import "react-native-reanimated";
 
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { AuthProvider, useAuth } from "@/contexts/auth-context";
 import { Colors } from "@/constants/theme";
+import { useAppStateFocus } from "@/hooks/use-app-state-focus";
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 30_000,
+    },
+  },
+});
 
 const lightNavigationTheme = {
   ...DefaultTheme,
@@ -66,17 +76,20 @@ function AuthGate() {
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
+  useAppStateFocus();
 
   return (
-    <AuthProvider>
-      <ThemeProvider
-        value={
-          colorScheme === "dark" ? darkNavigationTheme : lightNavigationTheme
-        }
-      >
-        <AuthGate />
-        <StatusBar style="auto" />
-      </ThemeProvider>
-    </AuthProvider>
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <ThemeProvider
+          value={
+            colorScheme === "dark" ? darkNavigationTheme : lightNavigationTheme
+          }
+        >
+          <AuthGate />
+          <StatusBar style="auto" />
+        </ThemeProvider>
+      </AuthProvider>
+    </QueryClientProvider>
   );
 }
