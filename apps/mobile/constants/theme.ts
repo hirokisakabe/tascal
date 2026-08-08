@@ -3,33 +3,30 @@
  * There are many other ways to style your app. For example, [Nativewind](https://www.nativewind.dev/), [Tamagui](https://tamagui.dev/), [unistyles](https://reactnativeunistyles.vercel.app), etc.
  */
 
+import { semanticColors } from "@tascal/design-tokens";
 import { Platform } from "react-native";
-
-// Keep these semantic colors aligned with apps/web/src/index.css.
-const primary = "#4a4181";
-const primaryMuted = "#7a73a8";
 
 export const Colors = {
   light: {
-    text: "#2d2a26",
+    text: semanticColors.text.base,
     background: "#fff",
-    tint: primary,
-    tintBackground: primary,
+    tint: semanticColors.primary.base,
+    tintBackground: semanticColors.primary.base,
     onTint: "#fff",
-    icon: "#6b6560",
-    muted: "#a09a94",
-    surface: "#f5f4f0",
+    icon: semanticColors.text.secondary,
+    muted: semanticColors.text.muted,
+    surface: semanticColors.surface.base,
     glassTint: "rgba(245, 244, 240, 0.72)",
-    surfaceHover: "#eeedea",
-    border: "#cbc8c0",
-    borderLight: "#dddbd5",
+    surfaceHover: semanticColors.surface.hover,
+    border: semanticColors.border.base,
+    borderLight: semanticColors.border.light,
     controlBorder: "#8b857f",
-    danger: "#881337",
-    tabIconDefault: "#6b6560",
-    tabIconSelected: primary,
+    danger: semanticColors.danger.base,
+    tabIconDefault: semanticColors.text.secondary,
+    tabIconSelected: semanticColors.primary.base,
   },
   dark: {
-    text: "#f5f4f0",
+    text: semanticColors.surface.base,
     background: "#17151a",
     tint: "#b8b2dc",
     tintBackground: "#8881b4",
@@ -44,7 +41,7 @@ export const Colors = {
     controlBorder: "#706b75",
     danger: "#e89aae",
     tabIconDefault: "#c0bbb6",
-    tabIconSelected: primaryMuted,
+    tabIconSelected: semanticColors.primary.muted,
   },
 };
 
