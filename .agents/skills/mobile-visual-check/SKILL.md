@@ -68,8 +68,8 @@ git diff --name-status "origin/${DEFAULT_BRANCH}...HEAD"
 
 選定結果を先に表へまとめる。
 
-| Story | diff との関係 | 確認する状態 | Theme | Device class |
-| --- | --- | --- | --- | --- |
+| Story                  | diff との関係                | 確認する状態      | Theme       | Device class      |
+| ---------------------- | ---------------------------- | ----------------- | ----------- | ----------------- |
 | `Components/... / ...` | 変更 component を直接 render | long / empty など | light, dark | compact, standard |
 
 ## 3. 確認 matrix を作る
@@ -188,9 +188,9 @@ fallback でも story、device、theme を証拠から識別できることが�
 - Storybook: <起動 command と結果>
 - Artifacts: <screenshot directory / 添付>
 
-| Story / state | Device (runtime) | Theme | Result | Evidence |
-| --- | --- | --- | --- | --- |
-| Components/... / LongTitle | compact model (iOS ...) | dark | pass / issue / blocked | path or attachment |
+| Story / state              | Device (runtime)        | Theme | Result                 | Evidence           |
+| -------------------------- | ----------------------- | ----- | ---------------------- | ------------------ |
+| Components/... / LongTitle | compact model (iOS ...) | dark  | pass / issue / blocked | path or attachment |
 
 ### Findings
 
