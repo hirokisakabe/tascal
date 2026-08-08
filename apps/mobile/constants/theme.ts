@@ -26,7 +26,7 @@ export const Colors = {
     tabIconSelected: semanticColors.primary.base,
   },
   dark: {
-    text: semanticColors.surface.base,
+    text: "#f5f4f0",
     background: "#17151a",
     tint: "#b8b2dc",
     tintBackground: "#8881b4",

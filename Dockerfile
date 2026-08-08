@@ -8,11 +8,13 @@ COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
 COPY apps/web/package.json apps/web/package.json
 COPY apps/api/package.json apps/api/package.json
 COPY apps/cli/package.json apps/cli/package.json
+COPY packages/design-tokens/package.json packages/design-tokens/package.json
 COPY packages/shared/package.json packages/shared/package.json
 RUN pnpm install --frozen-lockfile
 COPY tsconfig.json ./
 COPY apps/api/tsconfig.json apps/api/tsconfig.json
 COPY apps/api/src/ apps/api/src/
+COPY packages/design-tokens/ packages/design-tokens/
 COPY packages/shared/ packages/shared/
 COPY apps/web/ apps/web/
 RUN pnpm --filter @tascal/web run build
@@ -24,6 +26,7 @@ COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
 COPY apps/api/package.json apps/api/package.json
 COPY apps/web/package.json apps/web/package.json
 COPY apps/cli/package.json apps/cli/package.json
+COPY packages/design-tokens/package.json packages/design-tokens/package.json
 COPY packages/shared/package.json packages/shared/package.json
 RUN pnpm install --frozen-lockfile
 COPY tsconfig.json ./
