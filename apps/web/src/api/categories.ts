@@ -1,10 +1,9 @@
-import type { InferResponseType } from "hono/client";
+import type {
+  Category,
+  CategoryCreateInput,
+  CategoryUpdateInput,
+} from "@tascal/shared/api-contract";
 import { client } from "./client";
-
-type Category = InferResponseType<
-  typeof client.api.categories.$get,
-  200
->[number];
 
 export type { Category };
 
@@ -16,10 +15,9 @@ export async function fetchCategories(): Promise<Category[]> {
   return res.json();
 }
 
-export async function createCategory(data: {
-  name: string;
-  color: Category["color"];
-}): Promise<Category> {
+export async function createCategory(
+  data: CategoryCreateInput,
+): Promise<Category> {
   const res = await client.api.categories.$post({ json: data });
   if (!res.ok) {
     throw new Error("カテゴリの作成に失敗しました");
@@ -29,10 +27,7 @@ export async function createCategory(data: {
 
 export async function updateCategory(
   id: string,
-  data: {
-    name?: string;
-    color?: Category["color"];
-  },
+  data: CategoryUpdateInput,
 ): Promise<Category> {
   const res = await client.api.categories[":id"].$patch({
     param: { id },

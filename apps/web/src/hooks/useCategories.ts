@@ -1,5 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import type { CategoryColor } from "../types/category";
+import type {
+  CategoryCreateInput,
+  CategoryUpdateInput,
+} from "@tascal/shared/api-contract";
 import {
   fetchCategories,
   createCategory,
@@ -20,8 +23,7 @@ export function useCreateCategory() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: { name: string; color: CategoryColor }) =>
-      createCategory(data),
+    mutationFn: (data: CategoryCreateInput) => createCategory(data),
     onSettled: () => {
       void queryClient.invalidateQueries({ queryKey: categoriesQueryKey });
     },
@@ -32,13 +34,8 @@ export function useUpdateCategory() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({
-      id,
-      data,
-    }: {
-      id: string;
-      data: { name?: string; color?: CategoryColor };
-    }) => updateCategory(id, data),
+    mutationFn: ({ id, data }: { id: string; data: CategoryUpdateInput }) =>
+      updateCategory(id, data),
     onSettled: () => {
       void queryClient.invalidateQueries({ queryKey: categoriesQueryKey });
     },

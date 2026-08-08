@@ -20,7 +20,7 @@ import {
 } from "../hooks/useTasks";
 import { useMediaQuery } from "../hooks/useMediaQuery";
 import { CATEGORY_COLORS } from "../constants/categoryColors";
-import { getCalendarDays, formatDateKey } from "../utils/calendar";
+import { formatDateKey, getCalendarDays } from "@tascal/shared/calendar";
 import { CalendarDayCell } from "./CalendarDayCell";
 import { MobileDayBottomSheet } from "./MobileDayBottomSheet";
 import { TaskFormModal } from "./TaskFormModal";

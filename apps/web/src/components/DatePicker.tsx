@@ -1,6 +1,10 @@
 import { Popover, PopoverButton, PopoverPanel } from "@headlessui/react";
 import { useEffect, useRef, useState } from "react";
-import { formatDateKey, getCalendarDays, isToday } from "../utils/calendar";
+import {
+  formatDateKey,
+  getCalendarDays,
+  isToday,
+} from "@tascal/shared/calendar";
 
 const WEEKDAY_LABELS = ["月", "火", "水", "木", "金", "土", "日"];
 

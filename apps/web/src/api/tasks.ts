@@ -1,7 +1,9 @@
-import type { InferResponseType } from "hono/client";
+import type {
+  Task,
+  TaskCreateInput,
+  TaskUpdateInput,
+} from "@tascal/shared/api-contract";
 import { client } from "./client";
-
-type Task = InferResponseType<typeof client.api.tasks.range.$get, 200>[number];
 
 export type { Task };
 
@@ -30,13 +32,7 @@ export async function fetchUnscheduledTasks(
   return res.json();
 }
 
-export async function createTask(data: {
-  title: string;
-  description?: string | null;
-  date?: string | null;
-  status?: "todo" | "done";
-  categoryId?: string | null;
-}): Promise<Task> {
+export async function createTask(data: TaskCreateInput): Promise<Task> {
   const res = await client.api.tasks.$post({ json: data });
   if (!res.ok) {
     throw new Error("タスクの作成に失敗しました");
@@ -46,13 +42,7 @@ export async function createTask(data: {
 
 export async function updateTask(
   id: string,
-  data: {
-    title?: string;
-    description?: string | null;
-    date?: string | null;
-    status?: "todo" | "done";
-    categoryId?: string | null;
-  },
+  data: TaskUpdateInput,
 ): Promise<Task> {
   const res = await client.api.tasks[":id"].$patch({
     param: { id },

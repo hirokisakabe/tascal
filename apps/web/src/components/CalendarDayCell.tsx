@@ -1,7 +1,7 @@
 import { useDroppable } from "@dnd-kit/core";
 import type { Task } from "../types/task";
 import type { Category } from "../types/category";
-import { isToday, isPast, formatDateKey } from "../utils/calendar";
+import { formatDateKey, isPast, isToday } from "@tascal/shared/calendar";
 import { DraggableTask } from "./DraggableTask";
 
 const MAX_VISIBLE_TASKS = 4;

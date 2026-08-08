@@ -1,4 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { getCalendarDateRange } from "@tascal/shared/calendar";
+import type {
+  TaskCreateInput,
+  TaskUpdateInput,
+} from "@tascal/shared/api-contract";
 
 import {
   createTask,
@@ -15,27 +20,10 @@ export const taskQueryKeys = {
   unscheduled: ["tasks", "unscheduled"] as const,
 };
 
-function formatDateKey(date: Date): string {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
-}
-
-export function getTaskDateRange(year: number, month: number) {
-  const firstDay = new Date(year, month - 1, 1);
-  const mondayOffset = (firstDay.getDay() + 6) % 7;
-  const start = new Date(year, month - 1, 1 - mondayOffset);
-  const end = new Date(
-    start.getFullYear(),
-    start.getMonth(),
-    start.getDate() + 41,
-  );
-  return { startDate: formatDateKey(start), endDate: formatDateKey(end) };
-}
+export { getCalendarDateRange as getTaskDateRange };
 
 export function useTasks(year: number, month: number, enabled = true) {
-  const { startDate, endDate } = getTaskDateRange(year, month);
+  const { startDate, endDate } = getCalendarDateRange(year, month);
   return useQuery({
     enabled,
     queryKey: taskQueryKeys.range(startDate, endDate),
@@ -51,17 +39,6 @@ export function useUnscheduledTasks(enabled = true) {
   });
 }
 
-type TaskInput = {
-  title: string;
-  description?: string | null;
-  date?: string | null;
-  status?: "todo" | "done";
-};
-
-type TaskUpdate = Omit<Partial<TaskInput>, "title"> & {
-  title?: string;
-};
-
 function useInvalidateTasks() {
   const queryClient = useQueryClient();
   return () => queryClient.invalidateQueries({ queryKey: taskQueryKeys.all });
@@ -70,7 +47,7 @@ function useInvalidateTasks() {
 export function useCreateTask() {
   const invalidateTasks = useInvalidateTasks();
   return useMutation({
-    mutationFn: (data: TaskInput) => createTask(data),
+    mutationFn: (data: TaskCreateInput) => createTask(data),
     onSuccess: invalidateTasks,
   });
 }
@@ -78,7 +55,7 @@ export function useCreateTask() {
 export function useUpdateTask() {
   const invalidateTasks = useInvalidateTasks();
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: TaskUpdate }) =>
+    mutationFn: ({ id, data }: { id: string; data: TaskUpdateInput }) =>
       updateTask(id, data),
     onSuccess: invalidateTasks,
   });

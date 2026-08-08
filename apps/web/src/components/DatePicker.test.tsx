@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { useState } from "react";
-import { formatDateKey } from "../utils/calendar";
+import { formatDateKey } from "@tascal/shared/calendar";
 import { DatePicker } from "./DatePicker";
 
 function DatePickerHarness({ initialValue = "" }: { initialValue?: string }) {
