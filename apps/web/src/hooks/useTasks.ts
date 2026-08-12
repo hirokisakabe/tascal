@@ -20,8 +20,14 @@ function tasksQueryKey(startDate: string, endDate: string) {
 }
 
 const unscheduledTasksQueryKey = ["tasks", "unscheduled"] as const;
-const taskUpdateVersions = new WeakMap<QueryClient, Map<string, symbol>>();
-const taskUpdateQueues = new WeakMap<QueryClient, Map<string, Promise<void>>>();
+type TaskUpdateCoordinator = {
+  activeCount: number;
+  locks: Map<string, Promise<void>>;
+};
+const taskUpdateCoordinators = new WeakMap<
+  QueryClient,
+  TaskUpdateCoordinator
+>();
 
 export function useTasks(year: number, month: number) {
   const { startDate, endDate } = getCalendarDateRange(year, month);
@@ -98,23 +104,25 @@ export function useUpdateTask(year: number, month: number) {
   };
 
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: TaskUpdateInput }) => {
-      const queues =
-        taskUpdateQueues.get(queryClient) ?? new Map<string, Promise<void>>();
-      const previous = queues.get(id) ?? Promise.resolve();
-      const operation = previous.then(() => updateTask(id, data));
-      const settled = operation.then(
-        () => undefined,
-        () => undefined,
-      );
-      queues.set(id, settled);
-      taskUpdateQueues.set(queryClient, queues);
-      void settled.finally(() => {
-        if (queues.get(id) === settled) queues.delete(id);
-      });
-      return operation;
-    },
+    mutationFn: ({ id, data }: { id: string; data: TaskUpdateInput }) =>
+      updateTask(id, data),
     onMutate: async ({ id, data }) => {
+      const coordinator = taskUpdateCoordinators.get(queryClient) ?? {
+        activeCount: 0,
+        locks: new Map<string, Promise<void>>(),
+      };
+      coordinator.activeCount += 1;
+      taskUpdateCoordinators.set(queryClient, coordinator);
+
+      const previous = coordinator.locks.get(id) ?? Promise.resolve();
+      let release!: () => void;
+      const current = new Promise<void>((resolve) => {
+        release = resolve;
+      });
+      const tail = previous.then(() => current);
+      coordinator.locks.set(id, tail);
+      await previous;
+
       await Promise.all([
         queryClient.cancelQueries({ queryKey: key }),
         queryClient.cancelQueries({ queryKey: unscheduledTasksQueryKey }),
@@ -133,11 +141,6 @@ export function useUpdateTask(year: number, month: number) {
         previousUnscheduledTasks,
         id,
       );
-      const version = Symbol(id);
-      const versions =
-        taskUpdateVersions.get(queryClient) ?? new Map<string, symbol>();
-      versions.set(id, version);
-      taskUpdateVersions.set(queryClient, versions);
 
       if (task && data.date !== undefined) {
         const updatedTask = { ...task, ...data };
@@ -164,13 +167,10 @@ export function useUpdateTask(year: number, month: number) {
         queryClient.setQueryData<Task[]>(unscheduledTasksQueryKey, applyUpdate);
       }
 
-      return { previousTask, previousUnscheduledTask, version };
+      return { previousTask, previousUnscheduledTask, release, tail };
     },
     onError: (_err, { id }, context) => {
-      if (
-        context &&
-        taskUpdateVersions.get(queryClient)?.get(id) === context.version
-      ) {
+      if (context) {
         const restoreTask = (
           queryKey: readonly string[],
           snapshot: {
@@ -204,13 +204,21 @@ export function useUpdateTask(year: number, month: number) {
       }
       toast.error("タスクの更新に失敗しました");
     },
-    onSettled: (_data, _error, { id }, context) =>
-      queryClient.invalidateQueries({ queryKey: ["tasks"] }).finally(() => {
-        const versions = taskUpdateVersions.get(queryClient);
-        if (context && versions?.get(id) === context.version) {
-          versions.delete(id);
-        }
-      }),
+    onSettled: (_data, _error, { id }, context) => {
+      const coordinator = taskUpdateCoordinators.get(queryClient);
+      if (!context || !coordinator) return;
+
+      context.release();
+      if (coordinator.locks.get(id) === context.tail) {
+        coordinator.locks.delete(id);
+      }
+      coordinator.activeCount -= 1;
+
+      if (coordinator.activeCount === 0) {
+        taskUpdateCoordinators.delete(queryClient);
+        return queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      }
+    },
   });
 }
 

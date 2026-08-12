@@ -263,7 +263,7 @@ describe("useUpdateTask", () => {
     await waitFor(() => expect(second.result.current.isSuccess).toBe(true));
   });
 
-  it("同一IDのAPI mutationを直列化し、先行失敗で後続optimistic更新を戻さない", async () => {
+  it("同一IDの先行移動失敗後に後続更新を正しい所属へ反映する", async () => {
     const queryClient = createQueryClient();
     queryClient.setQueryData(rangeKey, [scheduledTask]);
     queryClient.setQueryData(unscheduledKey, []);
@@ -294,13 +294,54 @@ describe("useUpdateTask", () => {
     firstUpdate.reject(new Error("first update failed"));
     await waitFor(() => expect(mockUpdateTask).toHaveBeenCalledTimes(2));
 
-    expect(queryClient.getQueryData(rangeKey)).toEqual([]);
-    expect(queryClient.getQueryData(unscheduledKey)).toEqual([
-      { ...scheduledTask, title: "後続更新", date: null },
+    expect(queryClient.getQueryData(rangeKey)).toEqual([
+      { ...scheduledTask, title: "後続更新" },
     ]);
+    expect(queryClient.getQueryData(unscheduledKey)).toEqual([]);
 
     secondUpdate.resolve({ ...scheduledTask, title: "後続更新" });
     await waitFor(() => expect(second.result.current.isSuccess).toBe(true));
+    expect(queryClient.getQueryData(rangeKey)).toEqual([
+      { ...scheduledTask, title: "後続更新" },
+    ]);
+    expect(queryClient.getQueryData(unscheduledKey)).toEqual([]);
+  });
+
+  it("同一IDの先行移動と後続更新が両方失敗した場合に元の所属へ戻す", async () => {
+    const queryClient = createQueryClient();
+    queryClient.setQueryData(rangeKey, [scheduledTask]);
+    queryClient.setQueryData(unscheduledKey, []);
+    const firstUpdate = createDeferredUpdate();
+    const secondUpdate = createDeferredUpdate();
+    mockUpdateTask
+      .mockReturnValueOnce(firstUpdate.promise)
+      .mockReturnValueOnce(secondUpdate.promise);
+    const first = renderHook(() => useUpdateTask(2026, 8), {
+      wrapper: createWrapper(queryClient),
+    });
+    const second = renderHook(() => useUpdateTask(2026, 8), {
+      wrapper: createWrapper(queryClient),
+    });
+
+    act(() => {
+      first.result.current.mutate({
+        id: scheduledTask.id,
+        data: { date: null },
+      });
+      second.result.current.mutate({
+        id: scheduledTask.id,
+        data: { title: "後続更新" },
+      });
+    });
+
+    await waitFor(() => expect(mockUpdateTask).toHaveBeenCalledTimes(1));
+    firstUpdate.reject(new Error("first update failed"));
+    await waitFor(() => expect(mockUpdateTask).toHaveBeenCalledTimes(2));
+    secondUpdate.reject(new Error("second update failed"));
+    await waitFor(() => expect(second.result.current.isError).toBe(true));
+
+    expect(queryClient.getQueryData(rangeKey)).toEqual([scheduledTask]);
+    expect(queryClient.getQueryData(unscheduledKey)).toEqual([]);
   });
 
   it("失敗時に元がundefinedだったcacheを未取得状態へ戻す", async () => {
@@ -329,6 +370,127 @@ describe("useUpdateTask", () => {
     await waitFor(() => expect(result.current.isError).toBe(true));
     expect(queryClient.getQueryData(rangeKey)).toEqual([scheduledTask]);
     expect(queryClient.getQueryData(unscheduledKey)).toBeUndefined();
+  });
+
+  it("active queryで異なるIDの一方settle後も他方のoptimistic値を維持する", async () => {
+    const otherTask = {
+      ...scheduledTask,
+      id: "other-task",
+      title: "別タスク",
+    };
+    const updatedOtherTask = { ...otherTask, title: "別タスク更新済み" };
+    const movedTask = { ...scheduledTask, date: null };
+    mockFetchTasks
+      .mockResolvedValueOnce([scheduledTask, otherTask])
+      .mockResolvedValue([updatedOtherTask]);
+    mockFetchUnscheduledTasks
+      .mockResolvedValueOnce([])
+      .mockResolvedValue([movedTask]);
+    const firstUpdate = createDeferredUpdate();
+    const secondUpdate = createDeferredUpdate();
+    mockUpdateTask.mockImplementation((id: string) =>
+      id === scheduledTask.id ? firstUpdate.promise : secondUpdate.promise,
+    );
+    const queryClient = createQueryClient();
+    const { result } = renderHook(
+      () => ({
+        tasks: useTasks(2026, 8),
+        unscheduledTasks: useUnscheduledTasks(),
+        first: useUpdateTask(2026, 8),
+        second: useUpdateTask(2026, 8),
+      }),
+      { wrapper: createWrapper(queryClient) },
+    );
+
+    await waitFor(() => {
+      expect(result.current.tasks.isSuccess).toBe(true);
+      expect(result.current.unscheduledTasks.isSuccess).toBe(true);
+    });
+    act(() => {
+      result.current.first.mutate({
+        id: scheduledTask.id,
+        data: { date: null },
+      });
+      result.current.second.mutate({
+        id: otherTask.id,
+        data: { title: updatedOtherTask.title },
+      });
+    });
+    await waitFor(() => expect(mockUpdateTask).toHaveBeenCalledTimes(2));
+
+    firstUpdate.resolve(movedTask);
+    await waitFor(() => expect(result.current.first.isSuccess).toBe(true));
+
+    expect(mockFetchTasks).toHaveBeenCalledTimes(1);
+    expect(mockFetchUnscheduledTasks).toHaveBeenCalledTimes(1);
+    expect(result.current.tasks.data).toEqual([updatedOtherTask]);
+    expect(result.current.unscheduledTasks.data).toEqual([movedTask]);
+
+    secondUpdate.resolve(updatedOtherTask);
+    await waitFor(() => {
+      expect(result.current.second.isSuccess).toBe(true);
+      expect(mockFetchTasks).toHaveBeenCalledTimes(2);
+      expect(mockFetchUnscheduledTasks).toHaveBeenCalledTimes(2);
+    });
+    expect(result.current.tasks.data).toEqual([updatedOtherTask]);
+    expect(result.current.unscheduledTasks.data).toEqual([movedTask]);
+  });
+
+  it("active queryで同一IDの後続値を先行settle中のrefetchで上書きしない", async () => {
+    const movedTask = { ...scheduledTask, date: null };
+    const finalTask = { ...movedTask, title: "後続更新" };
+    mockFetchTasks.mockResolvedValueOnce([scheduledTask]).mockResolvedValue([]);
+    mockFetchUnscheduledTasks
+      .mockResolvedValueOnce([])
+      .mockResolvedValue([finalTask]);
+    const firstUpdate = createDeferredUpdate();
+    const secondUpdate = createDeferredUpdate();
+    mockUpdateTask
+      .mockReturnValueOnce(firstUpdate.promise)
+      .mockReturnValueOnce(secondUpdate.promise);
+    const queryClient = createQueryClient();
+    const { result } = renderHook(
+      () => ({
+        tasks: useTasks(2026, 8),
+        unscheduledTasks: useUnscheduledTasks(),
+        first: useUpdateTask(2026, 8),
+        second: useUpdateTask(2026, 8),
+      }),
+      { wrapper: createWrapper(queryClient) },
+    );
+
+    await waitFor(() => {
+      expect(result.current.tasks.isSuccess).toBe(true);
+      expect(result.current.unscheduledTasks.isSuccess).toBe(true);
+    });
+    act(() => {
+      result.current.first.mutate({
+        id: scheduledTask.id,
+        data: { date: null },
+      });
+      result.current.second.mutate({
+        id: scheduledTask.id,
+        data: { title: finalTask.title },
+      });
+    });
+    await waitFor(() => expect(mockUpdateTask).toHaveBeenCalledTimes(1));
+
+    firstUpdate.resolve(movedTask);
+    await waitFor(() => expect(mockUpdateTask).toHaveBeenCalledTimes(2));
+
+    expect(mockFetchTasks).toHaveBeenCalledTimes(1);
+    expect(mockFetchUnscheduledTasks).toHaveBeenCalledTimes(1);
+    expect(result.current.tasks.data).toEqual([]);
+    expect(result.current.unscheduledTasks.data).toEqual([finalTask]);
+
+    secondUpdate.resolve(finalTask);
+    await waitFor(() => {
+      expect(result.current.second.isSuccess).toBe(true);
+      expect(mockFetchTasks).toHaveBeenCalledTimes(2);
+      expect(mockFetchUnscheduledTasks).toHaveBeenCalledTimes(2);
+    });
+    expect(result.current.tasks.data).toEqual([]);
+    expect(result.current.unscheduledTasks.data).toEqual([finalTask]);
   });
 
   it("成功時は購読queryの再取得完了を待ちserver確定値を一意に反映する", async () => {
