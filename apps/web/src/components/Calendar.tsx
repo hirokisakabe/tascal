@@ -83,7 +83,9 @@ export function Calendar() {
 
   const {
     data: tasks = [],
+    isFetching,
     isLoading,
+    isPlaceholderData,
     error: queryError,
   } = useTasks(year, month);
 
@@ -207,6 +209,13 @@ export function Calendar() {
     queryError || unscheduledError
       ? "タスクの取得に失敗しました"
       : mutationError;
+  const taskDataState = queryError
+    ? "error"
+    : isPlaceholderData
+      ? "placeholder"
+      : isLoading
+        ? "loading"
+        : "settled";
 
   return (
     <DndContext
@@ -288,6 +297,8 @@ export function Calendar() {
             onAddClick={() => setAddUnscheduled(true)}
           />
           <div
+            aria-busy={isFetching}
+            data-task-data-state={taskDataState}
             className={`min-w-0 flex-1 overflow-hidden rounded-lg border border-border-light ${isLoading ? "opacity-50" : ""}`}
           >
             <div className="grid grid-cols-7">
