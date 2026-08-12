@@ -86,20 +86,52 @@ export function useUpdateTask(year: number, month: number) {
     mutationFn: ({ id, data }: { id: string; data: TaskUpdateInput }) =>
       updateTask(id, data),
     onMutate: async ({ id, data }) => {
-      await queryClient.cancelQueries({ queryKey: key });
-      const previous = queryClient.getQueryData<Task[]>(key);
+      await Promise.all([
+        queryClient.cancelQueries({ queryKey: key }),
+        queryClient.cancelQueries({ queryKey: unscheduledTasksQueryKey }),
+      ]);
 
-      queryClient.setQueryData<Task[]>(key, (old) =>
-        (old ?? []).map((task) =>
-          task.id === id ? { ...task, ...data } : task,
-        ),
+      const previousTasks = queryClient.getQueryData<Task[]>(key);
+      const previousUnscheduledTasks = queryClient.getQueryData<Task[]>(
+        unscheduledTasksQueryKey,
       );
+      const task = [
+        ...(previousTasks ?? []),
+        ...(previousUnscheduledTasks ?? []),
+      ].find((candidate) => candidate.id === id);
 
-      return { previous };
+      if (task && data.date !== undefined) {
+        const updatedTask = { ...task, ...data };
+        const removeUpdatedTask = (tasks: Task[] | undefined) =>
+          (tasks ?? []).filter((candidate) => candidate.id !== id);
+
+        queryClient.setQueryData<Task[]>(key, (old) => {
+          const tasks = removeUpdatedTask(old);
+          return updatedTask.date ? [...tasks, updatedTask] : tasks;
+        });
+        queryClient.setQueryData<Task[]>(unscheduledTasksQueryKey, (old) => {
+          const tasks = removeUpdatedTask(old);
+          return updatedTask.date ? tasks : [...tasks, updatedTask];
+        });
+      } else {
+        const applyUpdate = (tasks: Task[] | undefined) =>
+          (tasks ?? []).map((candidate) =>
+            candidate.id === id ? { ...candidate, ...data } : candidate,
+          );
+
+        queryClient.setQueryData<Task[]>(key, applyUpdate);
+        queryClient.setQueryData<Task[]>(unscheduledTasksQueryKey, applyUpdate);
+      }
+
+      return { previousTasks, previousUnscheduledTasks };
     },
     onError: (_err, _variables, context) => {
       if (context) {
-        queryClient.setQueryData(key, context.previous);
+        queryClient.setQueryData(key, context.previousTasks ?? []);
+        queryClient.setQueryData(
+          unscheduledTasksQueryKey,
+          context.previousUnscheduledTasks ?? [],
+        );
       }
       toast.error("タスクの更新に失敗しました");
     },
