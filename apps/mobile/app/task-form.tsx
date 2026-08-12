@@ -54,9 +54,9 @@ export default function TaskFormScreen() {
   const initializedTaskId = useRef<string | null>(null);
   const scheduledTasksQuery = useTasks(numericYear, numericMonth, isEditing);
   const unscheduledTasksQuery = useUnscheduledTasks(isEditing);
-  const createTaskMutation = useCreateTask();
-  const updateTaskMutation = useUpdateTask();
-  const deleteTaskMutation = useDeleteTask();
+  const createTaskMutation = useCreateTask(numericYear, numericMonth);
+  const updateTaskMutation = useUpdateTask(numericYear, numericMonth);
+  const deleteTaskMutation = useDeleteTask(numericYear, numericMonth);
 
   const task = [
     ...(scheduledTasksQuery.data ?? []),

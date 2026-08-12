@@ -83,8 +83,8 @@ export default function HomeScreen() {
   );
   const scheduledTasksQuery = useTasks(year, month);
   const unscheduledTasksQuery = useUnscheduledTasks();
-  const createTaskMutation = useCreateTask();
-  const updateTaskMutation = useUpdateTask();
+  const createTaskMutation = useCreateTask(year, month);
+  const updateTaskMutation = useUpdateTask(year, month);
   useRefreshOnFocus();
 
   const scheduledTasks = scheduledTasksQuery.data ?? EMPTY_TASKS;
