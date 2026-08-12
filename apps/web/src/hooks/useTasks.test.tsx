@@ -372,6 +372,56 @@ describe("useUpdateTask", () => {
     expect(queryClient.getQueryData(unscheduledKey)).toBeUndefined();
   });
 
+  it("onMutate内部例外後も部分更新を戻し同一IDの後続mutationを完了できる", async () => {
+    const queryClient = createQueryClient();
+    queryClient.setQueryData(rangeKey, [scheduledTask]);
+    queryClient.setQueryData(unscheduledKey, []);
+    const invalidateQueries = vi.spyOn(queryClient, "invalidateQueries");
+    const originalSetQueryData = queryClient.setQueryData.bind(queryClient);
+    vi.spyOn(queryClient, "setQueryData")
+      .mockImplementationOnce(originalSetQueryData)
+      .mockImplementationOnce(() => {
+        throw new Error("optimistic cache update failed");
+      });
+    const first = renderHook(() => useUpdateTask(2026, 8), {
+      wrapper: createWrapper(queryClient),
+    });
+
+    act(() => {
+      first.result.current.mutate({
+        id: scheduledTask.id,
+        data: { date: null },
+      });
+    });
+
+    await waitFor(() => expect(first.result.current.isError).toBe(true));
+    expect(mockUpdateTask).not.toHaveBeenCalled();
+    expect(queryClient.getQueryData(rangeKey)).toEqual([scheduledTask]);
+    expect(queryClient.getQueryData(unscheduledKey)).toEqual([]);
+    expect(invalidateQueries).toHaveBeenCalledTimes(1);
+
+    const updatedTask = { ...scheduledTask, title: "例外後の更新" };
+    mockUpdateTask.mockResolvedValue(updatedTask);
+    const second = renderHook(() => useUpdateTask(2026, 8), {
+      wrapper: createWrapper(queryClient),
+    });
+
+    await act(async () => {
+      await second.result.current.mutateAsync({
+        id: scheduledTask.id,
+        data: { title: updatedTask.title },
+      });
+    });
+
+    expect(mockUpdateTask).toHaveBeenCalledWith(scheduledTask.id, {
+      title: updatedTask.title,
+    });
+    await waitFor(() => expect(second.result.current.isSuccess).toBe(true));
+    expect(queryClient.getQueryData(rangeKey)).toEqual([updatedTask]);
+    expect(queryClient.getQueryData(unscheduledKey)).toEqual([]);
+    expect(invalidateQueries).toHaveBeenCalledTimes(2);
+  });
+
   it("active queryで異なるIDの一方settle後も他方のoptimistic値を維持する", async () => {
     const otherTask = {
       ...scheduledTask,

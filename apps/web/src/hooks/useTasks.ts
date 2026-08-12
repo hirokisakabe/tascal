@@ -24,10 +24,42 @@ type TaskUpdateCoordinator = {
   activeCount: number;
   locks: Map<string, Promise<void>>;
 };
+type TaskUpdateRegistration = {
+  coordinator: TaskUpdateCoordinator;
+  id: string;
+  releaseLock: () => void;
+  released: boolean;
+  tail: Promise<void>;
+};
+type TaskSnapshot = {
+  hadData: boolean;
+  index: number;
+  task: Task | undefined;
+};
 const taskUpdateCoordinators = new WeakMap<
   QueryClient,
   TaskUpdateCoordinator
 >();
+
+function releaseTaskUpdate(
+  queryClient: QueryClient,
+  registration: TaskUpdateRegistration,
+) {
+  if (registration.released) return;
+  registration.released = true;
+  registration.releaseLock();
+
+  const { coordinator, id, tail } = registration;
+  if (coordinator.locks.get(id) === tail) {
+    coordinator.locks.delete(id);
+  }
+  coordinator.activeCount -= 1;
+
+  if (coordinator.activeCount === 0) {
+    taskUpdateCoordinators.delete(queryClient);
+    return queryClient.invalidateQueries({ queryKey: ["tasks"] });
+  }
+}
 
 export function useTasks(year: number, month: number) {
   const { startDate, endDate } = getCalendarDateRange(year, month);
@@ -103,6 +135,27 @@ export function useUpdateTask(year: number, month: number) {
     };
   };
 
+  const restoreTask = (
+    queryKey: readonly string[],
+    id: string,
+    snapshot: TaskSnapshot,
+  ) => {
+    queryClient.setQueryData<Task[]>(queryKey, (current) => {
+      const tasks = (current ?? []).filter((task) => task.id !== id);
+      if (!snapshot.task) return tasks;
+
+      const index = Math.min(snapshot.index, tasks.length);
+      return [...tasks.slice(0, index), snapshot.task, ...tasks.slice(index)];
+    });
+
+    if (
+      !snapshot.hadData &&
+      queryClient.getQueryData<Task[]>(queryKey)?.length === 0
+    ) {
+      queryClient.removeQueries({ queryKey, exact: true });
+    }
+  };
+
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: TaskUpdateInput }) =>
       updateTask(id, data),
@@ -121,104 +174,107 @@ export function useUpdateTask(year: number, month: number) {
       });
       const tail = previous.then(() => current);
       coordinator.locks.set(id, tail);
-      await previous;
-
-      await Promise.all([
-        queryClient.cancelQueries({ queryKey: key }),
-        queryClient.cancelQueries({ queryKey: unscheduledTasksQueryKey }),
-      ]);
-
-      const previousTasks = queryClient.getQueryData<Task[]>(key);
-      const previousUnscheduledTasks = queryClient.getQueryData<Task[]>(
-        unscheduledTasksQueryKey,
-      );
-      const task = [
-        ...(previousTasks ?? []),
-        ...(previousUnscheduledTasks ?? []),
-      ].find((candidate) => candidate.id === id);
-      const previousTask = snapshotTask(previousTasks, id);
-      const previousUnscheduledTask = snapshotTask(
-        previousUnscheduledTasks,
+      const registration: TaskUpdateRegistration = {
+        coordinator,
         id,
-      );
+        releaseLock: release,
+        released: false,
+        tail,
+      };
+      let previousTask: TaskSnapshot | undefined;
+      let previousUnscheduledTask: TaskSnapshot | undefined;
 
-      if (task && data.date !== undefined) {
-        const updatedTask = { ...task, ...data };
-        const removeUpdatedTask = (tasks: Task[] | undefined) =>
-          (tasks ?? []).filter((candidate) => candidate.id !== id);
+      try {
+        await previous;
+        await Promise.all([
+          queryClient.cancelQueries({ queryKey: key }),
+          queryClient.cancelQueries({ queryKey: unscheduledTasksQueryKey }),
+        ]);
 
-        queryClient.setQueryData<Task[]>(key, (old) => {
-          const tasks = removeUpdatedTask(old);
-          return isInCurrentRange(updatedTask.date)
-            ? [...tasks, updatedTask]
-            : tasks;
-        });
-        queryClient.setQueryData<Task[]>(unscheduledTasksQueryKey, (old) => {
-          const tasks = removeUpdatedTask(old);
-          return updatedTask.date ? tasks : [...tasks, updatedTask];
-        });
-      } else {
-        const applyUpdate = (tasks: Task[] | undefined) =>
-          tasks?.map((candidate) =>
-            candidate.id === id ? { ...candidate, ...data } : candidate,
-          ) ?? tasks;
+        const previousTasks = queryClient.getQueryData<Task[]>(key);
+        const previousUnscheduledTasks = queryClient.getQueryData<Task[]>(
+          unscheduledTasksQueryKey,
+        );
+        const task = [
+          ...(previousTasks ?? []),
+          ...(previousUnscheduledTasks ?? []),
+        ].find((candidate) => candidate.id === id);
+        previousTask = snapshotTask(previousTasks, id);
+        previousUnscheduledTask = snapshotTask(previousUnscheduledTasks, id);
 
-        queryClient.setQueryData<Task[]>(key, applyUpdate);
-        queryClient.setQueryData<Task[]>(unscheduledTasksQueryKey, applyUpdate);
+        if (task && data.date !== undefined) {
+          const updatedTask = { ...task, ...data };
+          const removeUpdatedTask = (tasks: Task[] | undefined) =>
+            (tasks ?? []).filter((candidate) => candidate.id !== id);
+
+          queryClient.setQueryData<Task[]>(key, (old) => {
+            const tasks = removeUpdatedTask(old);
+            return isInCurrentRange(updatedTask.date)
+              ? [...tasks, updatedTask]
+              : tasks;
+          });
+          queryClient.setQueryData<Task[]>(unscheduledTasksQueryKey, (old) => {
+            const tasks = removeUpdatedTask(old);
+            return updatedTask.date ? tasks : [...tasks, updatedTask];
+          });
+        } else {
+          const applyUpdate = (tasks: Task[] | undefined) =>
+            tasks?.map((candidate) =>
+              candidate.id === id ? { ...candidate, ...data } : candidate,
+            ) ?? tasks;
+
+          queryClient.setQueryData<Task[]>(key, applyUpdate);
+          queryClient.setQueryData<Task[]>(
+            unscheduledTasksQueryKey,
+            applyUpdate,
+          );
+        }
+
+        return { previousTask, previousUnscheduledTask, registration };
+      } catch (error) {
+        if (previousTask && previousUnscheduledTask) {
+          try {
+            restoreTask(key, id, previousTask);
+          } catch {
+            // Continue restoring the other cache and preserve the original error.
+          }
+          try {
+            restoreTask(unscheduledTasksQueryKey, id, previousUnscheduledTask);
+          } catch {
+            // Preserve the original onMutate error after best-effort rollback.
+          }
+        }
+        try {
+          await releaseTaskUpdate(queryClient, registration);
+        } catch {
+          // Preserve the original onMutate error if final invalidation fails.
+        }
+        throw error;
       }
-
-      return { previousTask, previousUnscheduledTask, release, tail };
     },
     onError: (_err, { id }, context) => {
       if (context) {
-        const restoreTask = (
-          queryKey: readonly string[],
-          snapshot: {
-            hadData: boolean;
-            index: number;
-            task: Task | undefined;
-          },
-        ) => {
-          queryClient.setQueryData<Task[]>(queryKey, (current) => {
-            const tasks = (current ?? []).filter((task) => task.id !== id);
-            if (!snapshot.task) return tasks;
-
-            const index = Math.min(snapshot.index, tasks.length);
-            return [
-              ...tasks.slice(0, index),
-              snapshot.task,
-              ...tasks.slice(index),
-            ];
-          });
-
-          if (
-            !snapshot.hadData &&
-            queryClient.getQueryData<Task[]>(queryKey)?.length === 0
-          ) {
-            queryClient.removeQueries({ queryKey, exact: true });
-          }
-        };
-
-        restoreTask(key, context.previousTask);
-        restoreTask(unscheduledTasksQueryKey, context.previousUnscheduledTask);
+        try {
+          restoreTask(key, id, context.previousTask);
+        } catch {
+          // Keep the mutation error and continue restoring the other cache.
+        }
+        try {
+          restoreTask(
+            unscheduledTasksQueryKey,
+            id,
+            context.previousUnscheduledTask,
+          );
+        } catch {
+          // Keep the mutation error so onSettled can release the coordinator.
+        }
       }
       toast.error("タスクの更新に失敗しました");
     },
-    onSettled: (_data, _error, { id }, context) => {
-      const coordinator = taskUpdateCoordinators.get(queryClient);
-      if (!context || !coordinator) return;
-
-      context.release();
-      if (coordinator.locks.get(id) === context.tail) {
-        coordinator.locks.delete(id);
-      }
-      coordinator.activeCount -= 1;
-
-      if (coordinator.activeCount === 0) {
-        taskUpdateCoordinators.delete(queryClient);
-        return queryClient.invalidateQueries({ queryKey: ["tasks"] });
-      }
-    },
+    onSettled: (_data, _error, _variables, context) =>
+      context
+        ? releaseTaskUpdate(queryClient, context.registration)
+        : undefined,
   });
 }
 
