@@ -31,6 +31,7 @@ import { useAuth } from "@/contexts/auth-context";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useRefreshOnFocus } from "@/hooks/use-refresh-on-focus";
 import {
+  isOptimisticTaskId,
   useCreateTask,
   useTasks,
   useUnscheduledTasks,
@@ -83,8 +84,8 @@ export default function HomeScreen() {
   );
   const scheduledTasksQuery = useTasks(year, month);
   const unscheduledTasksQuery = useUnscheduledTasks();
-  const createTaskMutation = useCreateTask();
-  const updateTaskMutation = useUpdateTask();
+  const createTaskMutation = useCreateTask(year, month);
+  const updateTaskMutation = useUpdateTask(year, month);
   useRefreshOnFocus();
 
   const scheduledTasks = scheduledTasksQuery.data ?? EMPTY_TASKS;
@@ -211,6 +212,7 @@ export default function HomeScreen() {
   };
 
   const handleToggleStatus = async (task: Task) => {
+    if (isOptimisticTaskId(task.id)) return;
     const newStatus = task.status === "todo" ? "done" : "todo";
     try {
       await updateTaskMutation.mutateAsync({
@@ -223,6 +225,7 @@ export default function HomeScreen() {
   };
 
   const handleOpenTask = (task: Task) => {
+    if (isOptimisticTaskId(task.id)) return;
     const taskDate = task.date ? new Date(`${task.date}T00:00:00`) : null;
     setSelectedDate(null);
     setShowUnscheduled(false);
