@@ -10,6 +10,7 @@ import {
 } from "@/api/tasks";
 import {
   getTaskDateRange,
+  isOptimisticTaskId,
   taskQueryKeys,
   useCreateTask,
   useDeleteTask,
@@ -142,6 +143,11 @@ describe("mobile task queries", () => {
 
     expect(fetchTasksRange).not.toHaveBeenCalled();
     expect(fetchUnscheduledTasks).not.toHaveBeenCalled();
+  });
+
+  it("楽観作成中の一時task IDを識別する", () => {
+    expect(isOptimisticTaskId("optimistic-123-0")).toBe(true);
+    expect(isOptimisticTaskId(task.id)).toBe(false);
   });
 });
 
@@ -406,6 +412,125 @@ describe("mobile task optimistic mutations", () => {
 
     act(() => second.resolve({ ...task, title: "後続更新" }));
     await waitFor(() => expect(secondHook.result.current.isSuccess).toBe(true));
+  });
+
+  it("同一taskの先行成功後に後続失敗した場合は先行の確定状態へ戻す", async () => {
+    const queryClient = createTestQueryClient();
+    setTaskCaches(queryClient, [task]);
+    const first = deferred<Task>();
+    const second = deferred<Task>();
+    jest
+      .mocked(updateTask)
+      .mockReturnValueOnce(first.promise)
+      .mockReturnValueOnce(second.promise);
+    const firstHook = renderHook(() => useUpdateTask(2026, 8), {
+      wrapper: createWrapper(queryClient),
+    });
+    const secondHook = renderHook(() => useUpdateTask(2026, 8), {
+      wrapper: createWrapper(queryClient),
+    });
+
+    act(() => {
+      firstHook.result.current.mutate({ id: task.id, data: { date: null } });
+      secondHook.result.current.mutate({
+        id: task.id,
+        data: { title: "失敗予定" },
+      });
+    });
+    await waitFor(() => expect(updateTask).toHaveBeenCalledTimes(1));
+
+    const firstConfirmed = { ...task, date: null };
+    act(() => first.resolve(firstConfirmed));
+    await waitFor(() => expect(updateTask).toHaveBeenCalledTimes(2));
+    expect(queryClient.getQueryData(taskQueryKeys.unscheduled)).toEqual([
+      { ...firstConfirmed, title: "失敗予定" },
+    ]);
+
+    act(() => second.reject(new Error("second failed")));
+    await waitFor(() => expect(secondHook.result.current.isError).toBe(true));
+    expect(queryClient.getQueryData(rangeKey)).toEqual([]);
+    expect(queryClient.getQueryData(taskQueryKeys.unscheduled)).toEqual([
+      firstConfirmed,
+    ]);
+  });
+
+  it("同一taskの連続更新が両方成功した場合は最後の確定状態を保持する", async () => {
+    const queryClient = createTestQueryClient();
+    setTaskCaches(queryClient, [task]);
+    const first = deferred<Task>();
+    const second = deferred<Task>();
+    jest
+      .mocked(updateTask)
+      .mockReturnValueOnce(first.promise)
+      .mockReturnValueOnce(second.promise);
+    const firstHook = renderHook(() => useUpdateTask(2026, 8), {
+      wrapper: createWrapper(queryClient),
+    });
+    const secondHook = renderHook(() => useUpdateTask(2026, 8), {
+      wrapper: createWrapper(queryClient),
+    });
+
+    act(() => {
+      firstHook.result.current.mutate({
+        id: task.id,
+        data: { title: "先行成功" },
+      });
+      secondHook.result.current.mutate({
+        id: task.id,
+        data: { status: "done" },
+      });
+    });
+    await waitFor(() => expect(updateTask).toHaveBeenCalledTimes(1));
+
+    const firstConfirmed = { ...task, title: "先行成功" };
+    act(() => first.resolve(firstConfirmed));
+    await waitFor(() => expect(updateTask).toHaveBeenCalledTimes(2));
+    const finalConfirmed = { ...firstConfirmed, status: "done" as const };
+    act(() => second.resolve(finalConfirmed));
+    await waitFor(() => expect(secondHook.result.current.isSuccess).toBe(true));
+
+    expect(queryClient.getQueryData(rangeKey)).toEqual([finalConfirmed]);
+    expect(queryClient.getQueryData(taskQueryKeys.unscheduled)).toEqual([]);
+  });
+
+  it("更新失敗時に未取得だった反対側cacheを未取得状態へ戻す", async () => {
+    const queryClient = createTestQueryClient();
+    queryClient.setQueryData(rangeKey, [task]);
+    const pending = deferred<Task>();
+    jest.mocked(updateTask).mockReturnValue(pending.promise);
+    const { result } = renderHook(() => useUpdateTask(2026, 8), {
+      wrapper: createWrapper(queryClient),
+    });
+
+    act(() => result.current.mutate({ id: task.id, data: { date: null } }));
+    await waitFor(() =>
+      expect(queryClient.getQueryData(taskQueryKeys.unscheduled)).toEqual([
+        { ...task, date: null },
+      ]),
+    );
+    act(() => pending.reject(new Error("update failed")));
+    await waitFor(() => expect(result.current.isError).toBe(true));
+
+    expect(queryClient.getQueryData(rangeKey)).toEqual([task]);
+    expect(queryClient.getQueryData(taskQueryKeys.unscheduled)).toBeUndefined();
+  });
+
+  it("削除失敗時に未取得だった反対側cacheを未取得状態へ戻す", async () => {
+    const queryClient = createTestQueryClient();
+    queryClient.setQueryData(rangeKey, [task]);
+    const pending = deferred<void>();
+    jest.mocked(deleteTask).mockReturnValue(pending.promise);
+    const { result } = renderHook(() => useDeleteTask(2026, 8), {
+      wrapper: createWrapper(queryClient),
+    });
+
+    act(() => result.current.mutate(task.id));
+    await waitFor(() => expect(queryClient.getQueryData(rangeKey)).toEqual([]));
+    act(() => pending.reject(new Error("delete failed")));
+    await waitFor(() => expect(result.current.isError).toBe(true));
+
+    expect(queryClient.getQueryData(rangeKey)).toEqual([task]);
+    expect(queryClient.getQueryData(taskQueryKeys.unscheduled)).toBeUndefined();
   });
 
   it.each([task, unscheduledTask])(

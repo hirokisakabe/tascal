@@ -46,7 +46,12 @@ type MutationRegistration = {
 };
 
 const mutationCoordinators = new WeakMap<QueryClient, MutationCoordinator>();
+const OPTIMISTIC_TASK_ID_PREFIX = "optimistic-";
 let optimisticTaskSequence = 0;
+
+export function isOptimisticTaskId(id: string) {
+  return id.startsWith(OPTIMISTIC_TASK_ID_PREFIX);
+}
 
 function registerMutation(
   queryClient: QueryClient,
@@ -226,7 +231,7 @@ export function useCreateTask(year: number, month: number) {
   return useMutation({
     mutationFn: (data: TaskCreateInput) => createTask(data),
     onMutate: async (data) => {
-      const optimisticId = `optimistic-${Date.now()}-${optimisticTaskSequence++}`;
+      const optimisticId = `${OPTIMISTIC_TASK_ID_PREFIX}${Date.now()}-${optimisticTaskSequence++}`;
       const { previous, registration } = registerMutation(
         queryClient,
         optimisticId,
