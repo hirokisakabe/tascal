@@ -109,6 +109,14 @@ describe("GET /api/auth/get-session", () => {
 });
 
 describe("GET /api/auth/list-sessions", () => {
+  it("未認証では 401 を返す", async () => {
+    const response = await instance.customFetchImpl(
+      "http://localhost:3000/api/auth/list-sessions",
+    );
+
+    expect(response.status).toBe(401);
+  });
+
   it("Cookie 認証では非機密フィールドだけを返す", async () => {
     const { headers } = await instance.signInWithTestUser();
     const response = await instance.customFetchImpl(
