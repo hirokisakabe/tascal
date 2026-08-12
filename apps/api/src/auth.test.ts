@@ -1,11 +1,45 @@
 import { beforeAll, describe, expect, it } from "vitest";
 import { getTestInstance } from "better-auth/test";
-import { createPublicSessionPlugin } from "./auth.js";
+import {
+  createPublicSessionListPlugin,
+  createPublicSessionPlugin,
+} from "./auth.js";
 
 function createTestAuth() {
   return getTestInstance({
-    plugins: [createPublicSessionPlugin()],
+    plugins: [createPublicSessionPlugin(), createPublicSessionListPlugin()],
   });
+}
+
+async function expectSafeSessionList(response: Response) {
+  expect(response.ok).toBe(true);
+  expect(response.headers.get("cache-control")).toBe("private, no-store");
+
+  const body = (await response.json()) as Record<string, unknown>[];
+
+  expect(body.length).toBeGreaterThan(0);
+  for (const session of body) {
+    expect(Object.keys(session).sort()).toEqual(
+      [
+        "id",
+        "userId",
+        "expiresAt",
+        "createdAt",
+        "updatedAt",
+        "ipAddress",
+        "userAgent",
+      ].sort(),
+    );
+    expect(session.id).toEqual(expect.any(String));
+    expect(session.userId).toEqual(expect.any(String));
+    expect(session.expiresAt).toEqual(expect.any(String));
+    expect(session.createdAt).toEqual(expect.any(String));
+    expect(session.updatedAt).toEqual(expect.any(String));
+    expect(session).toHaveProperty("ipAddress");
+    expect(session).toHaveProperty("userAgent");
+    expect(session).not.toHaveProperty("token");
+  }
+  expect(JSON.stringify(body)).not.toContain(bearerToken);
 }
 
 type TestInstance = Awaited<ReturnType<typeof createTestAuth>>;
@@ -71,5 +105,34 @@ describe("GET /api/auth/get-session", () => {
     );
 
     await expectSafeSession(response);
+  });
+});
+
+describe("GET /api/auth/list-sessions", () => {
+  it("未認証では 401 を返す", async () => {
+    const response = await instance.customFetchImpl(
+      "http://localhost:3000/api/auth/list-sessions",
+    );
+
+    expect(response.status).toBe(401);
+  });
+
+  it("Cookie 認証では非機密フィールドだけを返す", async () => {
+    const { headers } = await instance.signInWithTestUser();
+    const response = await instance.customFetchImpl(
+      "http://localhost:3000/api/auth/list-sessions",
+      { headers },
+    );
+
+    await expectSafeSessionList(response);
+  });
+
+  it("Bearer 認証を維持しつつ非機密フィールドだけを返す", async () => {
+    const response = await instance.customFetchImpl(
+      "http://localhost:3000/api/auth/list-sessions",
+      { headers: { Authorization: `Bearer ${bearerToken}` } },
+    );
+
+    await expectSafeSessionList(response);
   });
 });
