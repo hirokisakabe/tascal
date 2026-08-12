@@ -1,5 +1,5 @@
 import { createAuthMiddleware } from "better-auth/api";
-import { betterAuth } from "better-auth";
+import { betterAuth, type BetterAuthPlugin } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { bearer, customSession } from "better-auth/plugins";
 import { getDb } from "./db/index.js";
@@ -32,6 +32,56 @@ export function createPublicSessionPlugin() {
   });
 }
 
+const publicSessionFields = [
+  "id",
+  "userId",
+  "expiresAt",
+  "createdAt",
+  "updatedAt",
+  "ipAddress",
+  "userAgent",
+] as const;
+
+async function getSessionList(returned: unknown): Promise<unknown[] | null> {
+  if (returned instanceof Response) {
+    if (!returned.ok) return null;
+
+    const body: unknown = await returned.clone().json();
+    return Array.isArray(body) ? body : null;
+  }
+
+  return Array.isArray(returned) ? returned : null;
+}
+
+export function createPublicSessionListPlugin() {
+  return {
+    id: "public-session-list",
+    hooks: {
+      after: [
+        {
+          matcher: (ctx) => ctx.path === "/list-sessions",
+          handler: createAuthMiddleware(async (ctx) => {
+            const sessions = await getSessionList(ctx.context.returned);
+            if (!sessions) return;
+
+            ctx.setHeader("Cache-Control", "private, no-store");
+
+            return ctx.json(
+              sessions.map((session) => {
+                const source = session as Record<string, unknown>;
+
+                return Object.fromEntries(
+                  publicSessionFields.map((field) => [field, source[field]]),
+                );
+              }),
+            );
+          }),
+        },
+      ],
+    },
+  } satisfies BetterAuthPlugin;
+}
+
 function createAuth() {
   return betterAuth({
     database: drizzleAdapter(getDb(), {
@@ -42,7 +92,11 @@ function createAuth() {
     emailAndPassword: {
       enabled: true,
     },
-    plugins: [bearer(), createPublicSessionPlugin()],
+    plugins: [
+      bearer(),
+      createPublicSessionPlugin(),
+      createPublicSessionListPlugin(),
+    ],
     trustedOrigins: process.env.TRUSTED_ORIGINS
       ? process.env.TRUSTED_ORIGINS.split(",")
           .map((s) => s.trim())
