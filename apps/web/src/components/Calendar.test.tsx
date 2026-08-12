@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { screen, waitFor } from "@testing-library/react";
+import { act, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Calendar } from "./Calendar";
 import { renderWithQueryClient } from "../test/helpers";
@@ -108,6 +108,18 @@ function getDisplayedRange(year: number, month: number) {
 function getAdjacentDate(year: number, month: number) {
   const { start, end } = getDisplayedRange(year, month);
   return start.getMonth() !== month - 1 ? start : end;
+}
+
+function createDeferredTasks() {
+  let resolve!: (tasks: (typeof mockTask)[]) => void;
+  let reject!: (error: Error) => void;
+  const promise = new Promise<(typeof mockTask)[]>(
+    (resolvePromise, rejectPromise) => {
+      resolve = resolvePromise;
+      reject = rejectPromise;
+    },
+  );
+  return { promise, reject, resolve };
 }
 
 describe("Calendar", () => {
@@ -311,6 +323,92 @@ describe("Calendar", () => {
         expect.any(AbortSignal),
       );
     });
+  });
+
+  it("月切り替え直後は見出しとセルを更新しつつ直前のタスクを維持し、取得成功後に置き換える", async () => {
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth() + 1;
+    const nextYear = currentMonth === 12 ? currentYear + 1 : currentYear;
+    const nextMonth = currentMonth === 12 ? 1 : currentMonth + 1;
+    const nextRange = getDisplayedRange(nextYear, nextMonth);
+    const previousTask = {
+      ...mockTask,
+      title: "直前の範囲のタスク",
+      date: formatDate(nextRange.start),
+    };
+    const nextTask = {
+      ...mockTask,
+      id: "next-range-task",
+      title: "新しい範囲のタスク",
+      date: formatDate(new Date(nextYear, nextMonth - 1, 15)),
+    };
+    const nextFetch = createDeferredTasks();
+    mockFetchTasks
+      .mockResolvedValueOnce([previousTask])
+      .mockReturnValueOnce(nextFetch.promise);
+    const user = userEvent.setup();
+    renderWithQueryClient(<Calendar />);
+
+    expect(await screen.findByText(previousTask.title)).toBeInTheDocument();
+
+    await user.click(screen.getByText("→"));
+
+    expect(screen.getByText(`${nextYear}年${nextMonth}月`)).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", {
+        name: `${formatDate(nextRange.end)}にタスクを追加`,
+      }),
+    ).toBeInTheDocument();
+    expect(screen.getByText(previousTask.title)).toBeInTheDocument();
+
+    const calendar = screen.getByText("月").parentElement?.parentElement;
+    expect(calendar).toHaveAttribute("aria-busy", "true");
+    expect(calendar).toHaveAttribute("data-task-data-state", "placeholder");
+    expect(calendar).not.toHaveClass("opacity-50");
+
+    act(() => nextFetch.resolve([nextTask]));
+
+    await waitFor(() => {
+      expect(screen.getByText(nextTask.title)).toBeInTheDocument();
+      expect(screen.queryByText(previousTask.title)).not.toBeInTheDocument();
+      expect(calendar).toHaveAttribute("aria-busy", "false");
+      expect(calendar).toHaveAttribute("data-task-data-state", "settled");
+    });
+  });
+
+  it("月切り替え後の取得失敗を表示し、直前のタスクを確定データとして残さない", async () => {
+    const now = new Date();
+    const currentMonth = now.getMonth() + 1;
+    const nextYear =
+      currentMonth === 12 ? now.getFullYear() + 1 : now.getFullYear();
+    const nextMonth = currentMonth === 12 ? 1 : currentMonth + 1;
+    const nextRange = getDisplayedRange(nextYear, nextMonth);
+    const previousTask = {
+      ...mockTask,
+      title: "取得失敗時に維持されるタスク",
+      date: formatDate(nextRange.start),
+    };
+    const nextFetch = createDeferredTasks();
+    mockFetchTasks
+      .mockResolvedValueOnce([previousTask])
+      .mockReturnValueOnce(nextFetch.promise);
+    const user = userEvent.setup();
+    renderWithQueryClient(<Calendar />);
+
+    expect(await screen.findByText(previousTask.title)).toBeInTheDocument();
+    await user.click(screen.getByText("→"));
+
+    act(() => nextFetch.reject(new Error("API error")));
+
+    expect(
+      await screen.findByText("タスクの取得に失敗しました"),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(previousTask.title)).not.toBeInTheDocument();
+
+    const calendar = screen.getByText("月").parentElement?.parentElement;
+    expect(calendar).toHaveAttribute("aria-busy", "false");
+    expect(calendar).toHaveAttribute("data-task-data-state", "error");
   });
 
   it("「今日」ボタンで今月に戻れる", async () => {

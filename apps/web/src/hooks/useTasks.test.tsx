@@ -84,6 +84,75 @@ function createDeferredUpdate() {
   return { promise, reject, resolve };
 }
 
+function createDeferredTasks() {
+  let resolve!: (tasks: Task[]) => void;
+  let reject!: (error: Error) => void;
+  const promise = new Promise<Task[]>((resolvePromise, rejectPromise) => {
+    resolve = resolvePromise;
+    reject = rejectPromise;
+  });
+  return { promise, reject, resolve };
+}
+
+describe("useTasks", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("初回取得中は存在しない前回データをplaceholderとして表示しない", () => {
+    const initialFetch = createDeferredTasks();
+    mockFetchTasks.mockReturnValue(initialFetch.promise);
+    const queryClient = createQueryClient();
+    const { result } = renderHook(() => useTasks(2026, 8), {
+      wrapper: createWrapper(queryClient),
+    });
+
+    expect(result.current.data).toBeUndefined();
+    expect(result.current.isPlaceholderData).toBe(false);
+    expect(result.current.isFetching).toBe(true);
+  });
+
+  it("範囲変更中は直前データを維持し、成功時に新しいデータへ置き換える", async () => {
+    const initialTask = scheduledTask;
+    const nextTask = {
+      ...scheduledTask,
+      id: "next-task",
+      title: "次の範囲",
+      date: "2026-09-15",
+    };
+    const nextFetch = createDeferredTasks();
+    mockFetchTasks
+      .mockResolvedValueOnce([initialTask])
+      .mockReturnValueOnce(nextFetch.promise);
+    const queryClient = createQueryClient();
+    const { result, rerender } = renderHook(
+      ({ month }) => useTasks(2026, month),
+      {
+        initialProps: { month: 8 },
+        wrapper: createWrapper(queryClient),
+      },
+    );
+
+    await waitFor(() => expect(result.current.data).toEqual([initialTask]));
+
+    rerender({ month: 9 });
+
+    await waitFor(() => {
+      expect(result.current.data).toEqual([initialTask]);
+      expect(result.current.isPlaceholderData).toBe(true);
+      expect(result.current.isFetching).toBe(true);
+    });
+
+    nextFetch.resolve([nextTask]);
+
+    await waitFor(() => {
+      expect(result.current.data).toEqual([nextTask]);
+      expect(result.current.isPlaceholderData).toBe(false);
+      expect(result.current.isFetching).toBe(false);
+    });
+  });
+});
+
 describe("useUpdateTask", () => {
   beforeEach(() => {
     vi.clearAllMocks();

@@ -1,4 +1,9 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  keepPreviousData,
+  useQuery,
+  useMutation,
+  useQueryClient,
+} from "@tanstack/react-query";
 import type { QueryClient } from "@tanstack/react-query";
 import { getCalendarDateRange } from "@tascal/shared/calendar";
 import type {
@@ -67,6 +72,7 @@ export function useTasks(year: number, month: number) {
   return useQuery({
     queryKey: tasksQueryKey(startDate, endDate),
     queryFn: ({ signal }) => fetchTasks(startDate, endDate, signal),
+    placeholderData: keepPreviousData,
   });
 }
 
