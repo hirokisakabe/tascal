@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const { warn } = vi.hoisted(() => ({ warn: vi.fn() }));
 
@@ -29,6 +29,11 @@ const baseMessage: TransactionalEmail = {
 describe("Resend transactional email sender", () => {
   beforeEach(() => {
     warn.mockReset();
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.restoreAllMocks();
   });
 
   it("text / HTML の両方を渡し、Resend の受付成功を完了として扱う", async () => {
@@ -84,6 +89,35 @@ describe("Resend transactional email sender", () => {
     await expect(sender.send(baseMessage)).rejects.toMatchObject({
       failureType: "rejected",
     });
+  });
+
+  it("SDK の provider response detail を console へ出力しない", async () => {
+    const consoleError = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => {});
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(
+        new Response(
+          JSON.stringify({
+            name: "validation_error",
+            statusCode: 403,
+            message: "private provider response body",
+          }),
+          { status: 403 },
+        ),
+      ),
+    );
+    const sender = createResendEmailSender({
+      apiKey: "test-key",
+      fromEmail: "no-reply@example.com",
+      fromName: "tascal",
+    });
+
+    await expect(sender.send(baseMessage)).rejects.toMatchObject({
+      failureType: "rejected",
+    });
+    expect(consoleError).not.toHaveBeenCalled();
   });
 
   it("送信 timeout を中断し、安全な timeout 分類へ変換する", async () => {

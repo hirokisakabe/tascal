@@ -44,6 +44,19 @@ type ResendSenderOptions = {
   client?: ResendClient;
 };
 
+function createSafeResendClient(apiKey: string): ResendClient {
+  const resend = new Resend(apiKey);
+
+  // The SDK logs the full provider error in non-production environments.
+  // Disable that internal diagnostic path so only our sanitized structured
+  // failure log is emitted in every environment.
+  Object.defineProperty(resend, "logError", {
+    value: () => undefined,
+  });
+
+  return resend;
+}
+
 export class EmailDeliveryError extends Error {
   constructor(readonly failureType: EmailFailureType) {
     super(`Transactional email delivery failed: ${failureType}`);
@@ -80,7 +93,7 @@ export function createResendEmailSender({
   client,
 }: ResendSenderOptions): TransactionalEmailSender {
   const configurationValid = Boolean(apiKey && fromEmail && fromName);
-  const resend = client ?? (apiKey ? new Resend(apiKey) : null);
+  const resend = client ?? (apiKey ? createSafeResendClient(apiKey) : null);
 
   return {
     async send(message) {
