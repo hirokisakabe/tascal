@@ -6,7 +6,7 @@ const GENERIC_RESET_RESPONSE = {
     "If this email exists in our system, check your email for the reset link",
 };
 
-export type AuthRequestHandlerOptions = {
+type AuthRequestHandlerOptions = {
   request: Request;
   requestId: string;
   handler: (request: Request) => Promise<Response>;

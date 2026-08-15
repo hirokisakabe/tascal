@@ -9,7 +9,7 @@ export type EmailFailureType =
   | "unreachable"
   | "unknown";
 
-export type EmailDeliveryFailure = {
+type EmailDeliveryFailure = {
   purpose: EmailPurpose;
   failureType: EmailFailureType;
   requestId: string;
