@@ -33,4 +33,25 @@ describe("LoginScreen", () => {
       expect(mockSignIn).toHaveBeenCalledWith("user@example.com", "secret");
     });
   });
+
+  it("未確認ユーザーへメール内リンクを Web で開く次の操作を表示する", async () => {
+    mockSignIn.mockRejectedValue(
+      new Error(
+        "メールアドレスの確認が必要です。確認メールを再送しました。メール内のリンクを Web で開いてから、もう一度ログインしてください。",
+      ),
+    );
+    renderRouter({ login: LoginScreen }, { initialUrl: "/login" });
+
+    fireEvent.changeText(
+      screen.getByPlaceholderText("メールアドレス"),
+      "user@example.com",
+    );
+    fireEvent.changeText(screen.getByPlaceholderText("パスワード"), "secret");
+    fireEvent.press(screen.getByText("ログイン"));
+
+    expect(
+      await screen.findByText(/確認メールを再送しました/),
+    ).toBeOnTheScreen();
+    expect(screen.getByText(/Web で開いて/)).toBeOnTheScreen();
+  });
 });

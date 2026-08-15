@@ -18,7 +18,7 @@ vi.mock("../config.js", () => ({
 
 import { password, text } from "@clack/prompts";
 import { readConfig, writeConfig, getApiUrl } from "../config.js";
-import command from "./login.js";
+import command, { getLoginFailureMessage } from "./login.js";
 
 const originalIsTTY = process.stdin.isTTY;
 
@@ -74,5 +74,21 @@ describe("login", () => {
       token: "session-token",
       apiUrl: "https://tascal.dev",
     });
+  });
+
+  it("未確認 error をメール再送と Web 継続の案内へ変換する", () => {
+    const message = getLoginFailureMessage(403, {
+      code: "EMAIL_NOT_VERIFIED",
+    });
+    expect(message).toContain("確認メールを再送しました");
+    expect(message).toContain("Web で開いて");
+  });
+
+  it("配送失敗では成功を断定せず再試行を案内する", () => {
+    const message = getLoginFailureMessage(503, {
+      code: "EMAIL_DELIVERY_UNAVAILABLE",
+    });
+    expect(message).toContain("送信できませんでした");
+    expect(message).not.toContain("再送しました");
   });
 });
