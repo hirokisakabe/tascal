@@ -98,6 +98,8 @@ jobs:
 
       - name: Deploy to Cloud Run
         run: |
+          # PR preview には意図的に RESEND_API_KEY / EMAIL_FROM_* を渡さない。
+          # 未レビューコードからメール送信資格情報を隔離する。
           IMAGE=${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.SERVICE_NAME }}:${{ github.sha }}
           gcloud run deploy ${{ env.SERVICE_NAME }} \
             --image $IMAGE \

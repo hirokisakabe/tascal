@@ -4,6 +4,14 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { bearer, customSession } from "better-auth/plugins";
 import { getDb } from "./db/index.js";
 import * as schema from "./db/schema.js";
+import {
+  createEmailSenderFromEnv,
+  createPasswordResetEmail,
+  createVerificationEmail,
+  deliverAuthEmail,
+  getEmailRequestId,
+  type TransactionalEmailSender,
+} from "./email.js";
 import logger from "./logger.js";
 
 function maskEmail(email: string): string {
@@ -82,16 +90,57 @@ export function createPublicSessionListPlugin() {
   } satisfies BetterAuthPlugin;
 }
 
+export function createAuthOptions(sender: TransactionalEmailSender) {
+  return {
+    disabledPaths: ["/send-verification-email"] as string[],
+    emailVerification: {
+      expiresIn: 60 * 60,
+      sendOnSignUp: true,
+      sendOnSignIn: true,
+      autoSignInAfterVerification: false,
+      sendVerificationEmail: async (
+        { user, url }: { user: { email: string }; url: string },
+        request?: Request,
+      ) => {
+        const verificationUrl = new URL(url);
+        verificationUrl.searchParams.set("callbackURL", "/login?verified=true");
+        await deliverAuthEmail(
+          sender,
+          createVerificationEmail(
+            user.email,
+            verificationUrl.toString(),
+            getEmailRequestId(request),
+          ),
+        );
+      },
+    },
+    emailAndPassword: {
+      enabled: true,
+      requireEmailVerification: true,
+      resetPasswordTokenExpiresIn: 60 * 60,
+      revokeSessionsOnPasswordReset: true,
+      sendResetPassword: async (
+        { user, url }: { user: { email: string }; url: string },
+        request?: Request,
+      ) => {
+        await deliverAuthEmail(
+          sender,
+          createPasswordResetEmail(user.email, url, getEmailRequestId(request)),
+        );
+      },
+    },
+  } as const;
+}
+
 function createAuth() {
+  const emailSender = createEmailSenderFromEnv();
   return betterAuth({
     database: drizzleAdapter(getDb(), {
       provider: "pg",
       schema,
       usePlural: true,
     }),
-    emailAndPassword: {
-      enabled: true,
-    },
+    ...createAuthOptions(emailSender),
     plugins: [
       bearer(),
       createPublicSessionPlugin(),
