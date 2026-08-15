@@ -5,6 +5,12 @@ import { renderWithQueryClient } from "../test/helpers";
 
 const mockSignInEmail = vi.fn();
 const mockNavigate = vi.fn();
+let mockSearch: {
+  verified?: boolean;
+  signup?: boolean;
+  passwordReset?: boolean;
+  error?: string;
+} = {};
 
 vi.mock("../auth-client", () => ({
   authClient: {
@@ -19,7 +25,7 @@ let capturedComponent: React.ComponentType | null = null;
 vi.mock("@tanstack/react-router", () => ({
   createFileRoute: () => (opts: { component: React.ComponentType }) => {
     capturedComponent = opts.component;
-    return { options: opts };
+    return { options: opts, useSearch: () => mockSearch };
   },
   redirect: vi.fn(),
   useNavigate: () => mockNavigate,
@@ -28,6 +34,8 @@ vi.mock("@tanstack/react-router", () => ({
 describe("LoginPage", () => {
   beforeEach(async () => {
     vi.clearAllMocks();
+    mockSearch = {};
+    window.history.replaceState({}, "", "/login");
     await import("./login");
   });
 
@@ -52,6 +60,7 @@ describe("LoginPage", () => {
       expect(mockSignInEmail).toHaveBeenCalledWith({
         email: "test@example.com",
         password: "password123",
+        callbackURL: "/login?verified=true",
       });
     });
   });
@@ -145,5 +154,77 @@ describe("LoginPage", () => {
     await user.click(screen.getByText("サインアップ"));
 
     expect(mockNavigate).toHaveBeenCalledWith({ to: "/signup" });
+  });
+
+  it("未確認エラーでは確認メールを再送したことと次の操作を案内する", async () => {
+    mockSignInEmail.mockResolvedValue({
+      error: { code: "EMAIL_NOT_VERIFIED", message: "Email not verified" },
+    });
+    const user = userEvent.setup();
+    renderLoginPage();
+
+    await user.type(
+      screen.getByLabelText("メールアドレス"),
+      "test@example.com",
+    );
+    await user.type(screen.getByLabelText("パスワード"), "password123");
+    await user.click(screen.getByRole("button", { name: "ログイン" }));
+
+    expect(
+      await screen.findByText(/確認メールを再送しました/),
+    ).toBeInTheDocument();
+  });
+
+  it("配送失敗時は送信成功を断定せず再試行を案内する", async () => {
+    mockSignInEmail.mockResolvedValue({
+      error: {
+        code: "EMAIL_DELIVERY_UNAVAILABLE",
+        message: "provider detail",
+      },
+    });
+    const user = userEvent.setup();
+    renderLoginPage();
+
+    await user.type(
+      screen.getByLabelText("メールアドレス"),
+      "test@example.com",
+    );
+    await user.type(screen.getByLabelText("パスワード"), "password123");
+    await user.click(screen.getByRole("button", { name: "ログイン" }));
+
+    expect(
+      await screen.findByText(/確認メールを送信できませんでした/),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/再送しました/)).not.toBeInTheDocument();
+  });
+
+  it("確認成功の案内を表示し、検索 parameter を一度だけ消費する", async () => {
+    mockSearch = { verified: true };
+    window.history.replaceState({}, "", "/login?verified=true");
+    renderLoginPage();
+
+    expect(
+      screen.getByText("メールアドレスを確認しました。ログインしてください。"),
+    ).toBeInTheDocument();
+    await waitFor(() => expect(window.location.search).toBe(""));
+  });
+
+  it("無効・期限切れの確認 link では資格情報による再送方法を案内する", () => {
+    mockSearch = { error: "TOKEN_EXPIRED" };
+    renderLoginPage();
+
+    expect(
+      screen.getByText(/確認リンクが無効または期限切れ/),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "ログイン" }),
+    ).toBeInTheDocument();
+  });
+
+  it("パスワード再設定導線を表示する", () => {
+    renderLoginPage();
+    expect(
+      screen.getByRole("link", { name: "パスワードをお忘れですか？" }),
+    ).toHaveAttribute("href", "/forgot-password");
   });
 });
