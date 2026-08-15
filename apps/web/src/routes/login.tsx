@@ -61,7 +61,6 @@ function LoginPage() {
       .email({
         email,
         password,
-        callbackURL: "/login?verified=true",
       })
       .then(({ error }) => {
         if (error) {

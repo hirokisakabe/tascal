@@ -1,5 +1,6 @@
 import LoginScreen from "@/app/login";
 import { fireEvent, renderRouter, screen, waitFor } from "@/test-utils/router";
+import { AccessibilityInfo } from "react-native";
 
 const mockSignIn = jest.fn();
 
@@ -35,6 +36,7 @@ describe("LoginScreen", () => {
   });
 
   it("未確認ユーザーへメール内リンクを Web で開く次の操作を表示する", async () => {
+    const announce = jest.spyOn(AccessibilityInfo, "announceForAccessibility");
     mockSignIn.mockRejectedValue(
       new Error(
         "メールアドレスの確認が必要です。確認メールを再送しました。メール内のリンクを Web で開いてから、もう一度ログインしてください。",
@@ -53,5 +55,8 @@ describe("LoginScreen", () => {
       await screen.findByText(/確認メールを再送しました/),
     ).toBeOnTheScreen();
     expect(screen.getByText(/Web で開いて/)).toBeOnTheScreen();
+    expect(announce).toHaveBeenCalledWith(
+      expect.stringContaining("確認メールを再送しました"),
+    );
   });
 });

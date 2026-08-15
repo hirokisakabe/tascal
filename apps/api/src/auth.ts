@@ -102,9 +102,15 @@ export function createAuthOptions(sender: TransactionalEmailSender) {
         { user, url }: { user: { email: string }; url: string },
         request?: Request,
       ) => {
+        const verificationUrl = new URL(url);
+        verificationUrl.searchParams.set("callbackURL", "/login?verified=true");
         await deliverAuthEmail(
           sender,
-          createVerificationEmail(user.email, url, getEmailRequestId(request)),
+          createVerificationEmail(
+            user.email,
+            verificationUrl.toString(),
+            getEmailRequestId(request),
+          ),
         );
       },
     },

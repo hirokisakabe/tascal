@@ -60,7 +60,6 @@ describe("LoginPage", () => {
       expect(mockSignInEmail).toHaveBeenCalledWith({
         email: "test@example.com",
         password: "password123",
-        callbackURL: "/login?verified=true",
       });
     });
   });

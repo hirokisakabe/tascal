@@ -43,7 +43,6 @@ describe("email verification", () => {
       name: "New User",
       email,
       password,
-      callbackURL: "/login?verified=true",
     });
     expect(signUp.status).toBe(200);
     expect(await signUp.json()).toMatchObject({ token: null });
@@ -56,7 +55,6 @@ describe("email verification", () => {
     const blockedSignIn = await postJson(instance, "/sign-in/email", {
       email,
       password,
-      callbackURL: "/login?verified=true",
     });
     expect(blockedSignIn.status).toBe(403);
     expect(await blockedSignIn.json()).toMatchObject({
@@ -71,7 +69,7 @@ describe("email verification", () => {
     expect(publicResend.status).toBe(404);
 
     const verify = await instance.customFetchImpl(
-      messages[0].text.match(/https?:\/\/\S+/)![0],
+      messages[1].text.match(/https?:\/\/\S+/)![0],
       {
         redirect: "manual",
       },

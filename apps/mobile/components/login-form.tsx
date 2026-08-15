@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
+  AccessibilityInfo,
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
@@ -23,6 +24,12 @@ export function LoginForm({ onSignIn, initialError = "" }: LoginFormProps) {
   const [password, setPassword] = useState("");
   const [error, setError] = useState(initialError);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (error) {
+      AccessibilityInfo.announceForAccessibility(error);
+    }
+  }, [error]);
 
   const handleSignIn = async () => {
     if (!email || !password) {
@@ -96,6 +103,7 @@ export function LoginForm({ onSignIn, initialError = "" }: LoginFormProps) {
         {error ? (
           <View
             style={[styles.error, { borderColor: Colors[colorScheme].danger }]}
+            accessibilityRole="alert"
           >
             <ThemedText
               style={[styles.errorText, { color: Colors[colorScheme].danger }]}
