@@ -90,6 +90,11 @@ async function seed() {
     console.log(`✅ Created seed user (id: ${userId})`);
   }
 
+  await db
+    .update(users)
+    .set({ emailVerified: true })
+    .where(eq(users.id, userId));
+
   // Insert sample tasks (skip if tasks already exist for this user)
   const existingTasks = await db
     .select()
