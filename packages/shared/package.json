@@ -17,7 +17,7 @@
   },
   "dependencies": {
     "@tascal/api": "workspace:*",
-    "hono": "4.13.7"
+    "hono": "4.13.11"
   },
   "devDependencies": {
     "@eslint/js": "9.39.4",
