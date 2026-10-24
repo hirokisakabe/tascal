@@ -53,7 +53,7 @@
     "@storybook/addon-ondevice-actions": "10.5.1",
     "@storybook/react-native": "10.5.1",
     "react-native-svg": "15.12.1",
-    "storybook": "10.5.1"
+    "storybook": "10.6.2"
   },
   "devDependencies": {
     "@testing-library/react-native": "^13.3.3",
