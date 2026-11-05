@@ -5,6 +5,7 @@ import { HTTPException } from "hono/http-exception";
 import { cors } from "hono/cors";
 import { getAuth } from "./auth.js";
 import type { Auth } from "./auth.js";
+import { handleAuthRequest } from "./auth-handler.js";
 import { getDb } from "./db/index.js";
 import logger from "./logger.js";
 import categoriesApp from "./routes/categories.js";
@@ -14,11 +15,19 @@ import usersApp from "./routes/users.js";
 type AuthVariables = {
   user: Auth["$Infer"]["Session"]["user"] | null;
   session: Auth["$Infer"]["Session"]["session"] | null;
+  requestId: string;
 };
 
 const SKIP_LOG_PATHS = new Set(["/healthz"]);
 
 const app = new Hono<{ Variables: AuthVariables }>();
+
+app.use("*", async (c, next) => {
+  const requestId = crypto.randomUUID();
+  c.set("requestId", requestId);
+  c.header("X-Request-ID", requestId);
+  await next();
+});
 
 // リクエストログミドルウェア
 app.use("*", async (c, next) => {
@@ -41,6 +50,7 @@ app.use("*", async (c, next) => {
         path: c.req.path,
         status,
         duration,
+        requestId: c.get("requestId"),
       },
       `${c.req.method} ${c.req.path} ${status} ${duration}ms`,
     );
@@ -55,6 +65,7 @@ app.onError((err, c) => {
         method: c.req.method,
         path: c.req.path,
         status: err.status,
+        requestId: c.get("requestId"),
       },
       `HTTP error: ${err.message}`,
     );
@@ -66,6 +77,7 @@ app.onError((err, c) => {
       err,
       method: c.req.method,
       path: c.req.path,
+      requestId: c.get("requestId"),
     },
     `Unhandled error: ${err.message}`,
   );
@@ -111,8 +123,17 @@ app.use("/api/*", async (c, next) => {
   await next();
 });
 
-app.on(["POST", "GET"], "/api/auth/**", (c) => {
-  return getAuth().handler(c.req.raw);
+app.on(["POST", "GET"], "/api/auth/**", async (c) => {
+  const configuredMinimum = Number(process.env.PASSWORD_RESET_MIN_RESPONSE_MS);
+  return handleAuthRequest({
+    request: c.req.raw,
+    requestId: c.get("requestId"),
+    handler: (request) => getAuth().handler(request),
+    passwordResetMinimumMs:
+      Number.isFinite(configuredMinimum) && configuredMinimum >= 0
+        ? configuredMinimum
+        : undefined,
+  });
 });
 
 // RPC 型推論のためチェイン形式でルートをマウント

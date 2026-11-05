@@ -56,8 +56,10 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      # Cloud Run の環境変数（DATABASE_URL, BETTER_AUTH_SECRET, BETTER_AUTH_URL, TRUSTED_ORIGINS）は
-      # Google Cloud コンソールまたは gcloud CLI で事前に設定してください
+      # Cloud Run の環境変数（DATABASE_URL, BETTER_AUTH_SECRET, BETTER_AUTH_URL,
+      # TRUSTED_ORIGINS, EMAIL_FROM_ADDRESS, EMAIL_FROM_NAME）は Google Cloud
+      # コンソールまたは gcloud CLI で事前に設定してください。
+      # RESEND_API_KEY は Secret Manager から Cloud Run に割り当てます。
       # GitHub Secrets にも DATABASE_URL の設定が必要です（マイグレーション実行用）
       - name: Deploy to Cloud Run
         run: |

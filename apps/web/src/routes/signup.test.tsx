@@ -67,11 +67,12 @@ describe("SignupPage", () => {
         name: "テストユーザー",
         email: "test@example.com",
         password: "password123",
+        callbackURL: "/login?verified=true",
       });
     });
   });
 
-  it("サインアップ成功時に /app へナビゲートする", async () => {
+  it("サインアップ成功時に確認メール案内付きの /login へナビゲートする", async () => {
     mockSignUpEmail.mockResolvedValue({ error: null });
     const user = userEvent.setup();
     renderSignupPage();
@@ -85,7 +86,10 @@ describe("SignupPage", () => {
     await user.click(screen.getByRole("button", { name: "サインアップ" }));
 
     await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith({ to: "/app" });
+      expect(mockNavigate).toHaveBeenCalledWith({
+        to: "/login",
+        search: { signup: true },
+      });
     });
   });
 
@@ -131,6 +135,27 @@ describe("SignupPage", () => {
         screen.getByText("サインアップに失敗しました"),
       ).toBeInTheDocument();
     });
+  });
+
+  it("配送失敗時はアカウント作成後の確認メール再試行方法を案内する", async () => {
+    mockSignUpEmail.mockResolvedValue({
+      error: { code: "EMAIL_DELIVERY_UNAVAILABLE", message: "private" },
+    });
+    const user = userEvent.setup();
+    renderSignupPage();
+
+    await user.type(screen.getByLabelText("名前"), "テストユーザー");
+    await user.type(
+      screen.getByLabelText("メールアドレス"),
+      "test@example.com",
+    );
+    await user.type(screen.getByLabelText("パスワード"), "password123");
+    await user.click(screen.getByRole("button", { name: "サインアップ" }));
+
+    expect(
+      await screen.findByText(/確認メールを送信できませんでした/),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/ログイン画面で同じ資格情報/)).toBeInTheDocument();
   });
 
   it("API 呼び出し中はボタンが disabled になり「サインアップ中...」と表示される", async () => {

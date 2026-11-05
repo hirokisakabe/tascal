@@ -23,6 +23,26 @@ type AuthContextValue = {
   signOut: () => Promise<void>;
 };
 
+type AuthErrorBody = {
+  code?: string;
+};
+
+export function getSignInErrorMessage(
+  status: number,
+  body: AuthErrorBody | null,
+): string {
+  if (body?.code === "EMAIL_NOT_VERIFIED") {
+    return "メールアドレスの確認が必要です。確認メールを再送しました。メール内のリンクを Web で開いてから、もう一度ログインしてください。";
+  }
+  if (body?.code === "EMAIL_DELIVERY_UNAVAILABLE") {
+    return "確認メールを送信できませんでした。時間をおいて、同じ資格情報で再度ログインしてください。";
+  }
+  if (status === 401) {
+    return "メールアドレスまたはパスワードが正しくありません";
+  }
+  return "ログインに失敗しました。再度お試しください。";
+}
+
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -65,7 +85,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
 
     if (!res.ok) {
-      throw new Error("メールアドレスまたはパスワードが正しくありません");
+      let body: AuthErrorBody | null = null;
+      try {
+        body = (await res.json()) as AuthErrorBody;
+      } catch {
+        // JSON でない error response は status のみで安全な案内へ変換する
+      }
+      throw new Error(getSignInErrorMessage(res.status, body));
     }
 
     // Bearer トークンは set-auth-token ヘッダーで返される

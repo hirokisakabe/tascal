@@ -38,14 +38,21 @@ function SignupPage() {
         name,
         email,
         password,
+        callbackURL: "/login?verified=true",
       })
       .then(({ error }) => {
         if (error) {
-          setError(error.message ?? "サインアップに失敗しました");
+          if (error.code === "EMAIL_DELIVERY_UNAVAILABLE") {
+            setError(
+              "アカウントは作成されましたが、確認メールを送信できませんでした。ログイン画面で同じ資格情報を入力して再送してください。",
+            );
+          } else {
+            setError(error.message ?? "サインアップに失敗しました");
+          }
           setIsPending(false);
           return;
         }
-        void navigate({ to: "/app" });
+        void navigate({ to: "/login", search: { signup: true } });
       })
       .catch(() => {
         setError("サインアップに失敗しました");
